@@ -2,7 +2,7 @@
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-04-13
-**Feature**: specs/003-idle-timer-controls/spec.md
+**Feature**: [spec.md](../spec.md)
 
 ## Content Quality
 
@@ -31,4 +31,5 @@
 
 ## Notes
 
-- This spec focuses on behavior/state changes for button routing in idle vs active match states. Create plan/tasks to validate on physical devices and ensure regression tests for in-match button behavior.
+- Validation rerun on 2026-04-13 after updating the existing idle-timer-controls specification. All checklist items pass with no clarification markers remaining.
+- This spec focuses on behavior/state changes for button routing in idle vs active match states. Plan/tasks should validate supported physical-button paths and ensure regression coverage for active-match scoring behavior.
