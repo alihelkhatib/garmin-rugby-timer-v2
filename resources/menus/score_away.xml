@@ -1,0 +1,5 @@
+<menu2 id="AwayScoreTypeMenu" title="@Strings.ScoreTeam_AwayTitle" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+  <menu-item id="score_try" label="@Strings.ScoreType_Try" />
+  <menu-item id="score_penalty_goal" label="@Strings.ScoreType_PenaltyGoal" />
+  <menu-item id="score_drop_goal" label="@Strings.ScoreType_DropGoal" />
+</menu2>

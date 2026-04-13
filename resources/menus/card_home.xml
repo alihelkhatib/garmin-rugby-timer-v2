@@ -1,0 +1,4 @@
+<menu2 id="HomeCardTypeMenu" title="@Strings.CardTeam_HomeTitle" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+  <menu-item id="card_yellow" label="@Strings.CardType_Yellow" />
+  <menu-item id="card_red" label="@Strings.CardType_Red" />
+</menu2>

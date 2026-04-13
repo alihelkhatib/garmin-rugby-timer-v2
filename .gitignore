@@ -1,0 +1,13 @@
+bin/
+build/
+out/
+gen/
+*.prg
+*.iq
+*.debug.xml
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

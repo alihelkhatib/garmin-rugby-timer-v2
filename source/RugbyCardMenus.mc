@@ -1,0 +1,60 @@
+import Toybox.System;
+import Toybox.WatchUi;
+
+function rugbyIsCardTeamHome(item) {
+    var itemId = item.getId();
+    return itemId == :card_team_home || itemId == "card_team_home";
+}
+
+function rugbyIsYellowCard(item) {
+    var itemId = item.getId();
+    return itemId == :card_yellow || itemId == "card_yellow";
+}
+
+class RugbyCardTeamDelegate extends WatchUi.Menu2InputDelegate {
+    var _model;
+
+    function initialize(model) {
+        Menu2InputDelegate.initialize();
+        _model = model;
+    }
+
+    function onSelect(item) {
+        var teamId = rugbyIsCardTeamHome(item) ? RUGBY_TEAM_HOME : RUGBY_TEAM_AWAY;
+        if (teamId == RUGBY_TEAM_HOME) {
+            WatchUi.pushView(new Rez.Menus.HomeCardTypeMenu(), new RugbyCardTypeDelegate(_model, teamId), WatchUi.SLIDE_UP);
+        } else {
+            WatchUi.pushView(new Rez.Menus.AwayCardTypeMenu(), new RugbyCardTypeDelegate(_model, teamId), WatchUi.SLIDE_UP);
+        }
+    }
+
+    function onBack() {
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+    }
+}
+
+class RugbyCardTypeDelegate extends WatchUi.Menu2InputDelegate {
+    var _model;
+    var _teamId;
+
+    function initialize(model, teamId) {
+        Menu2InputDelegate.initialize();
+        _model = model;
+        _teamId = teamId;
+    }
+
+    function onSelect(item) {
+        if (rugbyIsYellowCard(item)) {
+            _model.startYellowCard(_teamId, System.getTimer());
+        } else {
+            _model.recordRedCard(_teamId, System.getTimer());
+        }
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        WatchUi.requestUpdate();
+    }
+
+    function onBack() {
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+    }
+}

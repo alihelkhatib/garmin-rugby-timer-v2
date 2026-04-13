@@ -1,0 +1,27 @@
+<strings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+  <string id="AppName">Rugby Timer</string>
+  <string id="Activity_Name">Rugby</string>
+  <string id="Team_Home_Short">HOME</string>
+  <string id="Team_Away_Short">AWAY</string>
+  <string id="Team_Home">Home</string>
+  <string id="Team_Away">Away</string>
+  <string id="HalfPrefix">Half </string>
+  <string id="TrySuffix">T</string>
+  <string id="CardPrefix_Yellow">Y</string>
+  <string id="CardPrefix_Red">R</string>
+  <string id="State_Paused">PAUSED</string>
+  <string id="State_ReadyToStart">Ready</string>
+  <string id="State_GameEnded">GAME ENDED</string>
+  <string id="State_Conversion">CONVERSION</string>
+  <string id="ScoreTeam_Title">Score Team</string>
+  <string id="ScoreTeam_HomeTitle">Home Score</string>
+  <string id="ScoreTeam_AwayTitle">Away Score</string>
+  <string id="ScoreType_Try">Try (+5)</string>
+  <string id="ScoreType_PenaltyGoal">Penalty Goal (+3)</string>
+  <string id="ScoreType_DropGoal">Drop Goal (+3)</string>
+  <string id="CardTeam_Title">Card Team</string>
+  <string id="CardTeam_HomeTitle">Home Card</string>
+  <string id="CardTeam_AwayTitle">Away Card</string>
+  <string id="CardType_Yellow">Yellow</string>
+  <string id="CardType_Red">Red</string>
+</strings>
