@@ -94,6 +94,15 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onMenu() as Boolean {
+        return menuAction();
+    }
+
+    function menuAction() as Boolean {
+        var snap = _model.snapshot(System.getTimer()) as Dictionary;
+        if (canOpenVariantMenuForState(snap["clockState"])) {
+            return openVariantMenu();
+        }
+        System.println("RUGBY|RugbyTimerDelegate|menuAction variantMenuBlocked clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
         return upMenuAction();
     }
 
@@ -165,7 +174,11 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
             System.println("RUGBY|RugbyTimerDelegate|handleKey -> selectAction");
             return selectAction();
         }
-        if (key == WatchUi.KEY_MENU || key == WatchUi.KEY_UP || key == WatchUi.KEY_UP_LEFT || key == WatchUi.KEY_UP_RIGHT) {
+        if (key == WatchUi.KEY_MENU) {
+            System.println("RUGBY|RugbyTimerDelegate|handleKey -> menuAction");
+            return menuAction();
+        }
+        if (key == WatchUi.KEY_UP || key == WatchUi.KEY_UP_LEFT || key == WatchUi.KEY_UP_RIGHT) {
             System.println("RUGBY|RugbyTimerDelegate|handleKey -> upMenuAction");
             return upMenuAction();
         }
@@ -204,6 +217,10 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
 
     function canOpenMatchOptionsForState(clockState as String) as Boolean {
         return isActiveMatchState(clockState) || stateEquals(clockState, RUGBY_STATE_MATCH_ENDED);
+    }
+
+    function canOpenVariantMenuForState(clockState as String) as Boolean {
+        return stateEquals(clockState, RUGBY_STATE_NOT_STARTED);
     }
 /* Guard against invalid states before opening score menus. */
 
@@ -270,6 +287,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function setVariant(variantId as String) as Void {
+        System.println("RUGBY|RugbyTimerDelegate|setVariant variantId=" + variantId);
         _model.setVariant(variantId);
         WatchUi.requestUpdate();
     }
@@ -294,6 +312,67 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
     function showMatchSummary() as Void {
         System.println("RUGBY|RugbyTimerDelegate|showMatchSummary eventCount=" + _model.eventLog().size().format("%d"));
         WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(), WatchUi.SLIDE_UP);
+    }
+
+    function openVariantMenu() as Boolean {
+        var snap = _model.snapshot(System.getTimer()) as Dictionary;
+        if (!canOpenVariantMenuForState(snap["clockState"])) {
+            System.println("RUGBY|RugbyTimerDelegate|openVariantMenu blocked clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
+            WatchUi.requestUpdate();
+            return true;
+        }
+        System.println("RUGBY|RugbyTimerDelegate|openVariantMenu snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " currentVariant=" + (snap["variantId"] == null ? "null" : snap["variantId"]));
+        WatchUi.pushView(new Rez.Menus.VariantMenu(), new RugbyVariantMenuDelegate(self), WatchUi.SLIDE_UP);
+        return true;
+    }
+}
+
+class RugbyVariantMenuDelegate extends WatchUi.Menu2InputDelegate {
+    var _timerDelegate as RugbyTimerDelegate;
+
+    function initialize(timerDelegate as RugbyTimerDelegate) {
+        Menu2InputDelegate.initialize();
+        _timerDelegate = timerDelegate;
+    }
+
+    function onSelect(item) {
+        var itemId = item.getId();
+        var variantId = variantIdForItem(itemId) as String?;
+        System.println("RUGBY|RugbyVariantMenuDelegate|onSelect itemId=" + itemId + " variantId=" + (variantId == null ? "null" : variantId));
+        if (variantId != null) {
+            _timerDelegate.setVariant(variantId);
+        }
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        WatchUi.requestUpdate();
+    }
+
+    function onBack() {
+        System.println("RUGBY|RugbyVariantMenuDelegate|onBack cancel");
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        WatchUi.requestUpdate();
+    }
+
+    function variantIdForItem(itemId) as String? {
+        if (valueEquals(itemId, :variant_fifteens) || valueEquals(itemId, "variant_fifteens")) {
+            return RUGBY_VARIANT_FIFTEENS;
+        }
+        if (valueEquals(itemId, :variant_sevens) || valueEquals(itemId, "variant_sevens")) {
+            return RUGBY_VARIANT_SEVENS;
+        }
+        if (valueEquals(itemId, :variant_tens) || valueEquals(itemId, "variant_tens")) {
+            return RUGBY_VARIANT_TENS;
+        }
+        if (valueEquals(itemId, :variant_u19) || valueEquals(itemId, "variant_u19")) {
+            return RUGBY_VARIANT_U19;
+        }
+        return null;
+    }
+
+    function valueEquals(value, expected) as Boolean {
+        if (value == null || expected == null) {
+            return false;
+        }
+        return ("" + value).equals("" + expected);
     }
 }
 

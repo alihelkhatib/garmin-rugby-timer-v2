@@ -64,6 +64,7 @@ class RugbyTimerView extends WatchUi.View {
         handleHaptics(snap);
         bindLayout(snap);
         View.onUpdate(dc);
+        drawRedCardIndicators(dc, snap);
     }
 
     function updateRefreshTimer(snap as Dictionary) as Void {
@@ -174,16 +175,56 @@ class RugbyTimerView extends WatchUi.View {
     }
 
     function bindTeamCard(id as String, sanctions as Array<Dictionary>, teamId as String) as Void {
-        for (var i = 0; i < sanctions.size(); i += 1) {
-            var sanction = sanctions[i] as Dictionary;
-            if (valueEquals(sanction["teamId"], teamId)) {
-                var color = valueEquals(sanction["cardType"], RUGBY_CARD_RED) ? Graphics.COLOR_RED : Graphics.COLOR_YELLOW;
-                System.println("RUGBY|RugbyTimerView|bindTeamCard id=" + id + " teamId=" + teamId + " sanctionId=" + (sanction["id"] == null ? "null" : sanction["id"].format("%d")) + " cardType=" + (sanction["cardType"] == null ? "null" : sanction["cardType"]) + " remainingSeconds=" + (sanction["remainingSeconds"] == null ? "null" : sanction["remainingSeconds"].format("%d")) + " label=" + sanctionLabel(sanction));
-                setTextDrawable(id, sanctionLabel(sanction), true, color);
-                return;
-            }
+        var label = teamYellowCardTimerLabel(sanctions, teamId) as String;
+        if (!label.equals("")) {
+            System.println("RUGBY|RugbyTimerView|bindTeamCard id=" + id + " teamId=" + teamId + " yellowTimers=" + label + " redPresent=" + (teamHasRedCard(sanctions, teamId) ? "true" : "false"));
+            setTextDrawable(id, label, true, Graphics.COLOR_YELLOW);
+            return;
         }
         setTextDrawable(id, "", false, Graphics.COLOR_WHITE);
+    }
+
+    function teamYellowCardTimerLabel(sanctions as Array<Dictionary>, teamId as String) as String {
+        var label = "" as String;
+        for (var i = 0; i < sanctions.size(); i += 1) {
+            var sanction = sanctions[i] as Dictionary;
+            if (valueEquals(sanction["teamId"], teamId) && valueEquals(sanction["cardType"], RUGBY_CARD_YELLOW) && valueEquals(sanction["state"], "active")) {
+                if (!label.equals("")) {
+                    label += " ";
+                }
+                label += formatClock(sanction["remainingSeconds"]);
+            }
+        }
+        return label;
+    }
+
+    function teamHasRedCard(sanctions as Array<Dictionary>, teamId as String) as Boolean {
+        for (var i = 0; i < sanctions.size(); i += 1) {
+            var sanction = sanctions[i] as Dictionary;
+            if (valueEquals(sanction["teamId"], teamId) && valueEquals(sanction["cardType"], RUGBY_CARD_RED) && !valueEquals(sanction["state"], "cleared")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function drawRedCardIndicators(dc as Graphics.Dc, snap as Dictionary) as Void {
+        var sanctions = snap["sanctions"] as Array<Dictionary>;
+        var size = (dc.getWidth() / 36) as Number;
+        if (size < 5) {
+            size = 5;
+        }
+        if (teamHasRedCard(sanctions, RUGBY_TEAM_HOME)) {
+            drawRedCardIndicator(dc, (dc.getWidth() * 35 / 100) as Number, (dc.getHeight() * 16 / 100) as Number, size);
+        }
+        if (teamHasRedCard(sanctions, RUGBY_TEAM_AWAY)) {
+            drawRedCardIndicator(dc, (dc.getWidth() * 62 / 100) as Number, (dc.getHeight() * 16 / 100) as Number, size);
+        }
+    }
+
+    function drawRedCardIndicator(dc as Graphics.Dc, x as Number, y as Number, size as Number) as Void {
+        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
+        dc.fillRectangle(x, y, size, size);
     }
 
     function bindConversion(conversion as Dictionary?) as Void {
@@ -203,6 +244,8 @@ class RugbyTimerView extends WatchUi.View {
             setTextDrawable("StatusMessage", "NEXT HALF", true, RUGBY_COLOR_DIM);
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_MATCH_ENDED)) {
             setTextDrawable("StatusMessage", "MATCH END", true, RUGBY_COLOR_DIM);
+        } else if (valueEquals(snap["clockState"], RUGBY_STATE_NOT_STARTED)) {
+            setTextDrawable("StatusMessage", "" + snap["variantName"], true, RUGBY_COLOR_DIM);
         } else {
             setTextDrawable("StatusMessage", "", false, Graphics.COLOR_WHITE);
         }
@@ -243,7 +286,7 @@ class RugbyTimerView extends WatchUi.View {
         if (valueEquals(sanction["cardType"], RUGBY_CARD_RED)) {
             return "RED";
         }
-        return "Y" + valueText(sanction["id"]) + " " + formatClock(sanction["remainingSeconds"]);
+        return formatClock(sanction["remainingSeconds"]);
     }
 
     function valueEquals(value, expected) as Boolean {

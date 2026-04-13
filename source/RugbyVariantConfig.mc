@@ -23,7 +23,7 @@ class RugbyVariantConfig {
         return {
             RUGBY_VARIANT_FIFTEENS => {
                 "id" => RUGBY_VARIANT_FIFTEENS,
-                "name" => "15s",
+                "name" => "15's",
                 "halfLengthSeconds" => 2400,
                 "halfCount" => 2,
                 "sinBinLengthSeconds" => 600,
@@ -31,7 +31,7 @@ class RugbyVariantConfig {
             },
             RUGBY_VARIANT_SEVENS => {
                 "id" => RUGBY_VARIANT_SEVENS,
-                "name" => "7s",
+                "name" => "7's",
                 "halfLengthSeconds" => 420,
                 "halfCount" => 2,
                 "sinBinLengthSeconds" => 120,
@@ -39,7 +39,7 @@ class RugbyVariantConfig {
             },
             RUGBY_VARIANT_TENS => {
                 "id" => RUGBY_VARIANT_TENS,
-                "name" => "10s",
+                "name" => "10's",
                 "halfLengthSeconds" => 600,
                 "halfCount" => 2,
                 "sinBinLengthSeconds" => 300,
