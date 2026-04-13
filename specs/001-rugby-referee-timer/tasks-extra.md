@@ -3,6 +3,7 @@
 T071 [P] [US7] Implement activity event markers in RugbyActivityRecorder
 - Add a recorder API to record per-event markers/laps with the agreed schema.
 - Ensure markers are written to the ActivityRecording session when possible and to a sidecar fallback when not.
+- Ensure GPS traces are recorded by default for recordings (opt-out per recording); implement per-recording toggle and global setting to disable GPS, and request platform positioning permissions at start of recording.
 - Files: source/RugbyActivityRecorder.mc
 
 T072 [P] [US7] Wire model events to recorder

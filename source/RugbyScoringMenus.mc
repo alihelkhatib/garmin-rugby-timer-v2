@@ -45,37 +45,4 @@ class RugbyScoreTeamDelegate extends WatchUi.Menu2InputDelegate {
     }
 }
 
-class RugbyScoreTypeDelegate extends WatchUi.Menu2InputDelegate {
-    var _model;
-    var _teamId;
-
-    function initialize(model, teamId) {
-        Menu2InputDelegate.initialize();
-        _model = model;
-        _teamId = teamId;
-    }
-/* Apply selected score type and manage navigation/pop/update as needed. */
-
-    function onSelect(item) {
-        var now = System.getTimer();
-        if (rugbyIsScoreTry(item)) {
-            _model.recordTry(_teamId, now);
-            WatchUi.popView(WatchUi.SLIDE_DOWN);
-            WatchUi.popView(WatchUi.SLIDE_DOWN);
-            WatchUi.pushView(new RugbyConversionView(_model, _teamId), new RugbyConversionDelegate(_model, _teamId), WatchUi.SLIDE_UP);
-        } else {
-            if (rugbyIsPenaltyGoal(item)) {
-                _model.recordPenaltyGoal(_teamId);
-            } else if (rugbyIsDropGoal(item)) {
-                _model.recordDropGoal(_teamId);
-            }
-            WatchUi.popView(WatchUi.SLIDE_DOWN);
-            WatchUi.popView(WatchUi.SLIDE_DOWN);
-            WatchUi.requestUpdate();
-        }
-    }
-
-    function onBack() {
-        WatchUi.popView(WatchUi.SLIDE_DOWN);
-    }
-}
+// Removed legacy RugbyScoreTypeDelegate; use TeamActionTypeDelegate.

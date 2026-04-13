@@ -16,7 +16,7 @@ Event schema (marker/lap payload)
 - recorded_at_ms: System.getTimer() timestamp when marker added
 
 Implementation notes
-- Use the ActivityRecording session marker/lap API where available (e.g., session.addMarker / session.addLap or equivalent Toybox API); if a target device does not support embedded markers, fall back to writing a small sidecar JSON file in app storage containing identical markers.
+- Use the ActivityRecording session marker/lap API where available (e.g., session.addMarker / session.addLap or equivalent Toybox API); if a target device does not support embedded markers, fall back to writing a small sidecar JSON file in app storage containing identical markers. GPS collection MUST be enabled by default for recordings (opt-out per recording): request and respect platform positioning permissions at recording start, provide a per-recording toggle and an application-level setting to disable GPS collection by default. On unsupported or denied permission states, still record event markers and metadata without GPS.
 - Ensure marker creation is resilient: do not crash if ActivityRecording session is unavailable; record markers in-memory for later save if necessary.
 
 Acceptance Criteria
