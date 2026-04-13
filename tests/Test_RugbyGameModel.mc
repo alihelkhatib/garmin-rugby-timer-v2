@@ -86,6 +86,71 @@ function testScoringAndCorrection(logger) {
 }
 
 (:test)
+function testIdleMainTimerAdjustmentBounds(logger) {
+    var model = new RugbyGameModel(RugbyVariantConfig.defaultSetup(RUGBY_VARIANT_SEVENS));
+
+    for (var i = 0; i < 8; i += 1) {
+        model.adjustIdleMainTimer(-1);
+    }
+    var snap = model.snapshot(0);
+    Test.assertEqual(0, snap["mainCountdownSeconds"]);
+
+    for (var j = 0; j < 8; j += 1) {
+        model.adjustIdleMainTimer(1);
+    }
+    snap = model.snapshot(0);
+    Test.assertEqual(7 * 60, snap["mainCountdownSeconds"]);
+}
+
+(:test)
+function testStartMatchUsesAdjustedIdleTimer(logger) {
+    var model = newTestModel();
+    for (var i = 0; i < 5; i += 1) {
+        model.adjustIdleMainTimer(-1);
+    }
+
+    var idle = model.snapshot(0);
+    Test.assertEqual(35 * 60, idle["mainCountdownSeconds"]);
+
+    model.startMatch(1000);
+    var running = model.snapshot(61000);
+    Test.assertEqual(RUGBY_STATE_RUNNING, running["clockState"]);
+    Test.assertEqual((35 * 60) - 60, running["mainCountdownSeconds"]);
+}
+
+(:test)
+function testIdleMainTimerAdjustmentIgnoredAfterHalfEnded(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.requestEndHalf();
+    Test.assertEqual(true, model.confirmPending(1000));
+
+    model.adjustIdleMainTimer(-5);
+    var snap = model.snapshot(1000);
+    Test.assertEqual(RUGBY_STATE_HALF_ENDED, snap["clockState"]);
+    Test.assertEqual(40 * 60, snap["mainCountdownSeconds"]);
+}
+
+(:test)
+function testScoreActionsRemainAvailableAfterIdleTimerChange(logger) {
+    var model = newTestModel();
+    model.adjustIdleMainTimer(-1);
+    model.startMatch(0);
+
+    model.recordTry(RUGBY_TEAM_HOME, 1000);
+    Test.assertEqual(true, model.recordConversion(RUGBY_TEAM_HOME));
+    model.recordPenaltyGoal(RUGBY_TEAM_HOME);
+    model.recordDropGoal(RUGBY_TEAM_HOME);
+
+    var snap = model.snapshot(1000);
+    Test.assertEqual(13, snap["home"]["score"]);
+    Test.assertEqual(1, snap["home"]["tryCount"]);
+    Test.assertEqual(1, snap["home"]["conversionCount"]);
+    Test.assertEqual(1, snap["home"]["penaltyGoalCount"]);
+    Test.assertEqual(1, snap["home"]["dropGoalCount"]);
+}
+
+(:test)
 function testConversionReplacementAndAlert(logger) {
     var model = newTestModel();
     model.startMatch(0);
@@ -175,6 +240,5 @@ function testRenderSnapshotContainsRequiredFields(logger) {
     Test.assertNotEqual(null, snap["home"]);
     Test.assertNotEqual(null, snap["away"]);
 }
-
 
 

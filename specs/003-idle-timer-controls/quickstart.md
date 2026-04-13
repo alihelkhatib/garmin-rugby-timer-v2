@@ -43,3 +43,11 @@
 1. Confirm idle timer changes remain readable on all tested watch profiles.
 2. Confirm no layout jump hides or overlaps the main timer after repeated button presses.
 3. Confirm no existing card timer, conversion timer, haptic alert, or score display behavior regresses during active-match tests.
+
+## 2026-04-13 Validation Notes
+
+- Compile: Passed for `fenix7` with Garmin Connect IQ SDK 9.1.0 using a temporary local signing key: `monkeyc -f monkey.jungle -d fenix7 -o build/garmin-rugby-timer-fenix7.prg -y /tmp/codex-garmin-rugby-timer-key.der -w`. Existing warnings remain for invalid manifest device ids and dynamic container type inference.
+- Unit-test compile: Passed for `fenix7` with `-t`: `monkeyc -f monkey.jungle -d fenix7 -o build/garmin-rugby-timer-fenix7-test.prg -t -y /tmp/codex-garmin-rugby-timer-key.der -w`. Existing warnings remain for invalid manifest device ids and dynamic container type inference.
+- Simulator run: Blocked because `monkeydo build/garmin-rugby-timer-fenix7-test.prg fenix7 -t` could not connect to the Connect IQ simulator.
+- Runtime idle adjustment, readability, activity recorder start/stop, memory, CPU, battery, and small/large round profile checks remain pending until the simulator or a physical device is available.
+- Security/privacy check: No new network access, telemetry, external storage, PII, dependency, or permission surface was added by this feature.

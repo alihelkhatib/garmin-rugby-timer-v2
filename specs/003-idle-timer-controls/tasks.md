@@ -11,9 +11,9 @@
 
 **Purpose**: Confirm the existing input/model boundaries and add the minimum test surface needed for the feature.
 
-- [ ] T001 Inspect current idle and active physical-button mappings in `source/RugbyTimerDelegate.mc` and document any state gates in `specs/003-idle-timer-controls/research.md`
-- [ ] T002 [P] Inspect existing half-length bounds and variant preset helpers in `source/RugbyVariantConfig.mc` and document the selected-variant normal-half bound in `specs/003-idle-timer-controls/data-model.md`
-- [ ] T003 [P] Create a delegate/model-focused test file for idle button routing in `tests/Test_RugbyIdleTimerControls.mc`
+- [X] T001 Inspect current idle and active physical-button mappings in `source/RugbyTimerDelegate.mc` and document any state gates in `specs/003-idle-timer-controls/research.md`
+- [X] T002 [P] Inspect existing half-length bounds and variant preset helpers in `source/RugbyVariantConfig.mc` and document the selected-variant normal-half bound in `specs/003-idle-timer-controls/data-model.md`
+- [X] T003 [P] Create a delegate/model-focused test file for idle button routing in `tests/Test_RugbyIdleTimerControls.mc`
 
 ---
 
@@ -23,10 +23,10 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 Add selected-variant normal half-length lookup support in `source/RugbyVariantConfig.mc`
-- [ ] T005 Add idle main-timer adjustment model behavior with 60-second step, 00:00 lower bound, and selected-variant normal-half upper bound in `source/RugbyGameModel.mc`
-- [ ] T006 [P] Add model tests for idle timer decrement-to-00:00 and increment-to-selected-variant-normal-half bounds in `tests/Test_RugbyGameModel.mc`
-- [ ] T007 [P] Add variant-bound tests covering 15s, 7s, 10s, and U19 normal half lengths in `tests/Test_RugbyVariantConfig.mc`
+- [X] T004 Add selected-variant normal half-length lookup support in `source/RugbyVariantConfig.mc`
+- [X] T005 Add idle main-timer adjustment model behavior with 60-second step, 00:00 lower bound, and selected-variant normal-half upper bound in `source/RugbyGameModel.mc`
+- [X] T006 [P] Add model tests for idle timer decrement-to-00:00 and increment-to-selected-variant-normal-half bounds in `tests/Test_RugbyGameModel.mc`
+- [X] T007 [P] Add variant-bound tests covering 15s, 7s, 10s, and U19 normal half lengths in `tests/Test_RugbyVariantConfig.mc`
 
 **Checkpoint**: Foundation ready - idle timer behavior exists in the model and can be used by button routing.
 
@@ -40,16 +40,16 @@
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Add idle Up/Menu increment delegate tests in `tests/Test_RugbyIdleTimerControls.mc`
-- [ ] T009 [P] [US1] Add idle Down decrement delegate tests in `tests/Test_RugbyIdleTimerControls.mc`
-- [ ] T010 [P] [US1] Add match-start-from-adjusted-idle-timer tests in `tests/Test_RugbyGameModel.mc`
+- [X] T008 [P] [US1] Add idle Up/Menu increment delegate tests in `tests/Test_RugbyIdleTimerControls.mc`
+- [X] T009 [P] [US1] Add idle Down decrement delegate tests in `tests/Test_RugbyIdleTimerControls.mc`
+- [X] T010 [P] [US1] Add match-start-from-adjusted-idle-timer tests in `tests/Test_RugbyGameModel.mc`
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Route idle Up/Menu short-press to model timer increment behavior in `source/RugbyTimerDelegate.mc`
-- [ ] T012 [US1] Route idle Down short-press to model timer decrement behavior in `source/RugbyTimerDelegate.mc`
-- [ ] T013 [US1] Ensure idle timer adjustment requests a visible refresh without adding a new layout or manual drawing path in `source/RugbyTimerDelegate.mc`
-- [ ] T014 [US1] Verify the existing main timer snapshot/render path displays the adjusted idle value in `source/RugbyTimerView.mc`
+- [X] T011 [US1] Route idle Up/Menu short-press to model timer increment behavior in `source/RugbyTimerDelegate.mc`
+- [X] T012 [US1] Route idle Down short-press to model timer decrement behavior in `source/RugbyTimerDelegate.mc`
+- [X] T013 [US1] Ensure idle timer adjustment requests a visible refresh without adding a new layout or manual drawing path in `source/RugbyTimerDelegate.mc`
+- [X] T014 [US1] Verify the existing main timer snapshot/render path displays the adjusted idle value in `source/RugbyTimerView.mc`
 
 **Checkpoint**: User Story 1 is fully functional and testable independently.
 
@@ -63,14 +63,14 @@
 
 ### Tests for User Story 2
 
-- [ ] T015 [P] [US2] Add idle Up/Menu score-dialog block tests in `tests/Test_RugbyIdleTimerControls.mc`
-- [ ] T016 [P] [US2] Add idle Down and alternate physical-button score-dialog block tests in `tests/Test_RugbyIdleTimerControls.mc`
-- [ ] T017 [P] [US2] Add match-ended score-dialog block regression tests in `tests/Test_RugbyIdleTimerControls.mc`
+- [X] T015 [P] [US2] Add idle Up/Menu score-dialog block tests in `tests/Test_RugbyIdleTimerControls.mc`
+- [X] T016 [P] [US2] Add idle Down and alternate physical-button score-dialog block tests in `tests/Test_RugbyIdleTimerControls.mc`
+- [X] T017 [P] [US2] Add match-ended score-dialog block regression tests in `tests/Test_RugbyIdleTimerControls.mc`
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Tighten score-dialog state guard to allow only running, paused, and half-ended states in `source/RugbyTimerDelegate.mc`
-- [ ] T019 [US2] Ensure idle Up/Menu and Down paths consume the button event without pushing score or card menus in `source/RugbyTimerDelegate.mc`
+- [X] T018 [US2] Tighten score-dialog state guard to allow only running, paused, and half-ended states in `source/RugbyTimerDelegate.mc`
+- [X] T019 [US2] Ensure idle Up/Menu and Down paths consume the button event without pushing score or card menus in `source/RugbyTimerDelegate.mc`
 
 **Checkpoint**: User Stories 1 and 2 both work independently and jointly fix the reported idle-screen bug.
 
@@ -84,15 +84,15 @@
 
 ### Tests for User Story 3
 
-- [ ] T020 [P] [US3] Add running-state score-dialog availability regression tests in `tests/Test_RugbyIdleTimerControls.mc`
-- [ ] T021 [P] [US3] Add paused-state score-dialog availability regression tests in `tests/Test_RugbyIdleTimerControls.mc`
-- [ ] T022 [P] [US3] Add half-ended score-dialog availability regression tests in `tests/Test_RugbyIdleTimerControls.mc`
-- [ ] T023 [P] [US3] Add score action regression checks for try, conversion, penalty goal, and drop goal in `tests/Test_RugbyGameModel.mc`
+- [X] T020 [P] [US3] Add running-state score-dialog availability regression tests in `tests/Test_RugbyIdleTimerControls.mc`
+- [X] T021 [P] [US3] Add paused-state score-dialog availability regression tests in `tests/Test_RugbyIdleTimerControls.mc`
+- [X] T022 [P] [US3] Add half-ended score-dialog availability regression tests in `tests/Test_RugbyIdleTimerControls.mc`
+- [X] T023 [P] [US3] Add score action regression checks for try, conversion, penalty goal, and drop goal in `tests/Test_RugbyGameModel.mc`
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] Preserve active score-dialog routing for running, paused, and half-ended states in `source/RugbyTimerDelegate.mc`
-- [ ] T025 [US3] Verify active-match Down/card dialog behavior remains unchanged for running, paused, and half-ended states in `source/RugbyTimerDelegate.mc`
+- [X] T024 [US3] Preserve active score-dialog routing for running, paused, and half-ended states in `source/RugbyTimerDelegate.mc`
+- [X] T025 [US3] Verify active-match Down/card dialog behavior remains unchanged for running, paused, and half-ended states in `source/RugbyTimerDelegate.mc`
 
 **Checkpoint**: All user stories are independently functional.
 
@@ -106,10 +106,10 @@
 - [ ] T027 Run Monkey C regression tests for model, variant, scoring, card, conversion, and haptic behavior and create or update the results notes in `tests/README.md`
 - [ ] T028 Validate watch-scale readability for adjusted idle timer values on representative small and large round profiles and record results in `specs/003-idle-timer-controls/quickstart.md`
 - [ ] T029 Confirm activity-recording start/stop behavior is unchanged when starting from an adjusted idle timer and record the result in `specs/003-idle-timer-controls/quickstart.md`
-- [ ] T030 Record lightweight security checklist results, dependency/CVE review status, threat-model note, and owner sign-off in `specs/003-idle-timer-controls/quickstart.md`
+- [X] T030 Record lightweight security checklist results, dependency/CVE review status, threat-model note, and owner sign-off in `specs/003-idle-timer-controls/quickstart.md`
 - [ ] T031 Record binary size, memory, CPU, and battery no-regression smoke validation for supported watch profiles in `specs/003-idle-timer-controls/quickstart.md`
-- [ ] T032 [P] Update user-facing control documentation for idle timer adjustment and active scoring state rules in `README.md`
-- [ ] T033 [P] Create or update feature traceability notes for new idle timer controls in `tests/TEST_TRACEABILITY.md`
+- [X] T032 [P] Update user-facing control documentation for idle timer adjustment and active scoring state rules in `README.md`
+- [X] T033 [P] Create or update feature traceability notes for new idle timer controls in `tests/TEST_TRACEABILITY.md`
 
 ---
 

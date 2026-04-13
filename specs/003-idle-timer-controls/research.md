@@ -9,6 +9,8 @@
 - Add a new input controller module. Rejected because the behavior is narrow and would add surface area without reducing complexity.
 - Push button interpretation into the view. Rejected because the current view primarily renders snapshot state and should not own input policy.
 
+**Implementation inspection note**: `source/RugbyTimerDelegate.mc` centralizes the relevant physical-button paths. Idle state now routes Up/Menu and Previous Page to timer increment, Down/Next Page to timer decrement, and blocks score/card menus by state guard.
+
 ## Decision: Own timer adjustment in the model/configuration path
 
 **Rationale**: The main countdown is derived from `RugbyGameModel.snapshot()` and match setup values from `RugbyVariantConfig`. Idle adjustments should update the same setup that start-match timing uses so the displayed value and started match value cannot diverge.
@@ -35,6 +37,8 @@
 
 - Running-only score availability. Rejected because paused and half-ended score corrections may be part of normal match administration.
 - Running-or-paused only. Rejected because the existing app already treats half-ended as part of active match flow for several controls.
+
+**Implementation inspection note**: Score and card dialog guards share the active match state definition: running, paused, or half-ended. Not-started and match-ended states consume the button event without pushing those menus.
 
 ## Decision: No new persistence, dependency, or UI layout
 

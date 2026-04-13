@@ -57,6 +57,10 @@ Validation rules:
 - `normalHalfLengthSeconds` is the upper bound for idle timer increments.
 - If a custom current half length exists from prior setup behavior, idle increment behavior still respects the selected variant's normal half length as the maximum.
 
+Implementation note:
+
+- `normalHalfLengthSeconds` is preserved in match setup even when a timing override changes the setup to the custom variant, so the selected variant's original normal half length remains available for subsequent idle increments.
+
 ## Score Dialog Availability
 
 Represents whether score controls can be opened from physical buttons.

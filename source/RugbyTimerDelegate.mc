@@ -44,8 +44,8 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
 
     function onMenu() {
         var snap = _model.snapshot(System.getTimer());
-        if (snap["clockState"] == RUGBY_STATE_NOT_STARTED) {
-            _model.adjustHalfMinutes(1);
+        if (isIdleTimerAdjustmentState(snap["clockState"])) {
+            _model.adjustIdleMainTimer(1);
             WatchUi.requestUpdate();
             return true;
         }
@@ -54,12 +54,12 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
 
     function onNextPage() {
         var snap = _model.snapshot(System.getTimer());
-        if (snap["clockState"] == RUGBY_STATE_NOT_STARTED) {
-            _model.adjustHalfMinutes(-1);
+        if (isIdleTimerAdjustmentState(snap["clockState"])) {
+            _model.adjustIdleMainTimer(-1);
             WatchUi.requestUpdate();
             return true;
         }
-        if (snap["clockState"] == RUGBY_STATE_RUNNING || snap["clockState"] == RUGBY_STATE_PAUSED || snap["clockState"] == RUGBY_STATE_HALF_ENDED) {
+        if (canOpenCardDialogForState(snap["clockState"])) {
             return openCardDialog();
         }
         WatchUi.requestUpdate();
@@ -68,18 +68,34 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
 
     function onPreviousPage() {
         var snap = _model.snapshot(System.getTimer());
-        if (snap["clockState"] == RUGBY_STATE_NOT_STARTED) {
-            _model.adjustHalfMinutes(1);
+        if (isIdleTimerAdjustmentState(snap["clockState"])) {
+            _model.adjustIdleMainTimer(1);
             WatchUi.requestUpdate();
             return true;
         }
         return openScoreDialog();
     }
-/* Guard against invalid states (not started/match ended) before opening score menus. */
+
+    function isIdleTimerAdjustmentState(clockState) {
+        return clockState == RUGBY_STATE_NOT_STARTED;
+    }
+
+    function isActiveMatchState(clockState) {
+        return clockState == RUGBY_STATE_RUNNING || clockState == RUGBY_STATE_PAUSED || clockState == RUGBY_STATE_HALF_ENDED;
+    }
+
+    function canOpenScoreDialogForState(clockState) {
+        return isActiveMatchState(clockState);
+    }
+
+    function canOpenCardDialogForState(clockState) {
+        return isActiveMatchState(clockState);
+    }
+/* Guard against invalid states before opening score menus. */
 
     function openScoreDialog() {
         var snap = _model.snapshot(System.getTimer());
-        if (snap["clockState"] == RUGBY_STATE_NOT_STARTED || snap["clockState"] == RUGBY_STATE_MATCH_ENDED) {
+        if (!canOpenScoreDialogForState(snap["clockState"])) {
             WatchUi.requestUpdate();
             return true;
         }
@@ -89,7 +105,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
 
     function openCardDialog() {
         var snap = _model.snapshot(System.getTimer());
-        if (snap["clockState"] == RUGBY_STATE_NOT_STARTED || snap["clockState"] == RUGBY_STATE_MATCH_ENDED) {
+        if (!canOpenCardDialogForState(snap["clockState"])) {
             WatchUi.requestUpdate();
             return true;
         }
@@ -146,6 +162,5 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
         WatchUi.requestUpdate();
     }
 }
-
 
 

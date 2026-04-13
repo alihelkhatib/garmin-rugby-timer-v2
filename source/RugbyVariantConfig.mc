@@ -1,5 +1,4 @@
 /*
- * File: RugbyVariantConfig.mc
  * Purpose: Provide preset variant configurations and helpers for applying user overrides.
  * Public API: RugbyVariantConfig static API: presets(), defaultSetup(variantId), applyOverrides, withSinBinSeconds, withConversionSeconds, savePreferences(), loadPreferences()
  * Key state: none (stateless static helpers)
@@ -67,6 +66,7 @@ class RugbyVariantConfig {
             "variantId" => preset["id"],
             "variantName" => preset["name"],
             "halfLengthSeconds" => preset["halfLengthSeconds"],
+            "normalHalfLengthSeconds" => preset["halfLengthSeconds"],
             "halfCount" => preset["halfCount"],
             "sinBinLengthSeconds" => preset["sinBinLengthSeconds"],
             "conversionLengthSeconds" => preset["conversionLengthSeconds"],
@@ -79,7 +79,7 @@ class RugbyVariantConfig {
         var updated = cloneSetup(setup);
         if (halfDeltaMinutes != 0) {
             var nextHalf = updated["halfLengthSeconds"] + (halfDeltaMinutes * 60);
-            updated["halfLengthSeconds"] = clamp(nextHalf, 60, 3600);
+            updated["halfLengthSeconds"] = clamp(nextHalf, 0, normalHalfLengthSeconds(updated));
             updated["variantId"] = RUGBY_VARIANT_CUSTOM;
             updated["variantName"] = "Custom";
         }
@@ -100,6 +100,13 @@ class RugbyVariantConfig {
         return applyOverrides(setup, deltaMinutes, null, null);
     }
 
+    static function normalHalfLengthSeconds(setup) {
+        if (setup["normalHalfLengthSeconds"] != null) {
+            return setup["normalHalfLengthSeconds"];
+        }
+        return setup["halfLengthSeconds"];
+    }
+
     static function withSinBinSeconds(setup, seconds) {
         return applyOverrides(setup, 0, seconds, null);
     }
@@ -113,6 +120,7 @@ class RugbyVariantConfig {
             "variantId" => setup["variantId"],
             "variantName" => setup["variantName"],
             "halfLengthSeconds" => setup["halfLengthSeconds"],
+            "normalHalfLengthSeconds" => normalHalfLengthSeconds(setup),
             "halfCount" => setup["halfCount"],
             "sinBinLengthSeconds" => setup["sinBinLengthSeconds"],
             "conversionLengthSeconds" => setup["conversionLengthSeconds"],
@@ -140,7 +148,6 @@ class RugbyVariantConfig {
         return value;
     }
 }
-
 
 
 

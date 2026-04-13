@@ -63,7 +63,11 @@ class RugbyGameModel {
     }
 
     function adjustHalfMinutes(deltaMinutes) {
-        if (_clockState == RUGBY_STATE_NOT_STARTED || _clockState == RUGBY_STATE_HALF_ENDED) {
+        adjustIdleMainTimer(deltaMinutes);
+    }
+
+    function adjustIdleMainTimer(deltaMinutes) {
+        if (_clockState == RUGBY_STATE_NOT_STARTED) {
             _setup = RugbyVariantConfig.adjustHalfMinutes(_setup, deltaMinutes);
         }
     }
@@ -447,7 +451,6 @@ class RugbyGameModel {
         }
     }
 }
-
 
 
 
