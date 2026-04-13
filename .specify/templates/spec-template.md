@@ -143,3 +143,15 @@ haptic availability, and rugby activity recording constants or fallback behavior
 - [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
 - [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]
 
+## Security & Privacy Considerations
+
+Features MUST include a short security and privacy section that addresses:
+
+- Data classification: what data is collected or generated, and whether it is PII.
+- Telemetry opt-in: whether telemetry/analytics are collected and how users opt-in/out.
+- Retention & deletion: where data is stored and for how long; deletion/removal process.
+- External communications: any network calls required and their security considerations.
+- Required security tests and CVE/dependency checks prior to release.
+
+<!-- ACTION REQUIRED: Fill this section per feature when applicable -->
+

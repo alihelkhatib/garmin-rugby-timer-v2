@@ -144,6 +144,43 @@ Compliance review is required for every feature plan and before implementation t
 accepted. If a requirement conflicts with the constitution, the team MUST either revise the
 requirement or amend the constitution before implementation proceeds.
 
-**Version**: 1.2.0 | **Ratified**: 2026-04-11 | **Last Amended**: 2026-04-12
+**Version**: 1.3.0 | **Ratified**: 2026-04-13 | **Last Amended**: 2026-04-13
+
+## Security & Privacy
+Security and privacy are mandatory considerations for all features. The project MUST include, at minimum, the following in every feature plan:
+
+- Data classification: identify what data is collected, stored, or transmitted (e.g., FIT session data, logs, telemetry).
+- Privacy controls: PII handling, data minimization, user opt-in for telemetry, and documented retention/deletion policies.
+- Storage and transmission: encryption requirements and secure transport for any external integrations.
+- Security testing: required static analysis, dependency CVE scanning, threat-model summary, and any required runtime tests prior to release.
+- Owner and sign-off: feature owner must record completion of the security checklist and obtain sign-off before implementation tasks proceed.
+
+## Release & Rollback
+Releases MUST follow an agreed checklist and gates, including CI checks, signing, and any device-specific validation. The project MUST document:
+
+- Release checklist: build, signing, device validation, and post-release verification steps.
+- Rollback plan: emergency patch procedure, how to revoke releases, and communication channels for incidents.
+
+## Dependency & Supply-Chain
+The project MUST maintain an inventory of third-party dependencies (SBoM), run CVE scanning on dependencies, and document update cadence and criteria for upgrades. Any changes to external dependencies require review for size, licensing, and compatibility.
+
+## Performance Budgets
+Define measurable performance budgets (binary size, memory, CPU, battery usage) for supported devices. Feature plans that affect performance MUST include target budgets and device/simulator checks to validate compliance.
+
+## Incident Response & Monitoring
+Document incident response expectations: how incidents are reported, contact list, severity classification, required postmortems, and follow-up actions. For telemetry/analytics features, define what monitoring will be in place and how alerts are triggered.
+
+## Contributor Governance
+Define contributor roles, who may amend the constitution, and the approval process for spec and plan changes. Include contributor onboarding steps, code review expectations, and a Code of Conduct (link or file reference).
+
+## Deprecation & Migration Policy
+Provide a clear deprecation policy: notice periods, migration paths, and versioning strategy for behavioral or API changes that might affect users or stored data.
+
+## Legal & App-Store Compliance
+Document required checks for app store policies, licensing compliance (including third-party license tracking), export controls, and any platform-specific legal obligations.
+
+**Sync Impact Report**: Amendments MUST include a short Sync Impact Report capturing what templates and docs were changed and why.
+
+**Version**: 1.3.0 | **Ratified**: 2026-04-13 | **Last Amended**: 2026-04-13
 
 

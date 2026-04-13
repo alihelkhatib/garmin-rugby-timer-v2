@@ -40,6 +40,14 @@
 - [ ] Activity recording: rugby activity type or documented SDK fallback is planned and testable.
 - [ ] Regression isolation: existing functioning timer, scoring, variant, UI, storage, and activity-recording behavior affected by the feature has explicit regression coverage.
 - [ ] Accessibility/haptics: dark color-blind-friendly UI, non-color-only card distinction, stable watch layout, and critical haptic alerts are specified.
+- [ ] Security & Privacy: feature plan includes data classification, PII handling, telemetry opt-in, retention/deletion policy, and a completed security checklist.
+- [ ] Release & Rollback: release checklist, CI/CD gates, signing, device validation, and rollback/emergency patch procedures are documented.
+- [ ] Dependency & Supply-Chain: SBoM for dependencies, CVE scanning, license review, and upgrade policy documented.
+- [ ] Performance Budgets: measurable budgets for binary size, memory, CPU/battery and device validation tests are defined.
+- [ ] Incident Response & Monitoring: monitoring/alerting plan, incident contacts, and postmortem expectations are present.
+- [ ] Contributor Governance & Approvals: owner and approver for the feature, any required contributor approvals, and Code of Conduct link.
+- [ ] Legal & App-Store Compliance: licensing, store policy checks, and export-control considerations are documented.
+- [ ] Deprecation & Migration: deprecation notices, migration path, and compatibility considerations are described when applicable.
 
 ## Project Structure
 
