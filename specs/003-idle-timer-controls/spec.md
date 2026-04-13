@@ -1,0 +1,66 @@
+# Feature Specification: idle-timer-controls
+
+**Feature Branch**: 003-idle-timer-controls  
+**Created**: 2026-04-13  
+**Status**: Draft  
+**Input**: Allow adjusting the main timer on the idle screen using the Up/Menu and Down physical buttons. The score dialog menu must only be available when a match is active.
+
+## Summary
+
+Introduce pre-match timer controls on the idle screen so a referee can increment or decrement the main match timer before starting a match. While no match is active the Up/Menu and Down physical buttons shall change the displayed main timer; the score dialog shall not be accessible. When a match becomes active, button mappings revert so the score dialog and other in-match controls are available.
+
+Rationale: Prevent accidental score-menu entry before a match and allow quick pre-match timer adjustments on-device without entering additional UI flows.
+
+## User Scenarios & Testing (mandatory)
+
+### User Story 1 - Adjust pre-match timer (Priority: P1)
+
+A referee prepares for a match on their watch. On the idle screen (no active match), pressing the Up/Menu button increases the main timer by one minute and pressing the Down button decreases it by one minute. The displayed value updates immediately and remains until the match is started or the app is closed.
+
+Acceptance scenarios:
+1. Given the app is on the idle screen with no active match, when the referee presses Up/Menu once, then the main timer increases by 1 minute and displays the updated value.
+2. Given the app is on the idle screen with no active match, when the referee presses Down once, then the main timer decreases by 1 minute and does not go below 00:00.
+3. Given the app is on the idle screen, when the referee starts the match, then the started match uses the adjusted timer as the initial countdown value.
+4. Given the app is on the idle screen with no active match, when the referee presses Up/Menu, then the score dialog does NOT open.
+
+## Requirements (testable)
+
+- FR-001: While no match is active (idle), the Up/Menu physical button MUST increment the main displayed timer by 1 minute per press.
+- FR-002: While no match is active (idle), the Down physical button MUST decrement the main displayed timer by 1 minute per press and MUST NOT allow negative time (min 00:00).
+- FR-003: When no match is active, the score dialog/menu MUST NOT be accessible via Up/Menu or any other physical button.
+- FR-004: When a match is active, existing in-match button mappings (including access to the score dialog) MUST be preserved and operate as before.
+- FR-005: Starting a match after pre-match adjustments MUST use the adjusted timer value as the initial countdown.
+- FR-006: Adjustments MUST update the visible UI within an interaction latency suitable for a watch (e.g., perceptibly immediate to the user).
+
+## Technical Context
+
+- Language/Version: Monkey C / Garmin Connect IQ SDK (record actual SDK in plan)
+- Primary Dependencies: WatchUi, System, Input handling for physical buttons, Graphics resources
+- Target Platform: All supported devices (fenix 6 validated in separate spec); ensure behavior is consistent on representative devices
+- Testing: Manual device tests (physical watch) and simulator checks covering idle vs active match states
+
+## Edge Cases
+
+- Rapid repeated presses should increment/decrement reliably without skipping or causing race conditions.
+- Long-press behavior: if device maps long-press to other functions, ensure long-press does not open score dialog when idle.
+- Variant defaults: if a variant is selected with a default half length, the initial idle timer should reflect that unless the user adjusts it.
+- Persistence: pre-match adjustments persistence across app restarts is TBD (see Assumptions).
+- Accessibility: display changes must remain legible and haptic confirmations should be considered but not required for this change.
+
+## Success Criteria (measurable)
+
+- SC-001: On a physical device, pressing Up/Menu on the idle screen increases the displayed timer by 1 minute within 200ms, and pressing Down decreases it by 1 minute within 200ms.
+- SC-002: Score dialog cannot be opened while no match is active (attempts produce no dialog) across representative devices.
+- SC-003: Starting a match uses the adjusted pre-match timer value in 100% of manual start tests (10 trials).
+
+## Assumptions
+
+- Default adjustment step is 1 minute. If finer-grain control is later required (e.g., 30s), a follow-up spec can add it.
+- Pre-match timer adjustments are ephemeral and apply to the next match start; they do not need to persist across app uninstall/reinstall. Persistence across app restarts is not required unless requested.
+- No UI redesign is required; this behavior overlays existing idle screen interactions and reuses current layouts where possible.
+
+## Notes
+
+- This is a scoped behavioral change: it modifies button routing only in the idle (no active match) state and must include regression checks for in-match behaviors.
+
+(Generated by speckit.specify)
