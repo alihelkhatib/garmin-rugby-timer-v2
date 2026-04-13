@@ -7,6 +7,14 @@
 
 ## Clarifications
 
+### Session 2026-04-13
+
+- Q: What does SELECT do during an active running match? -> A: SELECT pauses/resumes the match clock during active match timing.
+- Q: What happens to active yellow card timers when a half ends? -> A: Yellow card timers pause at half-end and resume when the second half starts, staying consistent with the match timebase.
+- Q: How does score correction work in v1? -> A: A single undo of the last scoring event per team is accessible from the scoring menu; it reverses the most recent score entry for that team, including points and relevant counters for that event type.
+- Q: How many yellow card timers can be shown per team at once? -> A: Up to 2 yellow card timers are shown per team at a time; additional cards are tracked but hidden until earlier timers for that team expire.
+- Q: How does the referee start the second half? -> A: After the first half ends a dedicated half-time screen appears with a count-up half-time timer; UP/MENU increments the half-time timer on-the-fly; SELECT on the "Start 2nd half" confirmation begins the second half clock.
+
 ### Session 2026-04-12
 
 - Q: How should hardware buttons behave before and during a match? -> A: Before the first match start only, UP/MENU increases the half length by 1 minute, DOWN decreases the half length by 1 minute, and SELECT starts the match. During a started match, UP/MENU opens scoring for Home/Away, DOWN opens discipline/sanction card entry for Home/Away, and idle half-length adjustment is no longer available.
@@ -151,14 +159,20 @@ rendering, storage, and activity-recording behavior so regression isolation can 
 - **FR-032**: During a started match, UP/MENU MUST open the scoring flow for selecting Home or Away and a score type; DOWN MUST open the discipline/sanction flow for selecting Home or Away and yellow or red card.
 - **FR-033**: Issuing a yellow or red card during a started match MUST pause the match clock before creating the selected sanction, so all match-derived timers stop together while the sanction is recorded.
 - **FR-034**: Yellow-card sanctions MUST display under the affected team score with a yellow-card sequence label and countdown timer, using a format such as `Y1  9:59`; red-card sanctions MUST display as persistent red-card sequence indicators without countdown timers.
+- **FR-035**: During an active running match, SELECT MUST pause the match clock if running, or resume it if paused, affecting all match-derived timers together.
+- **FR-036**: Active yellow card timers MUST pause when a half ends and MUST resume when the next half starts, remaining consistent with the match timebase; yellow card remaining time MUST be preserved across the half-time break.
+- **FR-037**: The scoring menu MUST include a single-undo correction action for the last scoring event per team; the undo MUST reverse the associated point value and relevant scoring counter (try count, etc.) for that event type.
+- **FR-038**: The app MUST show at most 2 yellow card timers per team at a time on screen; additional yellow card sanctions for a team MUST be tracked in the model but hidden from the display until earlier timers for that team expire, at which point the next hidden timer becomes visible.
+- **FR-039**: After the first half ends the app MUST display a dedicated half-time screen showing a count-up half-time timer; on that screen UP/MENU MUST increment the half-time timer target duration on-the-fly; SELECT on the half-time screen MUST present a "Start 2nd half" confirmation and, upon confirmation, start the second half clock.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Match Setup**: Selected rugby variant, half length, sin-bin length, conversion length, fixed Home/Away team labels, and display preferences needed before or during a match.
-- **Match Clock State**: Current half, running/paused state, main countdown value, secondary timer value, and synchronization source for all visible timers.
-- **Team State**: Home or away label, score, try count, conversion count, penalty goal count, and drop goal count.
-- **Discipline Sanction**: Card type, assigned team, remaining time for yellow cards, persistent active state for red cards, expired/cleared state, and alert state where applicable.
+- **Match Clock State**: Current half, running/paused/half-ended/half-time state, main countdown value, secondary timer value, and synchronization source for all visible timers.
+- **Team State**: Home or away label, score, try count, conversion count, penalty goal count, drop goal count, and last scoring event for undo purposes.
+- **Discipline Sanction**: Card type, assigned team, remaining time for yellow cards, persistent active state for red cards, expired/cleared state, alert state, and display visibility (visible vs. queued).
 - **Conversion Timer**: Remaining time, associated try context, active/expired state, and alert state.
+- **Half-time State**: Half-time timer elapsed value, current target duration (incrementable), and whether the second half has been confirmed to start.
 - **Activity Recording State**: Whether the match session is being recorded as rugby or an accepted rugby-equivalent fallback.
 
 ## Success Criteria *(mandatory)*
@@ -178,6 +192,11 @@ those areas are affected.
 - **SC-007**: Activity history validation shows the recorded session appears as rugby or a documented rugby-equivalent fallback on each validated supported device class.
 - **SC-008**: Input validation confirms idle UP/MENU and DOWN adjust half length by exactly +1/-1 minute before first start only; after the match starts, UP/MENU opens scoring, DOWN opens discipline, and SELECT does not fail to start the match from idle.
 - **SC-009**: Card-entry validation confirms issuing either team a yellow or red card pauses the match first; yellow cards display with a `Y#` label and countdown under the affected team score, and red cards display with a persistent `R#` indicator.
+- **SC-010**: Input validation confirms SELECT pauses a running match and resumes a paused match during active match timing, and that all match-derived timers follow the same pause/resume state.
+- **SC-011**: Yellow card timer continuity validation confirms that a yellow card started in the first half retains its remaining time across the half-time break and resumes correctly when the second half begins.
+- **SC-012**: Score correction validation confirms that triggering the undo action for a team reverses the last recorded scoring event by the correct point value and counter, and that further undo attempts do not affect earlier events.
+- **SC-013**: Yellow card display validation confirms that when more than 2 yellow card sanctions are active for a team, only 2 are shown; after the earliest expires, the next queued sanction becomes visible without manual intervention.
+- **SC-014**: Half-time screen validation confirms the count-up half-time timer runs after the first half ends, UP/MENU increments the target duration on-the-fly, and SELECT triggers the "Start 2nd half" confirmation before the second half clock begins.
 
 ## Assumptions
 
