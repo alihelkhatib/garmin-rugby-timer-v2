@@ -24,9 +24,9 @@ class RugbyCardTeamDelegate extends WatchUi.Menu2InputDelegate {
     function onSelect(item) {
         var teamId = rugbyIsCardTeamHome(item) ? RUGBY_TEAM_HOME : RUGBY_TEAM_AWAY;
         if (teamId == RUGBY_TEAM_HOME) {
-            WatchUi.pushView(new Rez.Menus.HomeCardTypeMenu(), new RugbyCardTypeDelegate(_model, teamId), WatchUi.SLIDE_UP);
+            WatchUi.pushView(new Rez.Menus.HomeCardTypeMenu(), new TeamActionTypeDelegate(_model, teamId, "card"), WatchUi.SLIDE_UP);
         } else {
-            WatchUi.pushView(new Rez.Menus.AwayCardTypeMenu(), new RugbyCardTypeDelegate(_model, teamId), WatchUi.SLIDE_UP);
+            WatchUi.pushView(new Rez.Menus.AwayCardTypeMenu(), new TeamActionTypeDelegate(_model, teamId, "card"), WatchUi.SLIDE_UP);
         }
     }
 

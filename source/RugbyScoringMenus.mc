@@ -34,9 +34,9 @@ class RugbyScoreTeamDelegate extends WatchUi.Menu2InputDelegate {
     function onSelect(item) {
         var teamId = rugbyIsTeamHome(item) ? RUGBY_TEAM_HOME : RUGBY_TEAM_AWAY;
         if (teamId == RUGBY_TEAM_HOME) {
-            WatchUi.pushView(new Rez.Menus.HomeScoreTypeMenu(), new RugbyScoreTypeDelegate(_model, teamId), WatchUi.SLIDE_UP);
+            WatchUi.pushView(new Rez.Menus.HomeScoreTypeMenu(), new TeamActionTypeDelegate(_model, teamId, "score"), WatchUi.SLIDE_UP);
         } else {
-            WatchUi.pushView(new Rez.Menus.AwayScoreTypeMenu(), new RugbyScoreTypeDelegate(_model, teamId), WatchUi.SLIDE_UP);
+            WatchUi.pushView(new Rez.Menus.AwayScoreTypeMenu(), new TeamActionTypeDelegate(_model, teamId, "score"), WatchUi.SLIDE_UP);
         }
     }
 
