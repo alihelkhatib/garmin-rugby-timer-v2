@@ -181,6 +181,12 @@
 - [X] T062 Add scoring team/type dialog and conversion action screen behavior in `source/RugbyScoringMenus.mc`, `source/RugbyConversionView.mc`, `source/RugbyTimerDelegate.mc`, and `resources/layouts/layout.xml`, and XML menus under `resources/menus/`
 - [X] T063 Restrict idle half-length +/- controls to the not-started screen and add XML-backed discipline/sanction menus for active match DOWN input in `source/RugbyTimerDelegate.mc`, `source/RugbyCardMenus.mc`, and `resources/menus/`
 - [ ] T064 Ensure active-match card issuance pauses the match before creating yellow/red sanction state and renders yellow cards as `Y#  M:SS` under the affected team score in `source/RugbyGameModel.mc`, `source/RugbyTimerView.mc`, and related tests
+- [ ] T065 Implement half-time screen UI (`resources/layouts/halftime.xml`) and wire into `source/RugbyTimerView.mc`, `source/RugbyTimerDelegate.mc`, and `source/RugbyGameModel.mc`
+- [ ] T066 Add unit & UI tests for half-time default durations and increment/decrement behavior in `tests/Test_RugbyGameModel.mc` and `tests/Test_RugbyTimerView.mc`
+- [ ] T067 Implement post-match summary screen UI and auto-save integration in `source/RugbyTimerView.mc`, `source/RugbyTimerApp.mc`, and `resources/layouts/postmatch.xml`
+- [ ] T068 Add integration tests for post-match auto-save and summary display in `tests/Test_RugbyActivityRecorder.mc` and `tests/Test_RugbyGameModel.mc`
+- [ ] T069 Implement match-wide card sequence counters in `source/RugbyGameModel.mc`, render Y#/R# sequences in `source/RugbyTimerView.mc`, and add tests in `tests/Test_RugbyGameModel.mc`
+- [ ] T070 Update `specs/001-rugby-referee-timer/quickstart.md` with validation steps for half-time, post-match summary, and card sequencing
 
 ---
 
