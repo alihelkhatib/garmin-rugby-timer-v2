@@ -79,7 +79,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
             WatchUi.requestUpdate();
             return true;
         }
-        WatchUi.pushView(new Rez.Menus.ScoreTeamMenu(), new RugbyScoreTeamDelegate(_model), WatchUi.SLIDE_UP);
+        WatchUi.pushView(new Rez.Menus.ScoreTeamMenu(), new TeamSelectionDelegate(_model, "score"), WatchUi.SLIDE_UP);
         return true;
     }
 
@@ -89,7 +89,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
             WatchUi.requestUpdate();
             return true;
         }
-        WatchUi.pushView(new Rez.Menus.CardTeamMenu(), new RugbyCardTeamDelegate(_model), WatchUi.SLIDE_UP);
+        WatchUi.pushView(new Rez.Menus.CardTeamMenu(), new TeamSelectionDelegate(_model, "card"), WatchUi.SLIDE_UP);
         return true;
     }
 
