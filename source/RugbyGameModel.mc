@@ -1,3 +1,13 @@
+/*
+ * File: RugbyGameModel.mc
+ * Purpose: Core match state machine: timers, scoring, sanctions, snapshots and haptic event detection.
+ * Public API: RugbyGameModel class with APIs to start/pause/resume match, record scores, manage sanctions and produce snapshot(nowMs)
+ * Key state: _setup (variant & timers), _clockState, _teams, _conversionTimer, _sanctions, _nextSanctionId, _snapshotId, _lastHapticEvents, _pendingConfirmAction
+ * Interactions: RugbyVariantConfig, RugbyTimerDelegate, RugbyTimerView, RugbyHaptics, RugbyActivityRecorder (via delegate flow); tests/Test_RugbyGameModel.mc
+ * Example usage: var m=new RugbyGameModel(RugbyVariantConfig.loadPreferences()); m.startMatch(nowMs); var snap=m.snapshot(nowMs)
+ * TODOs/notes: Verify corner-cases around half transitions and simultaneous sanction/conversion expiry; add unit tests where missing
+ */
+
 import Toybox.System;
 
 const RUGBY_TEAM_HOME = "home";
@@ -25,6 +35,7 @@ class RugbyGameModel {
     var _snapshotId;
     var _lastHapticEvents;
     var _pendingConfirmAction;
+/* Create teams, default setup and reset timers/snapshots. */
 
     function initialize(setup) {
         _setup = setup == null ? RugbyVariantConfig.defaultSetup(RUGBY_DEFAULT_VARIANT) : setup;
@@ -68,6 +79,7 @@ class RugbyGameModel {
     function savePreferences() {
         RugbyVariantConfig.savePreferences(_setup);
     }
+/* Transition to RUNNING when allowed; set half start time and initialize elapsed counters. */
 
     function startMatch(nowMs) {
         if (_clockState == RUGBY_STATE_NOT_STARTED || _clockState == RUGBY_STATE_HALF_ENDED) {
@@ -82,6 +94,7 @@ class RugbyGameModel {
             }
         }
     }
+/* If running, persist active elapsed ms and mark PAUSED. */
 
     function pause(nowMs) {
         if (_clockState == RUGBY_STATE_RUNNING) {
@@ -89,6 +102,7 @@ class RugbyGameModel {
             _clockState = RUGBY_STATE_PAUSED;
         }
     }
+/* If paused, set halfStartedAtMs to now and mark RUNNING. */
 
     function resume(nowMs) {
         if (_clockState == RUGBY_STATE_PAUSED) {
@@ -96,12 +110,14 @@ class RugbyGameModel {
             _clockState = RUGBY_STATE_RUNNING;
         }
     }
+/* Mark pending confirmation to end the current half; do not mutate timers yet. */
 
     function requestEndHalf() {
         if (_clockState == RUGBY_STATE_RUNNING || _clockState == RUGBY_STATE_PAUSED || _clockState == RUGBY_STATE_HALF_ENDED) {
             _pendingConfirmAction = "endHalf";
         }
     }
+/* Request confirmation to end match and save; caller handles recorder. */
 
     function requestEndMatchSave() {
         if (_clockState != RUGBY_STATE_MATCH_ENDED) {
@@ -112,6 +128,7 @@ class RugbyGameModel {
     function cancelPendingAction() {
         _pendingConfirmAction = null;
     }
+/* If a pending confirm action exists, perform it (endHalf or endMatch) and return true. */
 
     function confirmPending(nowMs) {
         if (_pendingConfirmAction == "endHalf") {
@@ -124,6 +141,7 @@ class RugbyGameModel {
         }
         return false;
     }
+/* Finalize half timing; either end match if last half or advance half index and reset active elapsed. */
 
     function endHalf(nowMs) {
         if (_clockState == RUGBY_STATE_RUNNING) {
@@ -140,6 +158,7 @@ class RugbyGameModel {
             _setup["halfStartedAtMs"] = nowMs;
         }
     }
+/* Finalize match state, persist elapsed time if running and expire active timers. */
 
     function endMatch(nowMs) {
         if (_clockState == RUGBY_STATE_RUNNING) {
@@ -149,11 +168,13 @@ class RugbyGameModel {
         _pendingConfirmAction = null;
         expireActiveTimers(nowMs);
     }
+/* Apply try points and start the conversion timer for the scoring team. */
 
     function recordTry(teamId, nowMs) {
         applyScore(teamId, RUGBY_SCORE_TRY, 5, 1);
         startConversionTimer(teamId, nowMs);
     }
+/* Apply conversion points and clear conversion timer. */
 
     function recordConversion(teamId) {
         var applied = applyScore(teamId, RUGBY_SCORE_CONVERSION, 2, 1);
@@ -287,6 +308,7 @@ class RugbyGameModel {
             "dropGoalCount" => 0
         };
     }
+/* Update team score and per-type counters; returns false if teamId invalid. */
 
     function applyScore(teamId, scoreType, points, countDelta) {
         var team = _teams[teamId];
@@ -305,6 +327,7 @@ class RugbyGameModel {
         }
         return true;
     }
+/* Create the conversion timer state anchored to current active elapsed ms. */
 
     function startConversionTimer(teamId, nowMs) {
         _conversionTimer = {
@@ -315,6 +338,7 @@ class RugbyGameModel {
             "nearExpiryAlertFired" => false
         };
     }
+/* Insert a sanction (yellow/red) and return its id; yellow includes duration. */
 
     function addSanction(teamId, cardType, durationSeconds, nowMs) {
         var sanction = {
@@ -330,6 +354,7 @@ class RugbyGameModel {
         _sanctions.add(sanction);
         return sanction["id"];
     }
+/* Materialize conversion timer view model and deactivate when expired. */
 
     function conversionSnapshot(elapsedMs) {
         if (_conversionTimer == null || !_conversionTimer["active"]) {
@@ -346,6 +371,7 @@ class RugbyGameModel {
             "nearExpiryAlertFired" => _conversionTimer["nearExpiryAlertFired"]
         };
     }
+/* Materialize sanctions list for UI, and transition expired yellow cards to expired state. */
 
     function sanctionSnapshots(elapsedMs) {
         var result = [];
@@ -371,6 +397,7 @@ class RugbyGameModel {
         }
         return result;
     }
+/* Return haptic events for conversion or yellow sanctions nearing expiry (<= threshold). */
 
     function dueHapticEvents(conversion, sanctions) {
         var events = [];
@@ -394,6 +421,7 @@ class RugbyGameModel {
             }
         }
     }
+/* Compute remaining seconds for a timer, clamped to zero. */
 
     function remainingForTimer(timer, elapsedMs) {
         var elapsedSeconds = (elapsedMs - timer["startedAtActiveMs"]) / 1000;
@@ -405,6 +433,7 @@ class RugbyGameModel {
         var remaining = durationSeconds - (elapsedMs / 1000);
         return remaining < 0 ? 0 : remaining;
     }
+/* Force-disable conversion and active yellow timers when match ends. */
 
     function expireActiveTimers(nowMs) {
         if (_conversionTimer != null) {

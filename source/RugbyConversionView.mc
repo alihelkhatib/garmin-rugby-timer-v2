@@ -1,3 +1,13 @@
+/*
+ * File: RugbyConversionView.mc
+ * Purpose: UI for conversion attempts after a try (shows team, countdown and controls for made/miss).
+ * Public API: RugbyConversionView (View) and RugbyConversionDelegate (BehaviorDelegate)
+ * Key state: _model, _teamId, _layoutReady, _drawables
+ * Interactions: Rez.Layouts.ConversionLayout, RugbyGameModel, WatchUi navigation
+ * Example usage: WatchUi.pushView(new RugbyConversionView(model, teamId), new RugbyConversionDelegate(model, teamId), ...)
+ * TODOs/notes: Graceful handling if layout drawables are missing on some watch profiles
+ */
+
 import Toybox.Graphics;
 import Toybox.System;
 import Toybox.WatchUi;
@@ -15,6 +25,7 @@ class RugbyConversionView extends WatchUi.View {
         _layoutReady = false;
         _drawables = {};
     }
+/* Bind conversion layout and cache drawables. */
 
     function onLayout(dc) {
         setLayout(Rez.Layouts.ConversionLayout(dc));
@@ -29,6 +40,7 @@ class RugbyConversionView extends WatchUi.View {
         bindLayout(_model.snapshot(System.getTimer()));
         View.onUpdate(dc);
     }
+/* Attempt to resolve expected drawables and tolerate missing ones. */
 
     function cacheDrawables() {
         _drawables = {};
@@ -44,6 +56,7 @@ class RugbyConversionView extends WatchUi.View {
             _drawables[id] = drawable;
         }
     }
+/* Set texts/colors based on conversion state and remaining seconds. */
 
     function bindLayout(snap) {
         var conversion = snap["conversionTimer"];
@@ -123,6 +136,7 @@ class RugbyConversionDelegate extends WatchUi.BehaviorDelegate {
         WatchUi.requestUpdate();
         return true;
     }
+/* Delegate action for marking a conversion as made, closes view and updates UI. */
 
     function conversionMade() {
         _model.recordConversion(_teamId);

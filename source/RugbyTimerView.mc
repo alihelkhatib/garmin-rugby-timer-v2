@@ -1,3 +1,13 @@
+/*
+ * File: RugbyTimerView.mc
+ * Purpose: Render the main timer UI by binding a RugbyGameModel snapshot into layout drawables.
+ * Public API: RugbyTimerView(View) class; onLayout, onUpdate managed by WatchUi
+ * Key state: _model, _haptics, _layoutReady, _drawableCache
+ * Interactions: RugbyLayoutSupport, RugbyHaptics, Rez.Layouts, RugbyGameModel
+ * Example usage: new RugbyTimerView(model) shown by RugbyTimerApp.getInitialView()
+ * TODOs/notes: Keep drawing code minimal; consider moving formatting helpers to shared util
+ */
+
 import Toybox.Graphics;
 import Toybox.System;
 import Toybox.WatchUi;
@@ -9,6 +19,7 @@ class RugbyTimerView extends WatchUi.View {
     var _haptics;
     var _layoutReady;
     var _drawableCache;
+/* Prepare view state and create a RugbyHaptics helper instance. */
 
     function initialize(model) {
         View.initialize();
@@ -17,12 +28,14 @@ class RugbyTimerView extends WatchUi.View {
         _layoutReady = false;
         _drawableCache = {};
     }
+/* Apply layout and cache drawable references for fast drawing. */
 
     function onLayout(dc) {
         RugbyLayoutSupport.applyLayout(self, dc, dc.getWidth(), dc.getHeight());
         cacheDrawables();
         _layoutReady = true;
     }
+/* Ensure layout is ready, get a model snapshot, handle haptics and bind UI. */
 
     function onUpdate(dc) {
         if (!_layoutReady) {
@@ -34,6 +47,7 @@ class RugbyTimerView extends WatchUi.View {
         bindLayout(snap);
         View.onUpdate(dc);
     }
+/* Locate drawables by id; tolerate missing drawables on some device profiles. */
 
     function cacheDrawables() {
         _drawableCache = {};
@@ -62,6 +76,7 @@ class RugbyTimerView extends WatchUi.View {
             _drawableCache[id] = drawable;
         }
     }
+/* Map snapshot fields into drawable text/colors/visibility. */
 
     function bindLayout(snap) {
         var home = snap["home"];
@@ -131,6 +146,7 @@ class RugbyTimerView extends WatchUi.View {
         } catch (ex3) {
         }
     }
+/* Fire coalesced haptics for events and notify model they were fired. */
 
     function handleHaptics(snap) {
         var events = snap["hapticEvents"];
@@ -153,6 +169,7 @@ class RugbyTimerView extends WatchUi.View {
         }
         return value.format("%d");
     }
+/* Format a seconds value into MM:SS text, clamp negative values to 0. */
 
     function formatClock(totalSeconds) {
         if (totalSeconds == null) {

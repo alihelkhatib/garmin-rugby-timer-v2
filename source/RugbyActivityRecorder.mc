@@ -1,3 +1,13 @@
+/*
+ * File: RugbyActivityRecorder.mc
+ * Purpose: Wrap the Connect IQ ActivityRecording API to create/start/stop/save a rugby activity session.
+ * Public API: RugbyActivityRecorder class with start(), stopAndSave(), state(), fallbackReason(), snapshot()
+ * Key state: _session, _state, _fallbackReason
+ * Interactions: Toybox.ActivityRecording, Activity constants; tests/Test_RugbyActivityRecorder.mc
+ * Example usage: var r=new RugbyActivityRecorder(); r.start(); ... r.stopAndSave();
+ * TODOs/notes: Surface richer errors to caller; ensure compatibility across SDK versions
+ */
+
 import Toybox.Activity;
 import Toybox.ActivityRecording;
 import Toybox.Lang;
@@ -13,12 +23,14 @@ class RugbyActivityRecorder {
     var _session;
     var _state;
     var _fallbackReason;
+/* Initialize recorder state; no session active by default. */
 
     function initialize() {
         _session = null;
         _state = RUGBY_RECORDER_STATE_NOT_STARTED;
         _fallbackReason = null;
     }
+/* Try to create and start an ActivityRecording session. Returns false if unsupported or on error. */
 
     function start() {
         if (!(ActivityRecording has :createSession)) {
@@ -44,6 +56,7 @@ class RugbyActivityRecorder {
             return false;
         }
     }
+/* Stop and save the current session if present; sets fallbackReason on failure. */
 
     function stopAndSave() {
         if (_session == null) {
@@ -69,6 +82,7 @@ class RugbyActivityRecorder {
     function fallbackReason() {
         return _fallbackReason;
     }
+/* Return small serializable snapshot useful for debugging or persistence. */
 
     function snapshot() {
         return {

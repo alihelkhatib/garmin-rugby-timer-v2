@@ -1,5 +1,6 @@
 import Toybox.System;
 import Toybox.WatchUi;
+/* Detect whether the selected menu item corresponds to the HOME team card option. */
 
 function rugbyIsCardTeamHome(item) {
     var itemId = item.getId();
@@ -18,6 +19,7 @@ class RugbyCardTeamDelegate extends WatchUi.Menu2InputDelegate {
         Menu2InputDelegate.initialize();
         _model = model;
     }
+/* Navigate into card type menus and forward selection to model; pop back to main view after selection. */
 
     function onSelect(item) {
         var teamId = rugbyIsCardTeamHome(item) ? RUGBY_TEAM_HOME : RUGBY_TEAM_AWAY;
@@ -42,6 +44,7 @@ class RugbyCardTypeDelegate extends WatchUi.Menu2InputDelegate {
         _model = model;
         _teamId = teamId;
     }
+/* Navigate into card type menus and forward selection to model; pop back to main view after selection. */
 
     function onSelect(item) {
         if (rugbyIsYellowCard(item)) {

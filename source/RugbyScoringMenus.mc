@@ -1,5 +1,6 @@
 import Toybox.System;
 import Toybox.WatchUi;
+/* Detect whether the selected menu item corresponds to HOME team. */
 
 function rugbyIsTeamHome(item) {
     var itemId = item.getId();
@@ -28,6 +29,7 @@ class RugbyScoreTeamDelegate extends WatchUi.Menu2InputDelegate {
         Menu2InputDelegate.initialize();
         _model = model;
     }
+/* Apply selected score type and manage navigation/pop/update as needed. */
 
     function onSelect(item) {
         var teamId = rugbyIsTeamHome(item) ? RUGBY_TEAM_HOME : RUGBY_TEAM_AWAY;
@@ -52,6 +54,7 @@ class RugbyScoreTypeDelegate extends WatchUi.Menu2InputDelegate {
         _model = model;
         _teamId = teamId;
     }
+/* Apply selected score type and manage navigation/pop/update as needed. */
 
     function onSelect(item) {
         var now = System.getTimer();

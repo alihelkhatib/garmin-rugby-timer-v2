@@ -1,3 +1,13 @@
+/*
+ * File: RugbyVariantConfig.mc
+ * Purpose: Provide preset variant configurations and helpers for applying user overrides.
+ * Public API: RugbyVariantConfig static API: presets(), defaultSetup(variantId), applyOverrides, withSinBinSeconds, withConversionSeconds, savePreferences(), loadPreferences()
+ * Key state: none (stateless static helpers)
+ * Interactions: RugbyGameModel, UI variant selection; tests/Test_RugbyVariantConfig.mc
+ * Example usage: RugbyVariantConfig.defaultSetup(RUGBY_DEFAULT_VARIANT)
+ * TODOs/notes: Persistence is intentionally disabled (savePreferences) until app-level store is wired
+ */
+
 import Toybox.Application;
 
 const RUGBY_VARIANT_FIFTEENS = "fifteens";

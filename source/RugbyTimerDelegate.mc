@@ -4,12 +4,14 @@ import Toybox.WatchUi;
 class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
     var _model;
     var _recorder;
+/* Store model and recorder references for delegate actions. */
 
     function initialize(model, recorder) {
         BehaviorDelegate.initialize();
         _model = model;
         _recorder = recorder;
     }
+/* Handle primary button: confirm pending actions, start/pause/resume match and start recorder when match first starts. */
 
     function onSelect() {
         var now = System.getTimer();
@@ -32,6 +34,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
         WatchUi.requestUpdate();
         return true;
     }
+/* Cancel pending confirmation actions. */
 
     function onBack() {
         _model.cancelPendingAction();
@@ -72,6 +75,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
         }
         return openScoreDialog();
     }
+/* Guard against invalid states (not started/match ended) before opening score menus. */
 
     function openScoreDialog() {
         var snap = _model.snapshot(System.getTimer());
@@ -92,6 +96,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
         WatchUi.pushView(new Rez.Menus.CardTeamMenu(), new TeamSelectionDelegate(_model, "card"), WatchUi.SLIDE_UP);
         return true;
     }
+/* Forward score recording to model and request UI update. */
 
     function recordScore(teamId, scoreType) {
         if (scoreType == RUGBY_SCORE_TRY) {

@@ -6,6 +6,7 @@ const RUGBY_ALERT_THRESHOLD_SECONDS = 60;
 class RugbyHaptics {
 
     var _lastAlertSnapshotId;
+/* Reset last alert snapshot id to avoid duplicate alerts on startup. */
 
     function initialize() {
         _lastAlertSnapshotId = null;
@@ -14,6 +15,7 @@ class RugbyHaptics {
     function shouldAlert(remainingSeconds, alertFired) {
         return !alertFired && remainingSeconds != null && remainingSeconds <= RUGBY_ALERT_THRESHOLD_SECONDS && remainingSeconds >= 0;
     }
+/* Only vibrate once per snapshot id; returns true if a vibration was performed. */
 
     function fireCoalesced(snapshotId) {
         if (_lastAlertSnapshotId == snapshotId) {
