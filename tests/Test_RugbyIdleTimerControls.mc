@@ -2,14 +2,15 @@
 Test: tests/Test_RugbyIdleTimerControls.mc
 
 What this test file covers:
-- Verifies idle physical-button routing for timer adjustment and active-match score/card dialog availability gates.
+- Verifies idle physical-button routing for timer adjustment, variant selection gates, and active-match score/card dialog availability gates.
 
 How to run locally:
 - See docs/testing.md for SDK/CLI commands. Tests run at app startup via Toybox.Test.
 
 Key assertions/behaviours:
-- Idle Up/Menu-style adjustment increments by one minute and remains score-dialog blocked.
+- Idle Up-style adjustment increments by one minute and remains score-dialog blocked.
 - Idle Down-style adjustment decrements by one minute and remains score-dialog blocked.
+- Dedicated Menu is available for pre-match variant selection.
 - Score dialogs are allowed only while running, paused, or half-ended.
 - Card dialogs remain allowed for the same active match states.
 
@@ -60,7 +61,7 @@ function newIdleTimerControlsDelegate(model) {
 }
 
 (:test)
-function testIdleUpMenuIncrementsTimerAndBlocksScoreDialog(logger) {
+function testIdleUpIncrementsTimerAndBlocksScoreDialog(logger) {
     var model = newIdleTimerControlsModel();
     model.adjustIdleMainTimer(-1);
     var delegate = newIdleTimerControlsDelegate(model);
@@ -70,7 +71,7 @@ function testIdleUpMenuIncrementsTimerAndBlocksScoreDialog(logger) {
     Test.assertEqual(true, delegate.isIdleTimerAdjustmentState(before["clockState"]));
     Test.assertEqual(false, delegate.canOpenScoreDialogForState(before["clockState"]));
 
-    Test.assertEqual(true, delegate.onMenu());
+    Test.assertEqual(true, delegate.onPreviousPage());
     var after = model.snapshot(0);
     Test.assertEqual(40 * 60, after["mainCountdownSeconds"]);
     Test.assertEqual(false, delegate.canOpenScoreDialogForState(after["clockState"]));
@@ -90,7 +91,7 @@ function testIdleDownDecrementsTimerAndBlocksMenus(logger) {
 }
 
 (:test)
-function testIdlePhysicalUpAndMenuKeysIncrementTimer(logger) {
+function testIdlePhysicalUpKeyIncrementsTimer(logger) {
     var model = newIdleTimerControlsModel();
     model.adjustIdleMainTimer(-2);
     var delegate = newIdleTimerControlsDelegate(model);
@@ -98,10 +99,6 @@ function testIdlePhysicalUpAndMenuKeysIncrementTimer(logger) {
     Test.assertEqual(true, delegate.handleKey(WatchUi.KEY_UP));
     var snap = model.snapshot(0);
     Test.assertEqual(39 * 60, snap["mainCountdownSeconds"]);
-
-    Test.assertEqual(true, delegate.handleKey(WatchUi.KEY_MENU));
-    snap = model.snapshot(0);
-    Test.assertEqual(40 * 60, snap["mainCountdownSeconds"]);
 }
 
 (:test)
@@ -180,6 +177,55 @@ function testActiveMatchCardDialogStates(logger) {
     Test.assertEqual(true, delegate.canOpenCardDialogForState(RUGBY_STATE_HALF_ENDED));
     Test.assertEqual(false, delegate.canOpenCardDialogForState(RUGBY_STATE_NOT_STARTED));
     Test.assertEqual(false, delegate.canOpenCardDialogForState(RUGBY_STATE_MATCH_ENDED));
+}
+
+(:test)
+function testVariantSelectionOnlyAvailableBeforeMatch(logger) {
+    var model = newIdleTimerControlsModel();
+    var delegate = newIdleTimerControlsDelegate(model);
+    var snap = model.snapshot(0);
+
+    Test.assertEqual(true, delegate.canOpenVariantMenuForState(snap["clockState"]));
+
+    model.startMatch(0);
+    snap = model.snapshot(1000);
+    Test.assertEqual(false, delegate.canOpenVariantMenuForState(snap["clockState"]));
+
+    model.pause(1000);
+    snap = model.snapshot(2000);
+    Test.assertEqual(false, delegate.canOpenVariantMenuForState(snap["clockState"]));
+
+    model.endMatch(3000);
+    snap = model.snapshot(3000);
+    Test.assertEqual(false, delegate.canOpenVariantMenuForState(snap["clockState"]));
+}
+
+(:test)
+function testSetVariantAppliesBuiltInDefaultsBeforeMatch(logger) {
+    var model = newIdleTimerControlsModel();
+    var delegate = newIdleTimerControlsDelegate(model);
+
+    model.adjustIdleMainTimer(-5);
+    delegate.setVariant(RUGBY_VARIANT_SEVENS);
+    var snap = model.snapshot(0);
+
+    Test.assertEqual(RUGBY_VARIANT_SEVENS, snap["variantId"]);
+    Test.assertEqual("7s", snap["variantName"]);
+    Test.assertEqual(7 * 60, snap["mainCountdownSeconds"]);
+}
+
+(:test)
+function testSetVariantIgnoredAfterMatchStart(logger) {
+    var model = newIdleTimerControlsModel();
+    var delegate = newIdleTimerControlsDelegate(model);
+
+    delegate.setVariant(RUGBY_VARIANT_SEVENS);
+    model.startMatch(0);
+    delegate.setVariant(RUGBY_VARIANT_TENS);
+    var snap = model.snapshot(1000);
+
+    Test.assertEqual(RUGBY_VARIANT_SEVENS, snap["variantId"]);
+    Test.assertEqual("7s", snap["variantName"]);
 }
 
 (:test)

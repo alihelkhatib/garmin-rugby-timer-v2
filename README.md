@@ -6,6 +6,7 @@ Developer guide: see docs/DEVELOPER.md
 
 - Before kickoff, press Up/Menu to add 1 minute to the main timer, capped at the selected variant's normal half length.
 - Before kickoff, press Down to subtract 1 minute from the main timer, capped at 00:00.
+- Before kickoff, press Menu to choose a built-in rugby variant: 15s, 7s, 10s, or U19.
 - Before kickoff, press Select/Start to begin the match from the visible main timer.
 - The score menu is available only while a match is running, paused, or half-ended.
 - The score menu stays blocked before kickoff and after match end.

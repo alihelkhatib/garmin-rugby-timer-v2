@@ -272,6 +272,23 @@ function testCardsPauseRunningMatch(logger) {
 }
 
 (:test)
+function testSameTeamYellowTimersAndRedMarkerState(logger) {
+    var model = newTestModel();
+    var view = new RugbyTimerView(model);
+    model.startMatch(0);
+    model.startYellowCard(RUGBY_TEAM_HOME, 0);
+    model.resume(300000);
+    model.startYellowCard(RUGBY_TEAM_HOME, 300000);
+    model.recordRedCard(RUGBY_TEAM_HOME, 300000);
+
+    var snap = model.snapshot(300000);
+    var yellowLabel = view.teamYellowCardTimerLabel(snap["sanctions"], RUGBY_TEAM_HOME);
+
+    Test.assertEqual("5:00 10:00", yellowLabel);
+    Test.assertEqual(true, view.teamHasRedCard(snap["sanctions"], RUGBY_TEAM_HOME));
+}
+
+(:test)
 function testEventLogRecordsScoringAndCards(logger) {
     var model = newTestModel();
     model.startMatch(0);
@@ -342,4 +359,3 @@ function testRenderSnapshotContainsRequiredFields(logger) {
     Test.assertNotEqual(null, snap["home"]);
     Test.assertNotEqual(null, snap["away"]);
 }
-

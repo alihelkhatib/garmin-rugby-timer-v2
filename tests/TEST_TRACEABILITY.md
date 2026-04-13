@@ -15,7 +15,7 @@ Validation status:
 ## 005-match-event-management
 
 - US1 Automatic Conversion After Try: `tests/Test_RugbyGameModel.mc` covers paused try conversion countdowns driven by wall-clock time and non-try scores not starting a conversion; `source/RugbyConversionView.mc` owns a one-second overlay refresh timer for visible countdown updates while the main match is paused.
-- US2 Pause Awareness And Card Pause Behavior: `tests/Test_RugbyGameModel.mc` covers pause reminder snapshot state and card-triggered pause for yellow and red cards; `source/RugbyTimerDelegate.mc`, `source/RugbyTimerView.mc`, and `source/RugbyHaptics.mc` cover immediate pause haptics and recurring paused reminders.
+- US2 Pause Awareness And Card Pause Behavior: `tests/Test_RugbyGameModel.mc` covers pause reminder snapshot state, card-triggered pause for yellow and red cards, same-team multiple-yellow timers, and separate red-card marker state; `source/RugbyTimerDelegate.mc`, `source/RugbyTimerView.mc`, and `source/RugbyHaptics.mc` cover immediate pause haptics, recurring paused reminders, plain yellow timer text, multiple yellow timers, and compact red-card markers.
 - US3 Match Event Log: `tests/Test_RugbyGameModel.mc` covers scoring/card event log entries and reset/new-match clearing; `tests/Test_RugbyActivityRecorder.mc` covers best-effort activity export fallback state.
 - US4 End Or Reset From Back: `tests/Test_RugbyIdleTimerControls.mc` covers Back option availability and reset confirmation clearing model state and discarding the recorder; `source/RugbyMatchSummaryView.mc` renders the current match event log after End match.
 
@@ -23,3 +23,13 @@ Validation status:
 
 - Compile and unit-test compile passed for `fenix7` on 2026-04-13.
 - Simulator execution is pending because `monkeydo` could not connect to the Connect IQ simulator in this environment.
+
+## 006-rugby-variant-menu
+
+- US1 Select Variant Before Match: `tests/Test_RugbyIdleTimerControls.mc` covers pre-match variant menu availability and applying built-in 7s defaults from the delegate/model path.
+- US2 Prevent Mid-Match Variant Changes: `tests/Test_RugbyIdleTimerControls.mc` covers running, paused, and match-ended variant-menu blocking plus set-variant ignored after match start.
+- US3 Preserve Variant Choice During Pre-Match Adjustments: `tests/Test_RugbyIdleTimerControls.mc` covers selecting a built-in variant after an idle timer adjustment and resetting to the selected variant defaults.
+
+Validation status:
+
+- Compile and unit-test compile passed for `fenix7` on 2026-04-13.

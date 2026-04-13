@@ -22,6 +22,20 @@ Coverage added:
 - `monkeyc -f monkey.jungle -d fenix7 -o build/garmin-rugby-timer-fenix7-test.prg -t -y /tmp/codex-garmin-rugby-timer-key.der -w`: PASS.
 - `monkeydo build/garmin-rugby-timer-fenix7-test.prg fenix7 -t`: BLOCKED, unable to connect to simulator.
 - Quickstart manual scenarios: BLOCKED in this environment because simulator/device execution is unavailable.
+- Red-plus-yellow display priority amendment: PASS for app and test compiles on 2026-04-13.
+- Multiple-yellow and separate-red-marker amendment: PASS for app and test compiles on 2026-04-13.
+
+## 2026-04-13 Rugby Variant Menu
+
+- `monkeyc -f monkey.jungle -d fenix7 -o build/garmin-rugby-timer-fenix7.prg -y /tmp/codex-garmin-rugby-timer-key.der -w`: PASS.
+- `monkeyc -f monkey.jungle -d fenix7 -o build/garmin-rugby-timer-fenix7-test.prg -t -y /tmp/codex-garmin-rugby-timer-key.der -w`: PASS.
+
+Coverage added:
+
+- Variant menu availability is limited to the not-started pre-match state.
+- Selecting 7s before kickoff applies 7s defaults and clears prior idle half-length adjustment.
+- Attempting to set another variant after match start leaves the selected variant unchanged.
+- Up remains the idle timer increment control after Menu becomes variant selection.
 
 Coverage added:
 
@@ -29,6 +43,7 @@ Coverage added:
 - Penalty goals and drop goals do not create conversion timers.
 - Pause reminder interval state is present in model snapshots.
 - Yellow and red cards pause a running match.
+- Same-team active yellow card display uses plain countdown timers, supports multiple simultaneous yellow timers, and keeps red cards as separate team markers.
 - Event log entries record try, made conversion, penalty goal, drop goal, yellow card, and red card actions with team and match elapsed seconds.
 - Reset clears event log and returns runtime match state to not-started.
 - Back option routing exposes active/match-ended option availability and reset confirmation behavior.
