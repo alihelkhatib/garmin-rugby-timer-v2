@@ -16,6 +16,12 @@ Notes:
 - The tests in tests/ use Toybox.Test and will run during app startup; test output appears in the simulator console/logs.
 - If your SDK install exposes different CLI names (connectiq, monkeyc, monkeydo), adapt the commands accordingly.
 
+How to read tests:
+- Tests are small, focused functions annotated with the Toybox.Test (:test) marker.
+- Each test constructs minimal model/recorder state, performs operations, then asserts on the snapshot or return values.
+- Look for Test.assertEqual / Test.assertNotEqual to understand the expected behaviour; inline comments in the test files explain intent and edge cases.
+- Use docs/test-summaries.md for a concise per-test explanation when triaging failures.
+
 Existing tests included in this repo:
 - tests/Test_RugbyGameModel.mc — exercise RugbyGameModel: start/pause/resume, scoring, sanctions, conversion timers, snapshots
 - tests/Test_RugbyVariantConfig.mc — verify built-in variant defaults and override helpers
