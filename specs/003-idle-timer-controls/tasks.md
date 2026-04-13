@@ -106,8 +106,10 @@
 - [ ] T027 Run Monkey C regression tests for model, variant, scoring, card, conversion, and haptic behavior and create or update the results notes in `tests/README.md`
 - [ ] T028 Validate watch-scale readability for adjusted idle timer values on representative small and large round profiles and record results in `specs/003-idle-timer-controls/quickstart.md`
 - [ ] T029 Confirm activity-recording start/stop behavior is unchanged when starting from an adjusted idle timer and record the result in `specs/003-idle-timer-controls/quickstart.md`
-- [ ] T030 [P] Update user-facing control documentation for idle timer adjustment and active scoring state rules in `README.md`
-- [ ] T031 [P] Create or update feature traceability notes for new idle timer controls in `tests/TEST_TRACEABILITY.md`
+- [ ] T030 Record lightweight security checklist results, dependency/CVE review status, threat-model note, and owner sign-off in `specs/003-idle-timer-controls/quickstart.md`
+- [ ] T031 Record binary size, memory, CPU, and battery no-regression smoke validation for supported watch profiles in `specs/003-idle-timer-controls/quickstart.md`
+- [ ] T032 [P] Update user-facing control documentation for idle timer adjustment and active scoring state rules in `README.md`
+- [ ] T033 [P] Create or update feature traceability notes for new idle timer controls in `tests/TEST_TRACEABILITY.md`
 
 ---
 
@@ -135,7 +137,7 @@
 - US1 test tasks T008, T009, and T010 can run in parallel before implementation.
 - US2 test tasks T015, T016, and T017 can run in parallel before implementation.
 - US3 test tasks T020, T021, T022, and T023 can run in parallel before implementation.
-- Documentation tasks T030 and T031 can run in parallel after behavior is implemented.
+- Documentation tasks T032 and T033 can run in parallel after behavior is implemented.
 
 ---
 

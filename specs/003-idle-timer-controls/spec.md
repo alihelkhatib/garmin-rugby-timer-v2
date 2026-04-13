@@ -11,6 +11,8 @@
 
 - Q: What upper bound should idle main-timer increases use? -> A: Clamp between 00:00 and the selected variant's normal half length.
 - Q: Which match states count as active for score-dialog availability? -> A: Running, paused, and half-ended states count as active.
+- Q: What security validation posture should this feature use? -> A: Lightweight security checklist and owner sign-off.
+- Q: What performance budget posture should this feature use? -> A: No regression against existing budgets.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -106,6 +108,7 @@ A referee starts a match and uses the normal in-match controls. Once the match i
 - **SC-005**: In 10 consecutive match-start trials after idle timer adjustment, the match starts from the adjusted main timer value every time.
 - **SC-006**: In active-match regression testing, the score dialog remains available in 100% of tested running, paused, and half-ended scoring flows.
 - **SC-007**: No existing timer, scoring, variant, alert, or activity-recording acceptance test fails due to the idle-screen button routing change.
+- **SC-008**: Device and simulator smoke validation records no regression against existing binary size, memory, CPU, or battery budgets for supported watch profiles.
 
 ## Assumptions
 
@@ -123,3 +126,4 @@ A referee starts a match and uses the normal in-match controls. Once the match i
 - Retention & deletion: Idle timer adjustments are local match-preparation values and follow the app's existing retention behavior for timer state and match settings.
 - External communications: This feature does not require network communication.
 - Required security tests: No new security-sensitive surface is introduced; release validation should confirm the change does not add external data exchange or new persisted personal data.
+- Security checklist: Before implementation is accepted, the feature owner must record static analysis/build check results, dependency/CVE review status with "no new dependencies" if unchanged, a threat-model note confirming local-only/no PII/no network behavior, and owner sign-off.
