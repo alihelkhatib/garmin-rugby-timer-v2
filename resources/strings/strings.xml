@@ -35,4 +35,9 @@
   <string id="Event_DropGoal">Drop goal</string>
   <string id="Event_YellowCard">Yellow</string>
   <string id="Event_RedCard">Red</string>
+  <string id="VariantMenu_Title">Variant</string>
+  <string id="Variant_Fifteens">Rugby 15s</string>
+  <string id="Variant_Sevens">Rugby 7s</string>
+  <string id="Variant_Tens">Rugby 10s</string>
+  <string id="Variant_U19">Rugby U19</string>
 </strings>

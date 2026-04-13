@@ -1,0 +1,6 @@
+<menu2 id="VariantMenu" title="@Strings.VariantMenu_Title" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+  <menu-item id="variant_fifteens" label="@Strings.Variant_Fifteens" />
+  <menu-item id="variant_sevens" label="@Strings.Variant_Sevens" />
+  <menu-item id="variant_tens" label="@Strings.Variant_Tens" />
+  <menu-item id="variant_u19" label="@Strings.Variant_U19" />
+</menu2>
