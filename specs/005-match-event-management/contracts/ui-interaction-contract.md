@@ -26,8 +26,9 @@
 
 - Issuing yellow or red card records the card event and pauses the match if it was running.
 - Issuing a card while already paused records the event and leaves the match paused.
-- Yellow card remains visible with its timer.
-- Red card is recorded in the event log but does not require a persistent timer display.
+- Yellow cards remain visible as plain countdown timers without `Y#` labels.
+- If the same team has multiple active yellow cards, the main match screen shows multiple countdown timers for that team.
+- Red card is recorded in the event log and indicated separately from yellow timers with a compact red marker near the affected team's label or similar team-specific position.
 
 ## Event Log And Match Summary
 

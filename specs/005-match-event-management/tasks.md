@@ -154,6 +154,14 @@
 - [X] T053 Update 005 traceability mappings in `tests/TEST_TRACEABILITY.md`
 - [X] T054 [P] Update developer-facing behavior notes in `README.md`
 - [X] T055 Review code for simplicity and remove redundant diagnostics or speculative abstractions from `source/RugbyGameModel.mc`, `source/RugbyTimerDelegate.mc`, `source/RugbyTimerView.mc`, and `source/RugbyHaptics.mc`
+- [X] T056 [US2] Add same-team red-plus-yellow display priority regression test in `tests/Test_RugbyGameModel.mc`
+- [X] T057 [US2] Update card display selection so active yellow timers take priority over red-card markers in `source/RugbyTimerView.mc`
+- [X] T058 [US2] Run app and test compiles for `fenix7` using `monkey.jungle` and record results in `tests/README.md`
+- [X] T059 [US2] Update card display spec/docs for plain yellow timers, multiple yellow timers, and separate red marker
+- [X] T060 [US2] Add same-team multiple-yellow and red-marker regression tests in `tests/Test_RugbyGameModel.mc`
+- [X] T061 [US2] Render multiple active yellow countdowns without `Y#` labels in `source/RugbyTimerView.mc`
+- [X] T062 [US2] Render red cards as compact team-specific red markers in `source/RugbyTimerView.mc`
+- [X] T063 [US2] Run app and test compiles for `fenix7` using `monkey.jungle` and record results in `tests/README.md`
 
 ---
 

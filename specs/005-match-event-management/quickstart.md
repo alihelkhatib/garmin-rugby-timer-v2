@@ -46,6 +46,10 @@ monkeydo build/garmin-rugby-timer-fenix7-test.prg fenix7 -t
 3. Confirm the match pauses and the yellow-card timer/event are recorded.
 4. Resume and issue a red card.
 5. Confirm the match pauses and a red-card event is recorded without a persistent red-card timer.
+6. Issue a yellow card to the same team that already has a red card.
+7. Confirm that team's card display shows the yellow-card timer as plain countdown text while a separate red marker remains near that team.
+8. Issue a second yellow card to a team with an active yellow card.
+9. Confirm both yellow-card countdowns are visible for that team at the same time.
 
 ## Scenario 5: Event Log And Match Summary
 

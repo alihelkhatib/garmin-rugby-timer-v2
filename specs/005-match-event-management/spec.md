@@ -12,6 +12,7 @@
 - Q: Which scoring and card events should be captured in the match event log? → A: Log only point-scoring actions and issued cards: try, made conversion, penalty goal, drop goal, yellow card, red card.
 - Q: What should Reset match do with the current match activity and event log? → A: Reset clears runtime match state and event log, discards/does not save the current activity, and returns to the pre-match setup.
 - Q: How long should the in-app match-end event log remain viewable? → A: Event log is viewable in the match-end summary for the current match, then cleared on Reset or new match start.
+- Q: What should be displayed when teams have multiple cards? → A: Show yellow-card timers as plain countdowns without a `Y#` prefix, show multiple active yellow timers for the same team at the same time, and show red cards as a separate small red card marker near the team label instead of in the timer text.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -47,6 +48,8 @@ As a referee, I need clear tactile feedback when the match is paused, including 
 3. **Given** the match is running, **When** the referee issues a yellow card, **Then** the match is paused and the card is recorded.
 4. **Given** the match is running, **When** the referee issues a red card, **Then** the match is paused and the card is recorded without requiring a red-card timer display.
 5. **Given** haptics are unavailable, **When** pause or reminder feedback is due, **Then** match behavior remains correct and diagnostics indicate that vibration was unavailable.
+6. **Given** a team already has a red card, **When** that same team receives an active yellow card, **Then** the team card display shows the yellow-card timer as plain countdown text and keeps a separate red-card marker near the team label.
+7. **Given** a team already has an active yellow card, **When** that same team receives another active yellow card, **Then** both yellow-card timers are visible for that team at the same time.
 
 ---
 
@@ -87,6 +90,8 @@ As a referee, I need Back to present clear match-exit choices so I can either en
 
 - A try can be recorded while the match is paused; the conversion timer must still run automatically.
 - A card can be issued while already paused; the card should be recorded without changing the paused state unexpectedly.
+- If a team has both a red card and one or more active yellow cards, yellow timers should remain visible as countdowns while the red card remains indicated separately.
+- If a team has multiple active yellow cards, each active yellow timer should be visible without `Y#` labels.
 - Pause reminder vibrations must stop once the match resumes, ends, or resets.
 - Reset match must clear conversion overlays, card timers, event log entries, pending confirmations, and the unsaved current activity.
 - Starting a new match after a completed match must clear the prior in-app match-end event log.
@@ -112,6 +117,9 @@ As a referee, I need Back to present clear match-exit choices so I can either en
 - **FR-012**: The system MUST attempt to include event log entries in the saved activity file when the platform supports attaching such event data.
 - **FR-013**: If activity-file event export is unavailable, the system MUST still save the activity/match and keep the event log viewable in the app's match-end summary for the current match until Reset match or a new match start clears it.
 - **FR-014**: Red cards MUST be recorded in the event log, but the system does not need to display a persistent red-card timer while no lower-level red-card timer rule is supported.
+- **FR-014a**: Yellow-card timers on the main match display MUST be shown as plain countdowns without `Y#` labels.
+- **FR-014b**: When a team has multiple active yellow cards, the main match display MUST show multiple yellow-card countdowns for that team at the same time.
+- **FR-014c**: Red cards MUST be indicated separately from the yellow-card timer text using a small red visual marker near the affected team's label or similarly compact team-specific position.
 - **FR-015**: Pressing Back during a match MUST present End match and Reset match choices rather than immediately mutating the match.
 - **FR-016**: End match MUST end the match and save the activity/match after confirmation.
 - **FR-017**: Reset match MUST clear all match runtime state, discard the current unsaved activity/match, clear the event log, and return the app to the original pre-match state after confirmation.
@@ -136,6 +144,8 @@ As a referee, I need Back to present clear match-exit choices so I can either en
 - **SC-003**: In 10 pause tests on haptic-capable devices, 100% of pause transitions provide immediate tactile feedback.
 - **SC-004**: During a 30-second paused-match observation, at least two pause reminder vibrations occur and then stop after the match resumes.
 - **SC-005**: In card issue tests from a running match, 100% of yellow and red card entries pause the match and create event log entries.
+- **SC-005a**: In mixed-card display tests, 100% of same-team red-plus-active-yellow states show yellow-card timers as plain countdowns and expose a separate red-card marker.
+- **SC-005b**: In multiple-yellow tests, 100% of same-team multiple-active-yellow states show each active yellow-card countdown for that team.
 - **SC-006**: In a match containing at least five score/card events, 100% of event log entries show team, action, and match elapsed time in match order.
 - **SC-007**: In Back option tests, End match saves the match and Reset match discards the current activity/match and returns to the pre-match state without leaving stale scores, timers, cards, conversion state, pending actions, or event log entries.
 
