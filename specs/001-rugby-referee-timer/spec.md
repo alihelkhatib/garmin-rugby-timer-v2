@@ -14,6 +14,10 @@
 - Q: How does score correction work in v1? -> A: A single undo of the last scoring event per team is accessible from the scoring menu; it reverses the most recent score entry for that team, including points and relevant counters for that event type.
 - Q: How many yellow card timers can be shown per team at once? -> A: Up to 2 yellow card timers are shown per team at a time; additional cards are tracked but hidden until earlier timers for that team expire.
 - Q: How does the referee start the second half? -> A: After the first half ends a dedicated half-time screen appears with a count-up half-time timer; UP/MENU increments the half-time timer on-the-fly; SELECT on the "Start 2nd half" confirmation begins the second half clock.
+- Q: What is the default half-time target duration and does DOWN decrement it? -> A: Half-time defaults are variant-specific: 10 minutes for 15s and U19, 2 minutes for 7s, 5 minutes for 10s; DOWN decrements the target duration symmetrically to UP/MENU.
+- Q: Where in the scoring flow does the undo action appear? -> A: Undo appears as a top-level option in the scoring dialog alongside Home/Away, before team selection, labelled "Undo last — Home" and "Undo last — Away"; it is only shown when a last event exists for that team.
+- Q: What does SELECT do on the conversion action screen? -> A: SELECT pauses/resumes the match clock only, identical to its behaviour on the main match screen; it does not record any conversion outcome.
+- Q: When a yellow card expires or is cleared, do subsequent cards continue the sequence or reset? -> A: Yellow card and red card sequence numbers continue across the entire match regardless of team or expiry/clear; the first card issued is Y1, the next is Y2, and so on; red cards follow the same pattern starting at R1.
 
 ### Session 2026-04-12
 
@@ -153,26 +157,29 @@ rendering, storage, and activity-recording behavior so regression isolation can 
 - **FR-026**: The app MUST store only lightweight preferences for selected variant and timing defaults, with no match-history persistence or network dependency in v1.
 - **FR-027**: The app MUST avoid heavyweight, non-referee-facing features such as in-match network dependency, complex post-match analytics, or large data-entry workflows.
 - **FR-028**: The app MUST preserve existing functioning timer, scoring, variant, display, haptic, storage, and activity-recording behavior when adding or changing features.
-- **FR-029**: Pressing UP/MENU during active match management MUST open a lightweight scoring dialog that first asks which team scored and then asks the score type. Supported v1 score types MUST include try, penalty goal, and drop goal.
-- **FR-030**: Selecting try in the scoring dialog MUST immediately add 5 points, increment that team's try count, start the active variant's conversion timer, and show a conversion action screen. On that screen UP/MENU MUST record a successful conversion for +2 points, DOWN MUST record the conversion as missed with no score change, and either action MUST return the referee to the main match screen.
+- **FR-029**: Pressing UP/MENU during active match management MUST open a lightweight scoring dialog. The dialog MUST first offer top-level options: Home, Away, Undo last — Home (only if a last event exists for Home), and Undo last — Away (only if a last event exists for Away). Selecting Home or Away then asks the score type; supported v1 score types MUST include try, penalty goal, and drop goal.
+- **FR-030**: Selecting try in the scoring dialog MUST immediately add 5 points, increment that team's try count, start the active variant's conversion timer, and show a conversion action screen. On that screen UP/MENU MUST record a successful conversion for +2 points, DOWN MUST record the conversion as missed with no score change, and either action MUST return the referee to the main match screen. SELECT on the conversion action screen MUST pause or resume the match clock only, identical to its behaviour on the main match screen, and MUST NOT record any conversion outcome.
 - **FR-031**: Before the first match start only, UP/MENU MUST increase the half length by 1 minute, DOWN MUST decrease the half length by 1 minute, and SELECT MUST start the match clock. Half-length +/- controls MUST NOT remain active after the match has started.
 - **FR-032**: During a started match, UP/MENU MUST open the scoring flow for selecting Home or Away and a score type; DOWN MUST open the discipline/sanction flow for selecting Home or Away and yellow or red card.
 - **FR-033**: Issuing a yellow or red card during a started match MUST pause the match clock before creating the selected sanction, so all match-derived timers stop together while the sanction is recorded.
 - **FR-034**: Yellow-card sanctions MUST display under the affected team score with a yellow-card sequence label and countdown timer, using a format such as `Y1  9:59`; red-card sanctions MUST display as persistent red-card sequence indicators without countdown timers.
 - **FR-035**: During an active running match, SELECT MUST pause the match clock if running, or resume it if paused, affecting all match-derived timers together.
 - **FR-036**: Active yellow card timers MUST pause when a half ends and MUST resume when the next half starts, remaining consistent with the match timebase; yellow card remaining time MUST be preserved across the half-time break.
-- **FR-037**: The scoring menu MUST include a single-undo correction action for the last scoring event per team; the undo MUST reverse the associated point value and relevant scoring counter (try count, etc.) for that event type.
+- **FR-037**: The scoring dialog MUST present "Undo last — Home" and "Undo last — Away" as top-level options before team selection, visible only when a last scoring event exists for that team. Selecting an undo option MUST reverse the associated point value and relevant scoring counter (try count, etc.) for the most recent event of that team; a further undo attempt after reversal MUST NOT affect any earlier events.
 - **FR-038**: The app MUST show at most 2 yellow card timers per team at a time on screen; additional yellow card sanctions for a team MUST be tracked in the model but hidden from the display until earlier timers for that team expire, at which point the next hidden timer becomes visible.
-- **FR-039**: After the first half ends the app MUST display a dedicated half-time screen showing a count-up half-time timer; on that screen UP/MENU MUST increment the half-time timer target duration on-the-fly; SELECT on the half-time screen MUST present a "Start 2nd half" confirmation and, upon confirmation, start the second half clock.
+- **FR-039**: After the first half ends the app MUST display a dedicated half-time screen showing a count-up half-time timer; on that screen UP/MENU MUST increment the half-time timer target duration on-the-fly; DOWN MUST decrement the target duration symmetrically; SELECT on the half-time screen MUST present a "Start 2nd half" confirmation and, upon confirmation, start the second half clock.
+- **FR-040**: The half-time default target duration MUST be variant-specific: 10 minutes for 15s and U19, 2 minutes for 7s, and 5 minutes for 10s; the referee MAY adjust the target duration using UP/MENU and DOWN before confirming the second half start.
+- **FR-041**: After the second half ends the app MUST display a brief post-match summary screen showing the final score and half results; the activity recording MUST auto-save on entry to the summary screen; the referee exits the summary screen via BACK or SELECT.
+- **FR-042**: Yellow card sequence numbers MUST be assigned as a single match-wide counter regardless of team, expiry, or clear; the first card issued is Y1, the second Y2, and so on. Red card sequence numbers MUST follow the same pattern starting at R1 and incrementing match-wide.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Match Setup**: Selected rugby variant, half length, sin-bin length, conversion length, fixed Home/Away team labels, and display preferences needed before or during a match.
 - **Match Clock State**: Current half, running/paused/half-ended/half-time state, main countdown value, secondary timer value, and synchronization source for all visible timers.
 - **Team State**: Home or away label, score, try count, conversion count, penalty goal count, drop goal count, and last scoring event for undo purposes.
-- **Discipline Sanction**: Card type, assigned team, remaining time for yellow cards, persistent active state for red cards, expired/cleared state, alert state, and display visibility (visible vs. queued).
+- **Discipline Sanction**: Card type, assigned team, match-wide sequence number (Y1/Y2/R1/R2…), remaining time for yellow cards, persistent active state for red cards, expired/cleared state, alert state, and display visibility (visible vs. queued).
 - **Conversion Timer**: Remaining time, associated try context, active/expired state, and alert state.
-- **Half-time State**: Half-time timer elapsed value, current target duration (incrementable), and whether the second half has been confirmed to start.
+- **Half-time State**: Half-time timer elapsed value, current target duration (variant-specific default, incrementable/decrementable), and whether the second half has been confirmed to start.
 - **Activity Recording State**: Whether the match session is being recorded as rugby or an accepted rugby-equivalent fallback.
 
 ## Success Criteria *(mandatory)*
@@ -196,7 +203,12 @@ those areas are affected.
 - **SC-011**: Yellow card timer continuity validation confirms that a yellow card started in the first half retains its remaining time across the half-time break and resumes correctly when the second half begins.
 - **SC-012**: Score correction validation confirms that triggering the undo action for a team reverses the last recorded scoring event by the correct point value and counter, and that further undo attempts do not affect earlier events.
 - **SC-013**: Yellow card display validation confirms that when more than 2 yellow card sanctions are active for a team, only 2 are shown; after the earliest expires, the next queued sanction becomes visible without manual intervention.
-- **SC-014**: Half-time screen validation confirms the count-up half-time timer runs after the first half ends, UP/MENU increments the target duration on-the-fly, and SELECT triggers the "Start 2nd half" confirmation before the second half clock begins.
+- **SC-014**: Half-time screen validation confirms the count-up half-time timer runs after the first half ends, UP/MENU increments the target duration on-the-fly, DOWN decrements it symmetrically, and SELECT triggers the "Start 2nd half" confirmation before the second half clock begins.
+- **SC-015**: Half-time default validation confirms each built-in variant loads the correct default target duration: 10 min for 15s and U19, 2 min for 7s, 5 min for 10s.
+- **SC-016**: Undo validation confirms "Undo last — Home" and "Undo last — Away" appear as top-level scoring dialog options only when a last event exists for that team, and that selecting one reverses the correct point value and counter without affecting earlier events.
+- **SC-017**: Post-match screen validation confirms the summary screen appears after the second half ends, shows correct final score and half results, auto-saves the activity on entry, and exits cleanly via BACK or SELECT.
+- **SC-018**: Conversion screen SELECT validation confirms pressing SELECT on the conversion action screen pauses or resumes the match clock without recording any conversion outcome.
+- **SC-019**: Card sequence validation confirms yellow and red card sequence numbers increment match-wide (Y1, Y2… and R1, R2…) regardless of which team received the card or whether earlier cards have expired or been cleared.
 
 ## Assumptions
 
