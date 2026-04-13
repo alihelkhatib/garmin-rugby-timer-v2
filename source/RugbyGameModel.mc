@@ -66,8 +66,12 @@ class RugbyGameModel {
     }
 
     function setVariant(variantId as String) as Void {
-        if (isClockState(RUGBY_STATE_NOT_STARTED) || isClockState(RUGBY_STATE_HALF_ENDED)) {
+        System.println("RUGBY|RugbyGameModel|setVariant requested variantId=" + variantId + " clockState=" + _clockState);
+        if (isClockState(RUGBY_STATE_NOT_STARTED)) {
             _setup = RugbyVariantConfig.defaultSetup(variantId);
+            System.println("RUGBY|RugbyGameModel|setVariant applied variantId=" + _setup["variantId"] + " variantName=" + _setup["variantName"] + " halfLengthSeconds=" + _setup["halfLengthSeconds"].format("%d") + " sinBinLengthSeconds=" + _setup["sinBinLengthSeconds"].format("%d") + " conversionLengthSeconds=" + _setup["conversionLengthSeconds"].format("%d"));
+        } else {
+            System.println("RUGBY|RugbyGameModel|setVariant blocked clockState=" + _clockState);
         }
     }
 
