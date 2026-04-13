@@ -195,6 +195,49 @@ function testConversionMadeAndMissClearActiveTimer(logger) {
 }
 
 (:test)
+function testPausedTryStartsWallClockConversionTimer(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.pause(10000);
+
+    model.recordTry(RUGBY_TEAM_HOME, 20000);
+    var snap = model.snapshot(20000);
+    Test.assertEqual(RUGBY_STATE_PAUSED, snap["clockState"]);
+    Test.assertNotEqual(null, snap["conversionTimer"]);
+    Test.assertEqual(90, snap["conversionTimer"]["remainingSeconds"]);
+
+    snap = model.snapshot(50000);
+    Test.assertEqual(RUGBY_STATE_PAUSED, snap["clockState"]);
+    Test.assertEqual(60, snap["conversionTimer"]["remainingSeconds"]);
+}
+
+(:test)
+function testNonTryScoresDoNotStartConversionTimer(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.pause(10000);
+
+    model.recordPenaltyGoalAt(RUGBY_TEAM_HOME, 20000);
+    var snap = model.snapshot(20000);
+    Test.assertEqual(null, snap["conversionTimer"]);
+
+    model.recordDropGoalAt(RUGBY_TEAM_AWAY, 30000);
+    snap = model.snapshot(30000);
+    Test.assertEqual(null, snap["conversionTimer"]);
+}
+
+(:test)
+function testPauseReminderStateIsInSnapshot(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.pause(10000);
+    var snap = model.snapshot(10000);
+
+    Test.assertEqual(RUGBY_STATE_PAUSED, snap["clockState"]);
+    Test.assertEqual(RUGBY_PAUSE_REMINDER_INTERVAL_MS, snap["pauseReminderIntervalMs"]);
+}
+
+(:test)
 function testYellowAndRedCards(logger) {
 
     var model = newTestModel();
@@ -212,6 +255,65 @@ function testYellowAndRedCards(logger) {
     Test.assertEqual(true, model.clearSanction(red));
     snap = model.snapshot((9 * 60 * 1000));
     Test.assertEqual(1, snap["sanctions"].size());
+}
+
+(:test)
+function testCardsPauseRunningMatch(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.startYellowCard(RUGBY_TEAM_HOME, 10000);
+    var snap = model.snapshot(10000);
+    Test.assertEqual(RUGBY_STATE_PAUSED, snap["clockState"]);
+
+    model.resume(20000);
+    model.recordRedCard(RUGBY_TEAM_AWAY, 30000);
+    snap = model.snapshot(30000);
+    Test.assertEqual(RUGBY_STATE_PAUSED, snap["clockState"]);
+}
+
+(:test)
+function testEventLogRecordsScoringAndCards(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.recordTry(RUGBY_TEAM_HOME, 10000);
+    model.recordConversionAt(RUGBY_TEAM_HOME, 20000);
+    model.recordPenaltyGoalAt(RUGBY_TEAM_AWAY, 30000);
+    model.recordDropGoalAt(RUGBY_TEAM_HOME, 40000);
+    model.startYellowCard(RUGBY_TEAM_AWAY, 50000);
+    model.recordRedCard(RUGBY_TEAM_HOME, 60000);
+
+    var events = model.eventLog();
+    Test.assertEqual(6, events.size());
+    Test.assertEqual(RUGBY_TEAM_HOME, events[0]["teamId"]);
+    Test.assertEqual(RUGBY_SCORE_TRY, events[0]["action"]);
+    Test.assertEqual(10, events[0]["matchElapsedSeconds"]);
+    Test.assertEqual(RUGBY_EVENT_CONVERSION_MADE, events[1]["action"]);
+    Test.assertEqual(RUGBY_SCORE_PENALTY_GOAL, events[2]["action"]);
+    Test.assertEqual(RUGBY_SCORE_DROP_GOAL, events[3]["action"]);
+    Test.assertEqual("yellowCard", events[4]["action"]);
+    Test.assertEqual("redCard", events[5]["action"]);
+}
+
+(:test)
+function testEventLogClearsOnResetAndNewMatch(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.recordTry(RUGBY_TEAM_HOME, 10000);
+    Test.assertEqual(1, model.eventLog().size());
+
+    model.resetMatch();
+    var reset = model.snapshot(10000);
+    Test.assertEqual(RUGBY_STATE_NOT_STARTED, reset["clockState"]);
+    Test.assertEqual(0, model.eventLog().size());
+    Test.assertEqual(0, reset["home"]["score"]);
+
+    model.startMatch(20000);
+    model.recordTry(RUGBY_TEAM_AWAY, 30000);
+    Test.assertEqual(1, model.eventLog().size());
+    model.endMatch(40000);
+    Test.assertEqual(true, model.snapshot(40000)["matchSummaryVisible"]);
+    model.resetMatch();
+    Test.assertEqual(0, model.eventLog().size());
 }
 
 (:test)
@@ -240,5 +342,4 @@ function testRenderSnapshotContainsRequiredFields(logger) {
     Test.assertNotEqual(null, snap["home"]);
     Test.assertNotEqual(null, snap["away"]);
 }
-
 

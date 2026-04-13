@@ -1,4 +1,4 @@
-# Specification Quality Checklist: idle-timer-controls
+# Specification Quality Checklist: Match Event Management
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-04-13
@@ -31,6 +31,5 @@
 
 ## Notes
 
-- Validation rerun on 2026-04-13 after updating the existing idle-timer-controls specification. All checklist items pass with no clarification markers remaining.
-- Validation rerun on 2026-04-13 after user-reported idle-screen regression. The spec now covers responsive idle Up/Menu, Down, and Select/Start controls; Select/Start match start; timer centering; and removal or replacement of raw `notStarted` display text.
-- This spec focuses on behavior/state changes for button routing in idle vs active match states. Plan/tasks should validate supported physical-button paths and ensure regression coverage for active-match scoring behavior.
+- Validation pass 1 completed on 2026-04-13. No clarification markers remain.
+- Activity-file event export is specified as best effort with a local match-end review fallback because platform support may constrain what can be saved into the activity file.

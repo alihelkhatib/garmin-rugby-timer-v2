@@ -5,6 +5,8 @@
 **Status**: Draft  
 **Input**: User description: "This application still lacks the ability to increment the main timer on the idle screen by using the Up/Menu and Down physical buttons. Currently, the Up/Menu button still goes to the score dialog menu even though a match has not started. This application shall only have the score menu dialog if a match is active. The application shall have the ability to increment or decrement the main timer on the idle screen before a match has begun."
 
+**Latest Input**: User follow-up on 2026-04-13: "None of the buttons are now working when on the idle screen. I can't increment or decrement. The select button does not begin the match whatsoever. I like the layout that is done well. But the timer is still not centralized like I want it to be. I am not sure why 'notStarted' is showing at the bottom, that should be replaced with something better or removed entirely."
+
 ## Clarifications
 
 ### Session 2026-04-13
@@ -31,6 +33,8 @@ A referee is preparing for a match and wants to change the visible main timer di
 3. **Given** the app is on the idle screen with no active match and the main timer is 00:00, **When** the referee presses Down, **Then** the main timer remains at 00:00.
 4. **Given** the app is on the idle screen with no active match and the main timer is at the selected variant's normal half length, **When** the referee presses Up/Menu, **Then** the main timer remains at the selected variant's normal half length.
 5. **Given** the referee has adjusted the idle main timer, **When** the referee starts the match, **Then** the match begins from the adjusted timer value.
+6. **Given** the app is on the idle screen with no active match, **When** the referee presses Select/Start, **Then** the match begins from the currently visible main timer value.
+7. **Given** the app is on the idle screen with no active match, **When** the referee uses Up/Menu, Down, or Select/Start, **Then** each physical button performs its idle-screen action without being ignored.
 
 ---
 
@@ -63,15 +67,35 @@ A referee starts a match and uses the normal in-match controls. Once the match i
 2. **Given** a match is running, paused, or half-ended and the score dialog is open, **When** the referee performs an existing scoring action, **Then** the score changes according to the existing scoring rules.
 3. **Given** a match has ended or returned to idle, **When** the referee presses Up/Menu, **Then** the app follows the idle timer-adjustment behavior and does not open the score dialog.
 
+---
+
+### User Story 4 - Keep Idle Screen Readable and Match-Ready (Priority: P2)
+
+A referee glances at the idle screen before kickoff and needs the main timer to remain the central focus without seeing raw internal state names. The existing scoreboard-style layout should remain familiar, but the main timer must be visually centered enough to read comfortably and any status text must be user-facing or omitted.
+
+**Why this priority**: The controls fix must also resolve the user-visible screen problem reported with the idle state: the countdown is not central enough and the raw "notStarted" label appears at the bottom.
+
+**Independent Test**: Open the idle screen on representative supported watch sizes and confirm the main timer is centered as the dominant element, no raw internal state identifier appears, and the existing layout remains recognizable.
+
+**Acceptance Scenarios**:
+
+1. **Given** the app is on the idle screen before kickoff, **When** the referee views the main timer, **Then** the main timer is horizontally centered and remains the dominant visual element in the available timer area.
+2. **Given** the app is on the idle screen before kickoff, **When** the referee views the bottom/status area, **Then** raw internal state values such as "notStarted" are not displayed.
+3. **Given** the app is on the idle screen before kickoff, **When** an idle state label is shown, **Then** the label uses referee-facing wording such as "Ready" or is omitted if it would reduce timer readability.
+4. **Given** the existing scoreboard-style idle layout is visible, **When** this feature is validated, **Then** the layout remains recognizable and is not replaced by a broad redesign.
+
 ### Edge Cases
 
 - Rapid repeated Up/Menu presses on the idle screen should increase the main timer predictably without skipped or duplicated increments.
 - Rapid repeated Down presses on the idle screen should decrease the main timer predictably without crossing below 00:00.
 - Idle main-timer increases must stop at the selected variant's normal half length.
 - Long-press or held-button behavior must not open the score dialog while no match is active.
+- Select/Start on the idle screen must not be swallowed by the idle adjustment behavior and must still begin the match.
 - If the referee changes match variant or default match length before starting, the idle timer must still clearly reflect the timer value that will be used when the match starts.
 - If the app is paused, backgrounded, or reopened before the match starts, the timer value used at match start must match the app's documented idle-timer persistence behavior.
 - Display updates must remain readable on supported watch screen sizes after each timer adjustment.
+- The idle screen must not expose raw internal lifecycle identifiers, even when a state value is available to the display layer.
+- Timer centering must account for round watch safe areas so the timer is not visually pushed into the bezel or obscured by status text.
 
 ## Requirements *(mandatory)*
 
@@ -90,12 +114,17 @@ A referee starts a match and uses the normal in-match controls. Once the match i
 - **FR-011**: Visible timer updates after idle adjustments MUST be quick enough that the referee can confirm each button press without waiting or navigating away.
 - **FR-012**: The idle timer value, static text, and button-driven state changes MUST remain visually stable and readable on supported watch screen sizes.
 - **FR-013**: This feature MUST preserve existing scoring, variant selection, match-start, match-stop, haptic alert, and activity-recording behavior except where those behaviors depend directly on the corrected idle-versus-active match state.
+- **FR-014**: While no match is active, the Select/Start physical button MUST start the match using the currently visible idle main timer value.
+- **FR-015**: While no match is active, Up/Menu, Down, and Select/Start physical-button actions MUST remain responsive and MUST NOT be ignored by idle-screen routing.
+- **FR-016**: The idle screen MUST NOT display raw internal state names such as "notStarted"; any status label shown to the referee MUST use user-facing wording or be omitted.
+- **FR-017**: The idle main timer MUST be visually centered in the primary timer area while preserving the existing scoreboard-style layout the referee recognizes.
 
 ### Key Entities
 
 - **Match State**: Represents whether the app is idle, running, paused, half-ended, or match-ended. Running, paused, and half-ended are active match states for score-dialog availability.
 - **Main Timer Value**: The visible timer value prepared before a match and used as the starting timer when the match begins.
 - **Score Dialog Availability**: Represents whether scoring controls may be opened. Availability is limited to running, paused, and half-ended match states.
+- **Idle Screen Presentation**: Represents referee-facing idle text and timer placement. It excludes raw internal lifecycle names and keeps the main timer visually centered in the primary timer area.
 
 ## Success Criteria *(mandatory)*
 
@@ -109,6 +138,8 @@ A referee starts a match and uses the normal in-match controls. Once the match i
 - **SC-006**: In active-match regression testing, the score dialog remains available in 100% of tested running, paused, and half-ended scoring flows.
 - **SC-007**: No existing timer, scoring, variant, alert, or activity-recording acceptance test fails due to the idle-screen button routing change.
 - **SC-008**: Device and simulator smoke validation records no regression against existing binary size, memory, CPU, or battery budgets for supported watch profiles.
+- **SC-009**: In 10 consecutive idle-screen trials, Select/Start begins the match from the currently visible main timer value every time.
+- **SC-010**: Across representative supported watch screen sizes, idle-screen validation records no visible raw internal state labels and confirms the main timer remains centered and dominant.
 
 ## Assumptions
 
@@ -116,6 +147,8 @@ A referee starts a match and uses the normal in-match controls. Once the match i
 - Idle timer adjustments apply to the next match start and do not change saved variant defaults unless a separate settings workflow explicitly does so.
 - The score dialog is meaningful only while a match is running, paused, or half-ended and should be unavailable before kickoff or after returning to idle.
 - The existing idle screen layout remains the primary location for the adjusted timer value; no separate setup dialog is required for this feature.
+- The existing scoreboard-style layout is preferred and should be refined only enough to keep the timer centered and remove or replace raw internal state text.
+- If a status label is useful on the idle screen, "Ready" is an acceptable referee-facing label; otherwise the label may be omitted to protect timer readability.
 - If idle timer persistence across app restarts is already defined elsewhere, this feature follows that existing behavior. If it is not defined, persistence across app restarts is out of scope for this feature.
 - Supported physical button mappings may vary by device, but the user-facing rule is consistent: idle controls adjust the main timer, and active-match controls allow scoring.
 

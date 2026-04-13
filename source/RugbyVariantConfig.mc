@@ -8,6 +8,7 @@
  */
 
 import Toybox.Application;
+import Toybox.Lang;
 
 const RUGBY_VARIANT_FIFTEENS = "fifteens";
 const RUGBY_VARIANT_SEVENS = "sevens";
@@ -18,7 +19,7 @@ const RUGBY_DEFAULT_VARIANT = RUGBY_VARIANT_FIFTEENS;
 
 class RugbyVariantConfig {
 
-    static function presets() {
+    static function presets() as Dictionary {
         return {
             RUGBY_VARIANT_FIFTEENS => {
                 "id" => RUGBY_VARIANT_FIFTEENS,
@@ -51,15 +52,15 @@ class RugbyVariantConfig {
                 "halfCount" => 2,
                 "sinBinLengthSeconds" => 480,
                 "conversionLengthSeconds" => 90
-            }
-        };
+            } as Dictionary
+        } as Dictionary;
     }
 
-    static function defaultSetup(variantId) {
-        var allPresets = presets();
-        var preset = allPresets[variantId];
+    static function defaultSetup(variantId as String) as Dictionary {
+        var allPresets = presets() as Dictionary;
+        var preset = allPresets[variantId] as Dictionary?;
         if (preset == null) {
-            preset = allPresets[RUGBY_DEFAULT_VARIANT];
+            preset = allPresets[RUGBY_DEFAULT_VARIANT] as Dictionary;
         }
 
         return {
@@ -72,13 +73,13 @@ class RugbyVariantConfig {
             "conversionLengthSeconds" => preset["conversionLengthSeconds"],
             "homeLabel" => "Home",
             "awayLabel" => "Away"
-        };
+        } as Dictionary;
     }
 
-    static function applyOverrides(setup, halfDeltaMinutes, sinBinSeconds, conversionSeconds) {
-        var updated = cloneSetup(setup);
+    static function applyOverrides(setup as Dictionary, halfDeltaMinutes as Number, sinBinSeconds as Number?, conversionSeconds as Number?) as Dictionary {
+        var updated = cloneSetup(setup) as Dictionary;
         if (halfDeltaMinutes != 0) {
-            var nextHalf = updated["halfLengthSeconds"] + (halfDeltaMinutes * 60);
+            var nextHalf = (updated["halfLengthSeconds"] + (halfDeltaMinutes * 60)) as Number;
             updated["halfLengthSeconds"] = clamp(nextHalf, 0, normalHalfLengthSeconds(updated));
             updated["variantId"] = RUGBY_VARIANT_CUSTOM;
             updated["variantName"] = "Custom";
@@ -96,26 +97,26 @@ class RugbyVariantConfig {
         return updated;
     }
 
-    static function adjustHalfMinutes(setup, deltaMinutes) {
+    static function adjustHalfMinutes(setup as Dictionary, deltaMinutes as Number) as Dictionary {
         return applyOverrides(setup, deltaMinutes, null, null);
     }
 
-    static function normalHalfLengthSeconds(setup) {
+    static function normalHalfLengthSeconds(setup as Dictionary) as Number {
         if (setup["normalHalfLengthSeconds"] != null) {
             return setup["normalHalfLengthSeconds"];
         }
         return setup["halfLengthSeconds"];
     }
 
-    static function withSinBinSeconds(setup, seconds) {
+    static function withSinBinSeconds(setup as Dictionary, seconds as Number) as Dictionary {
         return applyOverrides(setup, 0, seconds, null);
     }
 
-    static function withConversionSeconds(setup, seconds) {
+    static function withConversionSeconds(setup as Dictionary, seconds as Number) as Dictionary {
         return applyOverrides(setup, 0, null, seconds);
     }
 
-    static function cloneSetup(setup) {
+    static function cloneSetup(setup as Dictionary) as Dictionary {
         return {
             "variantId" => setup["variantId"],
             "variantName" => setup["variantName"],
@@ -126,19 +127,19 @@ class RugbyVariantConfig {
             "conversionLengthSeconds" => setup["conversionLengthSeconds"],
             "homeLabel" => setup["homeLabel"],
             "awayLabel" => setup["awayLabel"]
-        };
+        } as Dictionary;
     }
 
-    static function savePreferences(setup) {
+    static function savePreferences(setup as Dictionary) as Void {
         // Preference persistence is intentionally disabled until the app property
         // store is wired with the correct Connect IQ API shape for this project.
     }
 
-    static function loadPreferences() {
+    static function loadPreferences() as Dictionary {
         return defaultSetup(RUGBY_DEFAULT_VARIANT);
     }
 
-    static function clamp(value, minValue, maxValue) {
+    static function clamp(value as Number, minValue as Number, maxValue as Number) as Number {
         if (value < minValue) {
             return minValue;
         }
@@ -148,7 +149,4 @@ class RugbyVariantConfig {
         return value;
     }
 }
-
-
-
 

@@ -11,24 +11,28 @@
 import Toybox.Activity;
 import Toybox.ActivityRecording;
 import Toybox.Lang;
+import Toybox.System;
 
 const RUGBY_RECORDER_STATE_NOT_STARTED = "notStarted";
 const RUGBY_RECORDER_STATE_RECORDING = "recording";
 const RUGBY_RECORDER_STATE_STOPPED = "stopped";
 const RUGBY_RECORDER_STATE_SAVED = "saved";
 const RUGBY_RECORDER_STATE_UNSUPPORTED = "unsupported";
+const RUGBY_RECORDER_EVENT_EXPORT_UNSUPPORTED = "eventExportUnsupported";
 
 class RugbyActivityRecorder {
 
     var _session;
     var _state;
     var _fallbackReason;
+    var _eventExportState;
 /* Initialize recorder state; no session active by default. */
 
     function initialize() {
         _session = null;
         _state = RUGBY_RECORDER_STATE_NOT_STARTED;
         _fallbackReason = null;
+        _eventExportState = "skipped";
     }
 /* Try to create and start an ActivityRecording session. Returns false if unsupported or on error. */
 
@@ -48,6 +52,7 @@ class RugbyActivityRecorder {
             _session.start();
             _state = RUGBY_RECORDER_STATE_RECORDING;
             _fallbackReason = null;
+            _eventExportState = "skipped";
             return true;
         } catch (ex) {
             _session = null;
@@ -59,6 +64,13 @@ class RugbyActivityRecorder {
 /* Stop and save the current session if present; sets fallbackReason on failure. */
 
     function stopAndSave() {
+        return stopAndSaveWithEvents(null);
+    }
+
+    function stopAndSaveWithEvents(eventLog) {
+        var eventCount = eventLog == null ? 0 : eventLog.size();
+        _eventExportState = eventCount > 0 ? RUGBY_RECORDER_EVENT_EXPORT_UNSUPPORTED : "skipped";
+        System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents eventCount=" + eventCount.format("%d") + " exportState=" + _eventExportState);
         if (_session == null) {
             return false;
         }
@@ -68,11 +80,29 @@ class RugbyActivityRecorder {
             _session.save();
             _state = RUGBY_RECORDER_STATE_SAVED;
             _session = null;
+            System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents saved exportState=" + _eventExportState);
             return true;
         } catch (ex) {
             _fallbackReason = "Recording failed";
+            System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents failed ex=" + ex.toString());
             return false;
         }
+    }
+
+    function discard() {
+        System.println("RUGBY|RugbyActivityRecorder|discard state=" + _state);
+        if (_session != null) {
+            try {
+                _session.stop();
+            } catch (ex) {
+                System.println("RUGBY|RugbyActivityRecorder|discard stop failed ex=" + ex.toString());
+            }
+        }
+        _session = null;
+        _state = RUGBY_RECORDER_STATE_NOT_STARTED;
+        _fallbackReason = null;
+        _eventExportState = "skipped";
+        return true;
     }
 
     function state() {
@@ -89,10 +119,10 @@ class RugbyActivityRecorder {
             "state" => _state,
             "sport" => "Activity.SPORT_RUGBY",
             "subSport" => "Activity.SUB_SPORT_MATCH",
-            "fallbackReason" => _fallbackReason
+            "fallbackReason" => _fallbackReason,
+            "eventExportState" => _eventExportState
         };
     }
 }
-
 
 

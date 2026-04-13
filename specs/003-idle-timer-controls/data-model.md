@@ -24,6 +24,11 @@ State transitions:
 - `running` or `paused` -> `halfEnded` when a half is ended and another half remains.
 - `running`, `paused`, or `halfEnded` -> `matchEnded` when the match is ended.
 
+Display rules:
+
+- Raw internal lifecycle identifiers, including `notStarted`, are not referee-facing display strings.
+- If the idle screen needs a visible status, it uses referee-facing wording such as `Ready`; otherwise the status may be omitted.
+
 ## Main Timer Value
 
 Represents the visible main timer on the idle screen and the starting countdown value when the match begins.
@@ -41,6 +46,23 @@ Validation rules:
 - Down on idle decreases `mainCountdownSeconds` by 60 seconds unless already at `minSeconds`.
 - Starting a match uses the current `mainCountdownSeconds` value.
 - The value must never be below `minSeconds` or above `maxSeconds`.
+- The main timer remains the central idle-screen value before kickoff.
+
+## Idle Button Actions
+
+Represents the physical-button actions that must remain available while the app is idle before kickoff.
+
+Fields:
+
+- `idleIncrementAvailable`: true when Up/Menu can apply the idle increment rule.
+- `idleDecrementAvailable`: true when Down can apply the idle decrement rule.
+- `idleStartAvailable`: true when Select/Start can begin the match from the current main timer value.
+
+Validation rules:
+
+- Idle button actions are true only while `clockState` is `notStarted`.
+- Up/Menu, Down, and Select/Start must not be ignored in the idle screen.
+- Select/Start must transition from `notStarted` to `running` using the current `mainCountdownSeconds` value.
 
 ## Variant Timer Bounds
 

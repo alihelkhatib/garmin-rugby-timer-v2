@@ -1,0 +1,3 @@
+<menu2 id="MatchSummaryMenu" title="@Strings.MatchSummary_Title" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+  <menu-item id="match_summary_empty" label="@Strings.MatchSummary_Empty" />
+</menu2>

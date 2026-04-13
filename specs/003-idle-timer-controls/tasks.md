@@ -110,6 +110,11 @@
 - [ ] T031 Record binary size, memory, CPU, and battery no-regression smoke validation for supported watch profiles in `specs/003-idle-timer-controls/quickstart.md`
 - [X] T032 [P] Update user-facing control documentation for idle timer adjustment and active scoring state rules in `README.md`
 - [X] T033 [P] Create or update feature traceability notes for new idle timer controls in `tests/TEST_TRACEABILITY.md`
+- [X] T034 [US1] Add raw physical-key regression coverage for idle Up/Menu, Down, and Select/Start in `tests/Test_RugbyIdleTimerControls.mc`
+- [X] T035 [US1] Route raw Up/Menu, Down, and Select/Start key events to the same idle actions as behavior callbacks in `source/RugbyTimerDelegate.mc`
+- [X] T036 [US4] Remove raw internal idle lifecycle labels from the status display and use referee-facing non-running status text in `source/RugbyTimerView.mc`
+- [X] T037 [US4] Recenter the main countdown label in the resource-backed idle layouts in `resources/layouts/layout.xml`
+- [X] T038 Re-run app and unit-test builds after the idle-button/display regression fix and record the simulator blocker in `specs/003-idle-timer-controls/quickstart.md`
 
 ---
 

@@ -24,4 +24,15 @@
   <string id="CardTeam_AwayTitle">Away Card</string>
   <string id="CardType_Yellow">Yellow</string>
   <string id="CardType_Red">Red</string>
+  <string id="MatchOptions_Title">Match</string>
+  <string id="MatchOption_End">End match</string>
+  <string id="MatchOption_Reset">Reset match</string>
+  <string id="MatchSummary_Title">Events</string>
+  <string id="MatchSummary_Empty">No events</string>
+  <string id="Event_Try">Try</string>
+  <string id="Event_ConversionMade">Conversion</string>
+  <string id="Event_PenaltyGoal">Penalty</string>
+  <string id="Event_DropGoal">Drop goal</string>
+  <string id="Event_YellowCard">Yellow</string>
+  <string id="Event_RedCard">Red</string>
 </strings>

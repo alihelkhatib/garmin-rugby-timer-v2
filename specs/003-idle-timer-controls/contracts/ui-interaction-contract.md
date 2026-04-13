@@ -11,8 +11,12 @@ Contract:
 
 - Short-press Up/Menu increments the main timer by 1 minute unless the timer is already at the selected variant's normal half length.
 - Short-press Down decrements the main timer by 1 minute unless the timer is already at 00:00.
+- Short-press Select/Start begins the match from the currently visible idle main timer value.
 - Score dialog must not open from Up/Menu, Down, or any other physical-button path.
 - The visible timer value updates on the next UI refresh after each accepted adjustment.
+- Idle button actions remain responsive; Up/Menu, Down, and Select/Start must not be ignored while the app is on the idle screen.
+- The idle screen must not show raw internal state text such as `notStarted`; any visible status is referee-facing or omitted.
+- The main timer remains visually centered in the primary timer area while preserving the existing scoreboard-style layout.
 
 Boundary behavior:
 
@@ -30,6 +34,7 @@ Contract:
 
 - Starting the match uses the currently visible idle main timer value as the starting countdown.
 - Starting the match moves the match into an active running state and keeps existing recorder start behavior.
+- Select/Start remains the idle-screen physical-button path for starting the match.
 
 ## Active Match Scoring
 

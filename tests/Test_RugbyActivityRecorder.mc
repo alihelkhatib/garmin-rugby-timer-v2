@@ -26,6 +26,7 @@ function testActivityRecorderInitialSnapshot(logger) {
     // Sport and sub-sport identifiers should match expected constants
     Test.assertEqual("Activity.SPORT_RUGBY", snap["sport"]);
     Test.assertEqual("Activity.SUB_SPORT_MATCH", snap["subSport"]);
+    Test.assertEqual("skipped", snap["eventExportState"]);
 }
 
 (:test)
@@ -36,5 +37,23 @@ function testActivityRecorderFallbackState(logger) {
     Test.assertEqual(null, recorder.fallbackReason());
 }
 
+(:test)
+function testActivityRecorderEventExportFallbackState(logger) {
+    var recorder = new RugbyActivityRecorder();
+    var events = [
+        { "teamId" => RUGBY_TEAM_HOME, "action" => RUGBY_SCORE_TRY, "matchElapsedSeconds" => 10 }
+    ];
 
+    Test.assertEqual(false, recorder.stopAndSaveWithEvents(events));
+    var snap = recorder.snapshot();
+    Test.assertEqual(RUGBY_RECORDER_EVENT_EXPORT_UNSUPPORTED, snap["eventExportState"]);
+}
 
+(:test)
+function testActivityRecorderDiscardResetsState(logger) {
+    var recorder = new RugbyActivityRecorder();
+    Test.assertEqual(true, recorder.discard());
+    var snap = recorder.snapshot();
+    Test.assertEqual(RUGBY_RECORDER_STATE_NOT_STARTED, snap["state"]);
+    Test.assertEqual("skipped", snap["eventExportState"]);
+}
