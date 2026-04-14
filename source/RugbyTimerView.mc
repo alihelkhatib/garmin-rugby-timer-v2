@@ -100,7 +100,7 @@ class RugbyTimerView extends WatchUi.View {
     }
 
     function updateRefreshTimer(snap as Dictionary) as Void {
-        var shouldRun = valueEquals(snap["clockState"], RUGBY_STATE_RUNNING) as Boolean;
+        var shouldRun = (valueEquals(snap["clockState"], RUGBY_STATE_RUNNING) || valueEquals(snap["clockState"], RUGBY_STATE_HALF_ENDED)) as Boolean;
         if (shouldRun && !_refreshActive) {
             if (_refreshTimer == null) {
                 _refreshTimer = new Timer.Timer();
@@ -191,7 +191,7 @@ class RugbyTimerView extends WatchUi.View {
     function bindLayout(snap as Dictionary) as Void {
         var home = snap["home"] as Dictionary;
         var away = snap["away"] as Dictionary;
-        setTextDrawable("ElapsedTimer", formatClock(snap["countUpSeconds"]), true, Graphics.COLOR_LT_GRAY);
+        bindElapsedTimer(snap);
         setTextDrawable("HomeLabel", "HOME", true, Graphics.COLOR_BLUE);
         setTextDrawable("AwayLabel", "AWAY", true, Graphics.COLOR_ORANGE);
         setTextDrawable("HomeScore", valueText(home["score"]), true, Graphics.COLOR_WHITE);
@@ -204,6 +204,17 @@ class RugbyTimerView extends WatchUi.View {
         bindConversion(snap["conversionTimer"] as Dictionary?);
         setTextDrawable("Countdown", formatClock(snap["mainCountdownSeconds"]), true, Graphics.COLOR_WHITE);
         setStatus(snap);
+    }
+
+    function bindElapsedTimer(snap as Dictionary) as Void {
+        setTextDrawable("ElapsedTimer", elapsedTimerLabel(snap), true, Graphics.COLOR_LT_GRAY);
+    }
+
+    function elapsedTimerLabel(snap as Dictionary) as String {
+        if (valueEquals(snap["clockState"], RUGBY_STATE_HALF_ENDED)) {
+            return "HT " + formatClock(snap["halfTimeSeconds"]);
+        }
+        return formatClock(snap["countUpSeconds"]);
     }
 
     function bindTeamCard(id as String, sanctions as Array<Dictionary>, teamId as String) as Void {

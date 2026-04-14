@@ -54,13 +54,16 @@ Coverage added:
 - `monkeyc -f monkey.jungle -d fenix7 -o build/garmin-rugby-timer-fenix7.prg -y build\codex-garmin-rugby-timer-key.der -w`: PASS.
 - `monkeyc -f monkey.jungle -d fenix7 -o build/garmin-rugby-timer-fenix7-test.prg -t -y build\codex-garmin-rugby-timer-key.der -w`: PASS.
 - `monkeydo build\garmin-rugby-timer-fenix7-test.prg fenix7 /t`: PASS.
+- 2026-04-14 half-time timer correction: app compile PASS, test compile PASS, simulator test artifact PASS.
 - Quickstart manual scenarios: BLOCKED, no interactive simulator/device session was exercised in this run.
 
 Coverage added:
 
 - Non-final period countdown expiry automatically enters the between-period state.
+- Half-time timer snapshots start at 00:00, count elapsed break time upward during automatic and deliberate non-final period breaks, and stop/leave view when the next half starts.
 - Final period countdown expiry automatically enters the match-ended summary state.
 - Unexpired yellow-card timers carry into the next period with team and remaining time preserved.
+- Carried yellow-card timers do not decrement while the half-time timer advances.
 - Paused-at-00:00 snapshots do not unexpectedly auto-transition.
 - Red-card non-countdown behavior and conversion timer behavior remain unchanged around period expiry.
 - Security/privacy check: no new persistence, network behavior, dependencies, telemetry, or red-card countdown behavior was added.

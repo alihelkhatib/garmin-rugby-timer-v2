@@ -369,6 +369,7 @@ class RugbyGameModel {
             "halfCount" => _setup["halfCount"],
             "mainCountdownSeconds" => countdownSeconds,
             "countUpSeconds" => elapsedMs / 1000,
+            "halfTimeSeconds" => halfTimeElapsedSeconds(nowMs),
             "home" => _teams[RUGBY_TEAM_HOME],
             "away" => _teams[RUGBY_TEAM_AWAY],
             "conversionTimer" => conversion,
@@ -423,6 +424,17 @@ class RugbyGameModel {
             return base + (nowMs - _setup["halfStartedAtMs"]);
         }
         return base;
+    }
+
+    function halfTimeElapsedSeconds(nowMs as Number) as Number? {
+        if (!isClockState(RUGBY_STATE_HALF_ENDED) || _setup["halfStartedAtMs"] == null) {
+            return null;
+        }
+        var elapsedMs = (nowMs - _setup["halfStartedAtMs"]) as Number;
+        if (elapsedMs < 0) {
+            elapsedMs = 0;
+        }
+        return elapsedMs / 1000;
     }
 
     function currentHalf() as Number {

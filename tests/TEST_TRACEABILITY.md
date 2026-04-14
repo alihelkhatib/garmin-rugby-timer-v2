@@ -36,11 +36,12 @@ Validation status:
 
 ## 007-auto-period-transition
 
-- US1 Auto-End Non-Final Period: `tests/Test_RugbyGameModel.mc` covers running non-final countdown expiry and manual end-half regression; `source/RugbyGameModel.mc` performs the automatic transition through the existing half-ended state.
+- US1 Auto-End Non-Final Period: `tests/Test_RugbyGameModel.mc` covers running non-final countdown expiry, manual end-half regression, and the half-time timer count-up during the between-period state; `source/RugbyGameModel.mc` performs the automatic transition through the existing half-ended state and derives `halfTimeSeconds`, while `source/RugbyTimerView.mc` binds that value as the visible `HT` timer.
 - US2 Auto-End Final Period And Match: `tests/Test_RugbyGameModel.mc` covers final-period countdown expiry, summary state preservation, one-shot auto-save flag consumption, and manual end-match regression; `source/RugbyGameModel.mc` reuses the existing match-ended state and timer shutdown path, and `source/RugbyTimerView.mc` consumes automatic final expiry once to call the existing recorder save and match summary view path.
-- US3 Carry Active Card Timers Into Next Period: `tests/Test_RugbyGameModel.mc` covers single and multiple yellow-card carry-forward, simultaneous yellow expiry at a period boundary, paused-at-00:00 behavior, and red-card/conversion timer non-regression; `source/RugbyGameModel.mc` preserves unexpired yellow-card remaining time before period elapsed resets.
+- US3 Carry Active Card Timers Into Next Period: `tests/Test_RugbyGameModel.mc` covers single and multiple yellow-card carry-forward, yellow-card pause during half-time timer count-up, simultaneous yellow expiry at a period boundary, paused-at-00:00 behavior, and red-card/conversion timer non-regression; `source/RugbyGameModel.mc` preserves unexpired yellow-card remaining time before period elapsed resets.
 
 Validation status:
 
 - Compile and unit-test compile passed for `fenix7` on 2026-04-13.
 - Simulator test artifact ran with `monkeydo build\garmin-rugby-timer-fenix7-test.prg fenix7 /t`; interactive quickstart validation remains pending for a manual simulator/device session.
+- Half-time timer correction compile, unit-test compile, and simulator test artifact passed for `fenix7` on 2026-04-14.

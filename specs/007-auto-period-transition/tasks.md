@@ -125,6 +125,19 @@
 
 ---
 
+## Phase 7: Half-Time Timer Correction (2026-04-14)
+
+**Purpose**: Implement the accepted spec correction that adds a between-period half-time timer.
+
+- [X] T040 [US1] Add `halfTimeSeconds` snapshot coverage for automatic and deliberate non-final period end in `tests/Test_RugbyGameModel.mc`
+- [X] T041 [US1] Derive half-time elapsed seconds from the existing half-ended state in `source/RugbyGameModel.mc`
+- [X] T042 [US1] Render the half-time timer in the existing elapsed timer slot while between periods and keep the view refresh timer running in `source/RugbyTimerView.mc`
+- [X] T043 [US3] Assert carried yellow-card timers do not decrement while half-time elapsed time advances in `tests/Test_RugbyGameModel.mc`
+- [X] T044 [US2] Assert final-period match end does not expose a half-time timer in `tests/Test_RugbyGameModel.mc`
+- [X] T045 [US1] Update traceability and validation notes for the half-time timer correction in `tests/TEST_TRACEABILITY.md`, `tests/README.md`, and `README.md`
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -135,6 +148,7 @@
 - **User Story 2 (Phase 4)**: Depends on Foundational; can be validated independently but shares `source/RugbyGameModel.mc` with US1.
 - **User Story 3 (Phase 5)**: Depends on Foundational; should be integrated after US1 because it relies on non-final period transition behavior.
 - **Polish (Phase 6)**: Depends on all selected user stories.
+- **Half-Time Timer Correction (Phase 7)**: Depends on the 2026-04-14 spec and plan correction and the prior period-transition implementation.
 
 ### User Story Dependencies
 

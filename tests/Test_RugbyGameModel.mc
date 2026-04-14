@@ -89,12 +89,19 @@ function testNonFinalPeriodAutoEndsAtCountdownExpiry(logger) {
     Test.assertEqual(2, expired["halfIndex"]);
     Test.assertEqual(40 * 60, expired["mainCountdownSeconds"]);
     Test.assertEqual(0, expired["countUpSeconds"]);
+    Test.assertEqual(0, expired["halfTimeSeconds"]);
 
-    model.startMatch((40 * 60 * 1000) + 1000);
-    var nextHalf = model.snapshot((40 * 60 * 1000) + 61000);
+    var breakElapsed = model.snapshot((40 * 60 * 1000) + 60000);
+    Test.assertEqual(RUGBY_STATE_HALF_ENDED, breakElapsed["clockState"]);
+    Test.assertEqual(60, breakElapsed["halfTimeSeconds"]);
+    Test.assertEqual(0, breakElapsed["countUpSeconds"]);
+
+    model.startMatch((41 * 60 * 1000) + 1000);
+    var nextHalf = model.snapshot((42 * 60 * 1000) + 1000);
     Test.assertEqual(RUGBY_STATE_RUNNING, nextHalf["clockState"]);
     Test.assertEqual(2, nextHalf["halfIndex"]);
     Test.assertEqual((40 * 60) - 60, nextHalf["mainCountdownSeconds"]);
+    Test.assertEqual(null, nextHalf["halfTimeSeconds"]);
 }
 
 (:test)
@@ -108,6 +115,11 @@ function testManualEndHalfStillUsesBetweenPeriodState(logger) {
     Test.assertEqual(RUGBY_STATE_HALF_ENDED, snap["clockState"]);
     Test.assertEqual(2, snap["halfIndex"]);
     Test.assertEqual(40 * 60, snap["mainCountdownSeconds"]);
+    Test.assertEqual(0, snap["halfTimeSeconds"]);
+
+    snap = model.snapshot(70000);
+    Test.assertEqual(RUGBY_STATE_HALF_ENDED, snap["clockState"]);
+    Test.assertEqual(60, snap["halfTimeSeconds"]);
 }
 
 (:test)
@@ -130,6 +142,7 @@ function testFinalPeriodAutoEndsMatchAtCountdownExpiry(logger) {
     Test.assertEqual(true, model.consumeAutoMatchEndPendingSave());
     Test.assertEqual(false, model.consumeAutoMatchEndPendingSave());
     Test.assertEqual(0, expired["mainCountdownSeconds"]);
+    Test.assertEqual(null, expired["halfTimeSeconds"]);
 }
 
 (:test)
@@ -465,9 +478,16 @@ function testYellowCardCarriesForwardAcrossAutoPeriodEnd(logger) {
     Test.assertEqual(9 * 60, halfEnded["sanctions"][0]["remainingSeconds"]);
     Test.assertEqual(RUGBY_TEAM_HOME, halfEnded["sanctions"][0]["teamId"]);
     Test.assertEqual("9:00", view.teamYellowCardTimerLabel(halfEnded["sanctions"], RUGBY_TEAM_HOME));
+    Test.assertEqual(0, halfEnded["halfTimeSeconds"]);
 
-    model.startMatch((40 * 60 * 1000) + 1000);
-    var nextHalf = model.snapshot((41 * 60 * 1000) + 1000);
+    var oneMinuteBreak = model.snapshot(41 * 60 * 1000);
+    Test.assertEqual(RUGBY_STATE_HALF_ENDED, oneMinuteBreak["clockState"]);
+    Test.assertEqual(60, oneMinuteBreak["halfTimeSeconds"]);
+    Test.assertEqual(9 * 60, oneMinuteBreak["sanctions"][0]["remainingSeconds"]);
+    Test.assertEqual("HT 1:00", view.elapsedTimerLabel(oneMinuteBreak));
+
+    model.startMatch((41 * 60 * 1000) + 1000);
+    var nextHalf = model.snapshot((42 * 60 * 1000) + 1000);
     Test.assertEqual(RUGBY_STATE_RUNNING, nextHalf["clockState"]);
     Test.assertEqual("active", nextHalf["sanctions"][0]["state"]);
     Test.assertEqual(8 * 60, nextHalf["sanctions"][0]["remainingSeconds"]);
@@ -553,6 +573,7 @@ function testRenderSnapshotContainsRequiredFields(logger) {
     // Snapshot shape must include fields used by UI renderers
     Test.assertNotEqual(null, snap["mainCountdownSeconds"]);
     Test.assertNotEqual(null, snap["countUpSeconds"]);
+    Test.assertEqual(null, snap["halfTimeSeconds"]);
     Test.assertNotEqual(null, snap["halfIndex"]);
     Test.assertNotEqual(null, snap["home"]);
     Test.assertNotEqual(null, snap["away"]);
