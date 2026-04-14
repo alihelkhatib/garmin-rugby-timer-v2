@@ -31,14 +31,14 @@
 
 ### User Story 2 - Preserve Existing End And Reset Actions (P2)
 
-- [ ] T016 [US2] Add regression tests ensuring end-match and reset flows still behave as before — create `tests/match_summary_regression_test.mc`
-- [ ] T017 [US2] Prototype optional Back-button summary access (exploratory) without changing default end/reset flow — create `source/BackButtonSummaryPrototype.mc` and test `tests/back_button_summary_proto.mc` (mark as follow-on if not included in MVP)
+- [X] T016 [US2] Add regression tests ensuring end-match and reset flows still behave as before — create `tests/match_summary_regression_test.mc`
+- [X] T017 [US2] Prototype optional Back-button summary access (exploratory) without changing default end/reset flow — create `source/BackButtonSummaryPrototype.mc` and test `tests/back_button_summary_proto.mc` (mark as follow-on if not included in MVP)
 
 ## Final Phase - Polish & Cross-cutting
 
-- [ ] T018 Update docs: finalize `specs/009-match-summary-access/research.md`, `specs/009-match-summary-access/data-model.md`, and `specs/009-match-summary-access/quickstart.md`
-- [ ] T019 Device matrix validation and report — produce `specs/009-match-summary-access/device-validation-report.md` (fenix 6 family, Forerunner/vivoactive family, etc.)
-- [ ] T020 Performance validation and optimization report — produce `specs/009-match-summary-access/perf-validation.md` and add automated checks under `tests/perf/`
+- [X] T018 Update docs: finalize `specs/009-match-summary-access/research.md`, `specs/009-match-summary-access/data-model.md`, and `specs/009-match-summary-access/quickstart.md`
+- [X] T019 Device matrix validation and report — produce `specs/009-match-summary-access/device-validation-report.md` (fenix 6 family, Forerunner/vivoactive family, etc.)
+- [X] T020 Performance validation and optimization report — produce `specs/009-match-summary-access/perf-validation.md` and add automated checks under `tests/perf/`
 
 ## Dependencies
 
