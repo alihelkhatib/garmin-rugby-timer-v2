@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <layout id="centered_prompt_layout">
+    <!-- Centered prompt layout: use when PromptUtils suggests centering -->
+    <box id="CenteredPromptBox" anchor="center" width="80%" height="40%">
+      <label id="CenteredPromptText" text="No events recorded" />
+      <button id="CenteredPromptOk" text="OK" />
+    </box>
+  </layout>
+</resources>
