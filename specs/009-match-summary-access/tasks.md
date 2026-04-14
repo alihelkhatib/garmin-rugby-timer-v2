@@ -44,9 +44,9 @@
 
 - [X] T021 Implement non-blocking export retry policy in `source/RugbyActivityRecorder.mc` (MAX_EXPORT_RETRIES=3, BACKOFFS=[2000,5000,10000] ms); record `exportAttempts` and `_eventExportState`; emit Diagnostics `activity_export` (file: source/RugbyActivityRecorder.mc)  
   Acceptance: Integration tests must simulate failures and assert retry counts, backoff timings, and diagnostic payload presence.
-- [ ] T022 Add integration test `tests/impl_export_retry_test.mc` that simulates ActivityRecording failures and asserts non-blocking end/reset flow, retry attempts, backoff timings, and the `activity_export` diagnostic trace (file: tests/impl_export_retry_test.mc)
+- [X] T022 Add integration test `tests/impl_export_retry_test.mc` that simulates ActivityRecording failures and asserts non-blocking end/reset flow, retry attempts, backoff timings, and the `activity_export` diagnostic trace (file: tests/impl_export_retry_test.mc)
 - [ ] T023 Document retry behavior in `specs/009-match-summary-access/quickstart.md` with reproduction steps (file: specs/009-match-summary-access/quickstart.md)  
-  Acceptance: quickstart must include reproduction steps and verification checklist; device-validation-report.md must list device names and pass/fail results for retry validation.
+  Acceptance: quickstart must include reproduction steps and verification checklist; specs/009-match-summary-access/perf-validation.md must list device names and pass/fail results for retry validation.
 - [ ] T024 Add perf test script `tests/perf_check_fenix6.mc` (measure binary size, heap delta, CPU over a simulated 90-minute match) (file: tests/perf_check_fenix6.mc)  
   Acceptance: perf-validation report must list device names and pass/fail results, and include measured binary size, peak heap delta, and CPU overhead.
 - [ ] T025 Add perf test script `tests/perf_check_forerunner.mc` (same measurements for Forerunner profile) (file: tests/perf_check_forerunner.mc)  
