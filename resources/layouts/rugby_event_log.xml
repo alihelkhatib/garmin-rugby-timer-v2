@@ -1,0 +1,9 @@
+<!-- Resource-first layout wrapping the event-row list for match summary -->
+<layout name="rugby_event_log">
+  <list id="rugbyEventList" rowLayout="@layouts/rugby_event_row" rowHeight="22">
+    <!-- rows rendered via rugby_event_row.xml -->
+  </list>
+  <emptyState>
+    <text id="emptyText">No events recorded</text>
+  </emptyState>
+</layout>

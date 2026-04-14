@@ -1,0 +1,9 @@
+<!-- Row layout for a single rugby event in the summary list -->
+<row id="rugbyEventRow">
+  <!-- timestamp / elapsed time -->
+  <text id="event_ts" fontSize="12" />
+  <!-- short event type label e.g., TRY, PEN -->
+  <text id="event_type" fontSize="12" />
+  <!-- optional details (actor/value) -->
+  <text id="event_detail" fontSize="12" />
+</row>
