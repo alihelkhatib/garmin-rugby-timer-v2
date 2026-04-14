@@ -1,0 +1,13 @@
+<!-- Resource-first layout: match_summary_layout.xml -->
+<layout name="match_summary_layout">
+  <!-- Simple vertical list showing timestamp and short description per row. Implement device variants with style overrides. -->
+  <list id="matchSummaryList" rowHeight="24">
+    <row>
+      <text id="ts" fontSize="14" />
+      <text id="desc" fontSize="14" />
+    </row>
+  </list>
+  <emptyState>
+    <text id="emptyText">No events recorded</text>
+  </emptyState>
+</layout>
