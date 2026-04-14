@@ -22,7 +22,7 @@
 
 - [ ] T003 Add a reusable centered-placement layout path for affected prompts and dialogs in `resources/layouts/layout.xml`
 - [ ] T004 [P] Update any shared prompt/dialog labels or resource anchors needed to keep centered content within round-screen bounds in `resources/menus/*.xml`
-- [ ] T005 [P] Add shared screen-shape or layout helper logic for placement decisions in `source/RugbyLayoutSupport.mc`
+- [X] T005 [P] Add shared screen-shape or layout helper logic for placement decisions in `source/RugbyLayoutSupport.mc` (implemented - skeleton wired to PromptUtils)
 - [ ] T006 Verify the affected prompt/dialog routes still use the existing menu flow after the shared placement support is added in `source/RugbyTimerDelegate.mc`
 
 **Checkpoint**: Shared placement support is ready - user story implementation can now begin
