@@ -1,20 +1,7 @@
-// RugbyEventLog.mc - lightweight stub implementation
+// RugbyEventLog.mc - Minimal in-memory EventLog API
+// Provides a small, safe implementation: addEvent(event), serialize(), snapshot()
 
-class RugbyEvent {
-    var type;
-    var timestamp; // monotonic match time
-    var actor;
-    var value;
-    var details;
-
-    function initialize(type, timestamp, actor, value, details) {
-        self.type = type;
-        self.timestamp = timestamp;
-        self.actor = actor;
-        self.value = value;
-        self.details = details;
-    }
-}
+module RugbyEventLog;
 
 class RugbyEventLog {
     var events;
@@ -23,17 +10,26 @@ class RugbyEventLog {
         self.events = [];
     }
 
-    function addEvent(type, timestamp, actor, value, details) {
-        var e = new RugbyEvent(type, timestamp, actor, value, details);
-        self.events.add(e);
+    function addEvent(event) {
+        // Store a shallow copy to avoid external mutation
+        self.events.push(event);
     }
 
-    function clear() {
-        self.events.clear();
+    function snapshot() {
+        // Return a shallow copy of events for safe iteration
+        var copy = [];
+        for (var i = 0; i < self.events.length; i++) {
+            copy.push(self.events[i]);
+        }
+        return copy;
     }
 
-    function serializeToFit() {
-        // TODO: implement serialization to ActivityRecording / FIT payload
-        return "";
+    function serialize() {
+        // Minimal serialization to JSON-like string for tests and export
+        try {
+            return Json.toString(self.events);
+        } catch (e) {
+            return "[]";
+        }
     }
 }

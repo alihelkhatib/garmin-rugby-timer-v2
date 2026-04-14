@@ -57,3 +57,5 @@
 ## Notes
 
 - All test files created are placeholders and must be implemented to run on the project’s Monkey C test harness. Adjust exact filenames if the project uses different naming conventions.
+
+- [ ] T020 Add `tests/diagnostics_pii_test.mc` that parses Diagnostics traces and asserts they contain only whitelisted keys and no PII (file: tests/diagnostics_pii_test.mc)

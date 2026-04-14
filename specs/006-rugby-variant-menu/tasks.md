@@ -48,3 +48,11 @@
 ## Notes
 
 - Keep changes isolated to pre-match flows to satisfy Constitution VI (Regression Isolation). If persistence of last-selected variant is later required, create a follow-on task with privacy considerations.
+
+## Additional Tasks
+
+- [ ] T016 Emit Diagnostic `variant_open` when variant selection UI opens (file: source/RugbyTimerDelegate.mc)
+- [ ] T017 Emit Diagnostic `variant_select` on selection with payload {variant_id, previous_variant, timestamp} (file: source/RugbyTimerDelegate.mc)
+- [ ] T018 Emit Diagnostic `variant_cancel` on cancel/back action (file: source/RugbyTimerDelegate.mc)
+- [ ] T019 Add test `tests/variant_diagnostics_test.mc` verifying the three traces and asserting no PII (file: tests/variant_diagnostics_test.mc)
+- [ ] T020 Research owner sign-off: `specs/006-rugby-variant-menu/research.md` sign-off before Phase 2 (file: specs/006-rugby-variant-menu/tasks.md)
