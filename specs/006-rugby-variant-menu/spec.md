@@ -75,7 +75,7 @@ As a referee, I need the selected variant and any pre-match timer adjustments to
 - **FR-008**: Existing pre-match Up/Menu and Down timer adjustment behavior MUST continue to work after a variant is selected.
 - **FR-009**: Variant selection MUST preserve existing score, card, conversion, haptic, event-log, Back option, and activity-recording behavior outside the pre-match setup flow.
 - **FR-010**: Variant selection UI MUST use watch-scale menu/resource patterns where feasible, with no network dependency or external configuration required.
-- **FR-011**: The app MUST emit diagnostics for opening variant selection, selecting a variant, canceling selection, and blocked selection attempts outside the pre-match state.
+- **FR-DIAG-001**: Cross-cutting diagnostics requirement (see specs/cross-cutting/diagnostics.md). The feature MUST emit the following feature-specific traces: variant_open, variant_select, variant_cancel, variant_select_blocked. Document each trace payload schema below in the Diagnostics section.
 
 ### Key Entities *(include if feature involves data)*
 
