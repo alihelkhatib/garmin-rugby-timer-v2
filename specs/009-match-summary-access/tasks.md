@@ -14,7 +14,7 @@
 
 ## Phase 2 - Foundational Implementation (Cross-cutting)
 
-- [ ] T007 Implement in-memory recorded-event model and serialization — edit `source/RugbyGameModel.mc` (or add `source/RugbyEventLog.mc`) and unit tests under `tests/`
+- [X] T007 Implement in-memory recorded-event model and serialization — edit `source/RugbyGameModel.mc` (or add `source/RugbyEventLog.mc`) and unit tests under `tests/`
 - [ ] T008 Implement ActivityRecording export (flush at match end) — edit `source/RugbyActivityRecorder.mc` and add integration test `tests/impl_activity_export.mc`
 - [ ] T009 Implement ActivityRecording export retry & non-blocking failure handling (3 retries) and logging — edit `source/RugbyActivityRecorder.mc` and add test `tests/impl_export_error_handling.mc`
 - [ ] T010 Implement activity-type mapping and document fallback mapping — edit `source/RugbyActivityRecorder.mc` and add `specs/009-match-summary-access/activity-type-mapping.md`
