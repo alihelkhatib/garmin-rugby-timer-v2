@@ -34,6 +34,13 @@ class RugbyConversionView extends WatchUi.View {
 /* Bind conversion layout and cache drawables. */
 
     function onLayout(dc as Graphics.Dc) as Void {
+        var shouldCenter = false as Boolean;
+        try {
+            shouldCenter = RugbyLayoutSupport.shouldCenterPrompt(dc, null);
+        } catch (ex) {
+            shouldCenter = false;
+        }
+        System.println("RUGBY|RugbyConversionView|onLayout shouldCenter=" + (shouldCenter ? "true" : "false"));
         setLayout(Rez.Layouts.ConversionLayout(dc));
         cacheDrawables();
         _layoutReady = true;

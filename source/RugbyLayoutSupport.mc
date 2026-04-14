@@ -43,4 +43,15 @@ class RugbyLayoutSupport {
         }
         return "large_round";
     }
+
+    static function shouldCenterPrompt(dc as Graphics.Dc, promptContext as Dictionary) as Boolean {
+        var displayInfo = {"width" => 0, "height" => 0} as Dictionary;
+        try {
+            displayInfo["width"] = dc.getWidth();
+            displayInfo["height"] = dc.getHeight();
+        } catch (ex) {
+            // fall back to zeros
+        }
+        return PromptUtils.shouldCenterPrompt(displayInfo, promptContext);
+    }
 }
