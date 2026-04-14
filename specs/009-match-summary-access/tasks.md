@@ -24,10 +24,10 @@
 
 ### User Story 1 - Review Match Summary At Match End (P1)
 
-- [ ] T012 [US1] Add match-summary menu entry to end/reset menu resources and wire action — edit `resources/menus/end_reset_menu.xml` and `source/RugbyTimerDelegate.mc`
-- [ ] T013 [US1] Implement summary view UI and rendering from in-memory events — create/edit `source/RugbySummaryView.mc` and resources `resources/layouts/match_summary_layout.xml`
-- [ ] T014 [US1] Add integration test validating end->menu->summary flow and visible events — create `tests/match_summary_endflow_test.mc`
-- [ ] T015 [US1] Verify SC-001 and SC-002 via automated assertions in `tests/match_summary_endflow_test.mc`
+- [X] T012 [US1] Add match-summary menu entry to end/reset menu resources and wire action — edit `resources/menus/end_reset_menu.xml` and `source/RugbyTimerDelegate.mc`
+- [X] T013 [US1] Implement summary view UI and rendering from in-memory events — create/edit `source/RugbySummaryView.mc` and resources `resources/layouts/match_summary_layout.xml`
+- [X] T014 [US1] Add integration test validating end->menu->summary flow and visible events — create `tests/match_summary_endflow_test.mc`
+- [X] T015 [US1] Verify SC-001 and SC-002 via automated assertions in `tests/match_summary_endflow_test.mc`
 
 ### User Story 2 - Preserve Existing End And Reset Actions (P2)
 
