@@ -12,6 +12,7 @@ import Toybox.Activity;
 import Toybox.ActivityRecording;
 import Toybox.Lang;
 import Toybox.System;
+import Toybox.Timer;
 
 const RUGBY_RECORDER_STATE_NOT_STARTED = "notStarted";
 const RUGBY_RECORDER_STATE_RECORDING = "recording";
@@ -19,6 +20,8 @@ const RUGBY_RECORDER_STATE_STOPPED = "stopped";
 const RUGBY_RECORDER_STATE_SAVED = "saved";
 const RUGBY_RECORDER_STATE_UNSUPPORTED = "unsupported";
 const RUGBY_RECORDER_EVENT_EXPORT_UNSUPPORTED = "eventExportUnsupported";
+const RUGBY_RECORDER_MAX_EXPORT_RETRIES = 3;
+const RUGBY_RECORDER_EXPORT_BACKOFFS = [2000, 5000, 10000];
 
 class RugbyActivityRecorder {
 
@@ -26,6 +29,9 @@ class RugbyActivityRecorder {
     var _state;
     var _fallbackReason;
     var _eventExportState;
+    var _exportRetryTimer;
+    var _exportRetryCount;
+    var _pendingEventLog;
 /* Initialize recorder state; no session active by default. */
 
     function initialize() {
@@ -141,30 +147,24 @@ class RugbyActivityRecorder {
             _eventExportState = "skipped";
         }
 
-        // Attempt to stop/save with up to 3 retries; do not throw — ensure match end can proceed
-        var attempts = 0;
-        var saved = false;
-        while (attempts < 3 && !saved) {
-            attempts = attempts + 1;
-            try {
-                _session.stop();
-                _state = RUGBY_RECORDER_STATE_STOPPED;
-                _session.save();
-                _state = RUGBY_RECORDER_STATE_SAVED;
-                _session = null;
-                System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents saved exportState=" + _eventExportState + " attempts=" + attempts.format("%d"));
-                saved = true;
-                return true;
-            } catch (ex) {
-                System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents attempt " + attempts.format("%d") + " failed ex=" + ex.toString());
-                // quick retry; do not block long
-            }
+        // Attempt to stop/save with non-blocking retries; do not block match end
+        try {
+            _session.stop();
+            _state = RUGBY_RECORDER_STATE_STOPPED;
+            _session.save();
+            _state = RUGBY_RECORDER_STATE_SAVED;
+            _session = null;
+            System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents saved exportState=" + _eventExportState + " attempts=1");
+            emitActivityExportDiagnostic({"status" => "exported", "attempts" => 1, "exportState" => _eventExportState});
+            return true;
+        } catch (ex) {
+            System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents initial attempt failed ex=" + ex.toString());
+            // Schedule non-blocking retries using Timer with configured backoffs
+            _startExportRetries(eventLog);
+            emitActivityExportDiagnostic({"status" => "initial_failed", "error" => ex.toString(), "exportState" => _eventExportState});
+            // Do not block match end; retries will occur asynchronously.
+            return false;
         }
-
-        // If we reach here, save failed after retries; record fallback but do not throw
-        _fallbackReason = "Recording failed after retries";
-        System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents failed after " + attempts.format("%d") + " attempts, exportState=" + _eventExportState);
-        return false;
     }
 
     function discard() {
@@ -190,6 +190,95 @@ class RugbyActivityRecorder {
     function fallbackReason() {
         return _fallbackReason;
     }
+function emitActivityExportDiagnostic(payload) {
+        try {
+            var diag = Json.toString(payload);
+            System.println("RUGBY_DIAG|activity_export|" + diag);
+        } catch (e) {
+            System.println("RUGBY|RugbyActivityRecorder|emitActivityExportDiagnostic failed ex=" + e.toString());
+        }
+    }
+
+    function _startExportRetries(eventLog) {
+        _pendingEventLog = eventLog;
+        _exportRetryCount = 0;
+        if (RUGBY_RECORDER_MAX_EXPORT_RETRIES > 0) {
+            var delay = RUGBY_RECORDER_EXPORT_BACKOFFS[0];
+            if (_exportRetryTimer == null) {
+                _exportRetryTimer = new Timer.Timer();
+            }
+            _exportRetryTimer.start(method(:_onExportRetryTimer), delay, false);
+            System.println("RUGBY|RugbyActivityRecorder|scheduled export retry #1 in " + delay.format("%d") + "ms");
+        } else {
+            _fallbackReason = "Recording failed and no retries configured";
+            emitActivityExportDiagnostic({"status" => "failed", "attempts" => 0, "exportState" => _eventExportState});
+        }
+    }
+
+    function _onExportRetryTimer() {
+        _exportRetryCount = _exportRetryCount + 1;
+        var attemptNumber = _exportRetryCount + 1; // initial attempt + retries
+        try {
+            if (_pendingEventLog != null && _session != null) {
+                var evCount = _pendingEventLog.size();
+                if (_session has :appendRecords) {
+                    var recs = [];
+                    var idx = 0;
+                    while (idx < evCount) {
+                        var ev = _pendingEventLog[idx];
+                        var s = ev["type"] + "|" + (ev["timestamp"] == null ? "" : ev["timestamp"].format("%d")) + "|" + (ev["actor"] == null ? "" : ev["actor"]) + "|" + (ev["value"] == null ? "" : ev["value"].format("%d")) + "|" + (ev["details"] == null ? "" : ev["details"]);
+                        recs.add(s);
+                        idx = idx + 1;
+                    }
+                    _session.appendRecords(recs);
+                } else if (_session has :addEvent) {
+                    var idx2 = 0;
+                    while (idx2 < evCount) {
+                        var ev2 = _pendingEventLog[idx2];
+                        _session.addEvent(ev2["type"], ev2["timestamp"], ev2["actor"], ev2["value"], ev2["details"]);
+                        idx2 = idx2 + 1;
+                    }
+                }
+            }
+            _session.stop();
+            _state = RUGBY_RECORDER_STATE_STOPPED;
+            _session.save();
+            _state = RUGBY_RECORDER_STATE_SAVED;
+            _session = null;
+            System.println("RUGBY|RugbyActivityRecorder|exportRetry saved exportState=" + _eventExportState + " attempts=" + attemptNumber.format("%d"));
+            emitActivityExportDiagnostic({"status" => "exported", "attempts" => attemptNumber, "exportState" => _eventExportState});
+            // cleanup
+            _pendingEventLog = null;
+            if (_exportRetryTimer != null) {
+                _exportRetryTimer.stop();
+                _exportRetryTimer = null;
+            }
+            _exportRetryCount = 0;
+            return;
+        } catch (ex2) {
+            System.println("RUGBY|RugbyActivityRecorder|exportRetry attempt " + attemptNumber.format("%d") + " failed ex=" + ex2.toString());
+            emitActivityExportDiagnostic({"status" => "retry_failed", "attempts" => attemptNumber, "error" => ex2.toString()});
+            if (_exportRetryCount < RUGBY_RECORDER_MAX_EXPORT_RETRIES) {
+                var nextDelay = RUGBY_RECORDER_EXPORT_BACKOFFS[_exportRetryCount];
+                if (_exportRetryTimer == null) {
+                    _exportRetryTimer = new Timer.Timer();
+                }
+                _exportRetryTimer.start(method(:_onExportRetryTimer), nextDelay, false);
+                System.println("RUGBY|RugbyActivityRecorder|scheduled next export retry #" + (_exportRetryCount+1).format("%d") + " in " + nextDelay.format("%d") + "ms");
+            } else {
+                System.println("RUGBY|RugbyActivityRecorder|exportRetry exhausted attempts=" + attemptNumber.format("%d"));
+                emitActivityExportDiagnostic({"status" => "failed", "attempts" => attemptNumber});
+                _fallbackReason = "Recording failed after retries";
+                _pendingEventLog = null;
+                if (_exportRetryTimer != null) {
+                    _exportRetryTimer.stop();
+                    _exportRetryTimer = null;
+                }
+                _exportRetryCount = 0;
+            }
+        }
+    }
+
 /* Return small serializable snapshot useful for debugging or persistence. */
 
     function snapshot() {
