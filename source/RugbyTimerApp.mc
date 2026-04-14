@@ -72,6 +72,7 @@ class RugbyTimerApp extends Application.AppBase {
         var delegate;
         try {
             view = new RugbyTimerView(_model);
+            view.setRecorder(_recorder);
         } catch (ex) {
             System.println("RUGBY|RugbyTimerApp|getInitialView view init failed: " + ex.toString());
             view = new WatchUi.View();

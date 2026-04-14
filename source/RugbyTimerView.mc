@@ -25,6 +25,8 @@ class RugbyTimerView extends WatchUi.View {
     var _refreshActive as Boolean;
     var _pauseReminderTimer as Timer.Timer?;
     var _pauseReminderActive as Boolean;
+    var _recorder;
+    var _autoMatchSummaryShown as Boolean;
 /* Prepare view state and create a RugbyHaptics helper instance. */
 
     function initialize(model as RugbyGameModel) {
@@ -37,7 +39,13 @@ class RugbyTimerView extends WatchUi.View {
         _refreshActive = false;
         _pauseReminderTimer = null;
         _pauseReminderActive = false;
+        _recorder = null;
+        _autoMatchSummaryShown = false;
         System.println("RUGBY|RugbyTimerView|initialize modelPresent=" + (_model != null ? "yes" : "no"));
+    }
+
+    function setRecorder(recorder) as Void {
+        _recorder = recorder;
     }
 /* Apply layout and cache drawable references for fast drawing. */
 
@@ -61,10 +69,34 @@ class RugbyTimerView extends WatchUi.View {
             + " pending=" + (snap["pendingConfirmAction"] == null ? "null" : snap["pendingConfirmAction"]));
         updateRefreshTimer(snap);
         updatePauseReminderTimer(snap);
+        handleAutoMatchEnd(snap);
         handleHaptics(snap);
         bindLayout(snap);
         View.onUpdate(dc);
         drawRedCardIndicators(dc, snap);
+    }
+
+    function handleAutoMatchEnd(snap as Dictionary) as Void {
+        if (!valueEquals(snap["clockState"], RUGBY_STATE_MATCH_ENDED)) {
+            _autoMatchSummaryShown = false;
+            return;
+        }
+        if (_autoMatchSummaryShown || !snap["autoMatchEndPendingSave"]) {
+            return;
+        }
+        if (!_model.consumeAutoMatchEndPendingSave()) {
+            return;
+        }
+        if (_recorder != null) {
+            if (_recorder has :stopAndSaveWithEvents) {
+                _recorder.stopAndSaveWithEvents(_model.eventLog());
+            } else if (_recorder has :stopAndSave) {
+                _recorder.stopAndSave();
+            }
+        }
+        _autoMatchSummaryShown = true;
+        System.println("RUGBY|RugbyTimerView|handleAutoMatchEnd showSummary");
+        WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(), WatchUi.SLIDE_UP);
     }
 
     function updateRefreshTimer(snap as Dictionary) as Void {
@@ -188,7 +220,7 @@ class RugbyTimerView extends WatchUi.View {
         var label = "" as String;
         for (var i = 0; i < sanctions.size(); i += 1) {
             var sanction = sanctions[i] as Dictionary;
-            if (valueEquals(sanction["teamId"], teamId) && valueEquals(sanction["cardType"], RUGBY_CARD_YELLOW) && valueEquals(sanction["state"], "active")) {
+            if (valueEquals(sanction["teamId"], teamId) && valueEquals(sanction["cardType"], RUGBY_CARD_YELLOW) && isVisibleYellowCardTimerState(sanction["state"])) {
                 if (!label.equals("")) {
                     label += " ";
                 }
@@ -196,6 +228,10 @@ class RugbyTimerView extends WatchUi.View {
             }
         }
         return label;
+    }
+
+    function isVisibleYellowCardTimerState(state) as Boolean {
+        return valueEquals(state, "active") || valueEquals(state, "pausedForPeriod");
     }
 
     function teamHasRedCard(sanctions as Array<Dictionary>, teamId as String) as Boolean {

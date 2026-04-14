@@ -62,6 +62,110 @@ function testStartPauseResumeEndHalfSnapshot(logger) {
 }
 
 (:test)
+function testCountdownExpiryHelpers(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+
+    Test.assertEqual(false, model.isFinalPeriod());
+    Test.assertEqual(false, model.isRunningCountdownExpired((40 * 60 * 1000) - 1000));
+    Test.assertEqual(true, model.isRunningCountdownExpired(40 * 60 * 1000));
+
+    model.requestEndHalf();
+    Test.assertEqual(true, model.confirmPending(40 * 60 * 1000));
+    Test.assertEqual(true, model.isFinalPeriod());
+}
+
+(:test)
+function testNonFinalPeriodAutoEndsAtCountdownExpiry(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+
+    var beforeExpiry = model.snapshot((40 * 60 * 1000) - 1000);
+    Test.assertEqual(RUGBY_STATE_RUNNING, beforeExpiry["clockState"]);
+    Test.assertEqual(1, beforeExpiry["mainCountdownSeconds"]);
+
+    var expired = model.snapshot(40 * 60 * 1000);
+    Test.assertEqual(RUGBY_STATE_HALF_ENDED, expired["clockState"]);
+    Test.assertEqual(2, expired["halfIndex"]);
+    Test.assertEqual(40 * 60, expired["mainCountdownSeconds"]);
+    Test.assertEqual(0, expired["countUpSeconds"]);
+
+    model.startMatch((40 * 60 * 1000) + 1000);
+    var nextHalf = model.snapshot((40 * 60 * 1000) + 61000);
+    Test.assertEqual(RUGBY_STATE_RUNNING, nextHalf["clockState"]);
+    Test.assertEqual(2, nextHalf["halfIndex"]);
+    Test.assertEqual((40 * 60) - 60, nextHalf["mainCountdownSeconds"]);
+}
+
+(:test)
+function testManualEndHalfStillUsesBetweenPeriodState(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.requestEndHalf();
+
+    Test.assertEqual(true, model.confirmPending(10000));
+    var snap = model.snapshot(10000);
+    Test.assertEqual(RUGBY_STATE_HALF_ENDED, snap["clockState"]);
+    Test.assertEqual(2, snap["halfIndex"]);
+    Test.assertEqual(40 * 60, snap["mainCountdownSeconds"]);
+}
+
+(:test)
+function testFinalPeriodAutoEndsMatchAtCountdownExpiry(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.requestEndHalf();
+    Test.assertEqual(true, model.confirmPending(1000));
+    model.startMatch(2000);
+
+    var beforeExpiry = model.snapshot(2000 + (40 * 60 * 1000) - 1000);
+    Test.assertEqual(RUGBY_STATE_RUNNING, beforeExpiry["clockState"]);
+    Test.assertEqual(2, beforeExpiry["halfIndex"]);
+    Test.assertEqual(1, beforeExpiry["mainCountdownSeconds"]);
+
+    var expired = model.snapshot(2000 + (40 * 60 * 1000));
+    Test.assertEqual(RUGBY_STATE_MATCH_ENDED, expired["clockState"]);
+    Test.assertEqual(true, expired["matchSummaryVisible"]);
+    Test.assertEqual(true, expired["autoMatchEndPendingSave"]);
+    Test.assertEqual(true, model.consumeAutoMatchEndPendingSave());
+    Test.assertEqual(false, model.consumeAutoMatchEndPendingSave());
+    Test.assertEqual(0, expired["mainCountdownSeconds"]);
+}
+
+(:test)
+function testFinalPeriodAutoEndPreservesSummaryState(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.recordTry(RUGBY_TEAM_HOME, 10000);
+    model.startYellowCard(RUGBY_TEAM_AWAY, 20000);
+    model.requestEndHalf();
+    Test.assertEqual(true, model.confirmPending(30000));
+    model.startMatch(40000);
+    model.recordPenaltyGoalAt(RUGBY_TEAM_AWAY, 50000);
+
+    var expired = model.snapshot(40000 + (40 * 60 * 1000));
+    Test.assertEqual(RUGBY_STATE_MATCH_ENDED, expired["clockState"]);
+    Test.assertEqual(5, expired["home"]["score"]);
+    Test.assertEqual(3, expired["away"]["score"]);
+    Test.assertEqual(3, expired["eventLog"].size());
+    Test.assertEqual("expired", expired["sanctions"][0]["state"]);
+}
+
+(:test)
+function testManualEndMatchStillShowsSummary(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.recordTry(RUGBY_TEAM_HOME, 10000);
+    model.endMatch(20000);
+
+    var snap = model.snapshot(20000);
+    Test.assertEqual(RUGBY_STATE_MATCH_ENDED, snap["clockState"]);
+    Test.assertEqual(true, snap["matchSummaryVisible"]);
+    Test.assertEqual(false, snap["autoMatchEndPendingSave"]);
+    Test.assertEqual(1, snap["eventLog"].size());
+}
+
+(:test)
 function testScoringAndCorrection(logger) {
     var model = newTestModel();
     model.startMatch(0);
@@ -345,6 +449,100 @@ function testMultipleYellowCardsAndPausedHalfBoundary(logger) {
     Test.assertEqual(2, paused["sanctions"].size());
     // Remaining seconds for a sanction should not advance while paused
     Test.assertEqual(paused["sanctions"][0]["remainingSeconds"], model.snapshot(120000)["sanctions"][0]["remainingSeconds"]);
+}
+
+(:test)
+function testYellowCardCarriesForwardAcrossAutoPeriodEnd(logger) {
+    var model = newTestModel();
+    var view = new RugbyTimerView(model);
+    model.startMatch(0);
+    model.startYellowCard(RUGBY_TEAM_HOME, 39 * 60 * 1000);
+    model.resume(39 * 60 * 1000);
+
+    var halfEnded = model.snapshot(40 * 60 * 1000);
+    Test.assertEqual(RUGBY_STATE_HALF_ENDED, halfEnded["clockState"]);
+    Test.assertEqual("pausedForPeriod", halfEnded["sanctions"][0]["state"]);
+    Test.assertEqual(9 * 60, halfEnded["sanctions"][0]["remainingSeconds"]);
+    Test.assertEqual(RUGBY_TEAM_HOME, halfEnded["sanctions"][0]["teamId"]);
+    Test.assertEqual("9:00", view.teamYellowCardTimerLabel(halfEnded["sanctions"], RUGBY_TEAM_HOME));
+
+    model.startMatch((40 * 60 * 1000) + 1000);
+    var nextHalf = model.snapshot((41 * 60 * 1000) + 1000);
+    Test.assertEqual(RUGBY_STATE_RUNNING, nextHalf["clockState"]);
+    Test.assertEqual("active", nextHalf["sanctions"][0]["state"]);
+    Test.assertEqual(8 * 60, nextHalf["sanctions"][0]["remainingSeconds"]);
+}
+
+(:test)
+function testMultipleYellowCardsCarryForwardWithTeams(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.startYellowCard(RUGBY_TEAM_HOME, 38 * 60 * 1000);
+    model.resume(38 * 60 * 1000);
+    model.startYellowCard(RUGBY_TEAM_AWAY, 39 * 60 * 1000);
+    model.resume(39 * 60 * 1000);
+
+    var halfEnded = model.snapshot(40 * 60 * 1000);
+    Test.assertEqual(RUGBY_STATE_HALF_ENDED, halfEnded["clockState"]);
+    Test.assertEqual(2, halfEnded["sanctions"].size());
+    Test.assertEqual(RUGBY_TEAM_HOME, halfEnded["sanctions"][0]["teamId"]);
+    Test.assertEqual(8 * 60, halfEnded["sanctions"][0]["remainingSeconds"]);
+    Test.assertEqual(RUGBY_TEAM_AWAY, halfEnded["sanctions"][1]["teamId"]);
+    Test.assertEqual(9 * 60, halfEnded["sanctions"][1]["remainingSeconds"]);
+
+    model.startMatch((40 * 60 * 1000) + 1000);
+    var nextHalf = model.snapshot((40 * 60 * 1000) + 31000);
+    Test.assertEqual("active", nextHalf["sanctions"][0]["state"]);
+    Test.assertEqual((8 * 60) - 30, nextHalf["sanctions"][0]["remainingSeconds"]);
+    Test.assertEqual("active", nextHalf["sanctions"][1]["state"]);
+    Test.assertEqual((9 * 60) - 30, nextHalf["sanctions"][1]["remainingSeconds"]);
+}
+
+(:test)
+function testExpiredYellowCardDoesNotReviveAcrossAutoPeriodEnd(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.startYellowCard(RUGBY_TEAM_HOME, 30 * 60 * 1000);
+    model.resume(30 * 60 * 1000);
+
+    var halfEnded = model.snapshot(40 * 60 * 1000);
+    Test.assertEqual(RUGBY_STATE_HALF_ENDED, halfEnded["clockState"]);
+    Test.assertEqual("expired", halfEnded["sanctions"][0]["state"]);
+    Test.assertEqual(0, halfEnded["sanctions"][0]["remainingSeconds"]);
+
+    model.startMatch((40 * 60 * 1000) + 1000);
+    var nextHalf = model.snapshot((40 * 60 * 1000) + 61000);
+    Test.assertEqual("expired", nextHalf["sanctions"][0]["state"]);
+    Test.assertEqual(0, nextHalf["sanctions"][0]["remainingSeconds"]);
+}
+
+(:test)
+function testPausedAtZeroDoesNotAutoTransition(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.pause(40 * 60 * 1000);
+
+    var paused = model.snapshot((40 * 60 * 1000) + 60000);
+    Test.assertEqual(RUGBY_STATE_PAUSED, paused["clockState"]);
+    Test.assertEqual(0, paused["mainCountdownSeconds"]);
+    Test.assertEqual(1, paused["halfIndex"]);
+}
+
+(:test)
+function testRedCardAndConversionRemainUnchangedAroundAutoPeriodEnd(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.recordTry(RUGBY_TEAM_HOME, (39 * 60 * 1000) + 50000);
+    model.recordRedCard(RUGBY_TEAM_AWAY, (39 * 60 * 1000) + 55000);
+    model.resume((39 * 60 * 1000) + 55000);
+
+    var halfEnded = model.snapshot(40 * 60 * 1000);
+    Test.assertEqual(RUGBY_STATE_HALF_ENDED, halfEnded["clockState"]);
+    Test.assertNotEqual(null, halfEnded["conversionTimer"]);
+    Test.assertEqual(RUGBY_TEAM_HOME, halfEnded["conversionTimer"]["teamId"]);
+    Test.assertEqual(RUGBY_CARD_RED, halfEnded["sanctions"][0]["cardType"]);
+    Test.assertEqual("active", halfEnded["sanctions"][0]["state"]);
+    Test.assertEqual(null, halfEnded["sanctions"][0]["remainingSeconds"]);
 }
 
 (:test)

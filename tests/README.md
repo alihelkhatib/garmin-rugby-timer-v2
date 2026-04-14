@@ -48,3 +48,19 @@ Coverage added:
 - Reset clears event log and returns runtime match state to not-started.
 - Back option routing exposes active/match-ended option availability and reset confirmation behavior.
 - Activity recorder reports best-effort event export fallback state and supports discard/reset.
+
+## 2026-04-13 Auto Period Transition
+
+- `monkeyc -f monkey.jungle -d fenix7 -o build/garmin-rugby-timer-fenix7.prg -y build\codex-garmin-rugby-timer-key.der -w`: PASS.
+- `monkeyc -f monkey.jungle -d fenix7 -o build/garmin-rugby-timer-fenix7-test.prg -t -y build\codex-garmin-rugby-timer-key.der -w`: PASS.
+- `monkeydo build\garmin-rugby-timer-fenix7-test.prg fenix7 /t`: PASS.
+- Quickstart manual scenarios: BLOCKED, no interactive simulator/device session was exercised in this run.
+
+Coverage added:
+
+- Non-final period countdown expiry automatically enters the between-period state.
+- Final period countdown expiry automatically enters the match-ended summary state.
+- Unexpired yellow-card timers carry into the next period with team and remaining time preserved.
+- Paused-at-00:00 snapshots do not unexpectedly auto-transition.
+- Red-card non-countdown behavior and conversion timer behavior remain unchanged around period expiry.
+- Security/privacy check: no new persistence, network behavior, dependencies, telemetry, or red-card countdown behavior was added.
