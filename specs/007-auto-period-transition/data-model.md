@@ -44,17 +44,34 @@
 - Yellow-card timers that expire before or during the same update as period expiry are not carried forward as active timers.
 - Yellow-card timers are expired or otherwise stopped by final match end because there is no next period.
 
+## Half-Time Timer
+
+- `visible`: true while the app is between non-final periods.
+- `startedAtMs`: local time anchor captured when the non-final period ends.
+- `elapsedSeconds`: wall-clock elapsed break time since `startedAtMs`, displayed from 00:00 upward.
+- `stoppedAtMs`: optional local time when the next period starts or the between-period flow exits.
+
+### Rules
+
+- Starts at 00:00 when a non-final period ends automatically or through the deliberate end-period path.
+- Tracks elapsed break time only; it does not change active match elapsed time.
+- Does not decrement the main countdown or any carried yellow-card timer while visible.
+- Stops or leaves view when the referee starts the next period.
+- Does not appear after final-period match end.
+
 ## Between-Period Flow
 
 - `visible`: true after a non-final period ends.
 - `nextPeriodIndex`: period number that will start after referee confirmation.
 - `carriedYellowCards`: yellow-card timers preserved for the next period.
+- `halfTimeTimer`: elapsed break timer shown while waiting for the next period.
 
 ### Rules
 
 - Entered automatically when a non-final running period countdown reaches 00:00.
 - Reuses the existing start-next-period referee flow.
 - Does not decrement carried yellow-card timers during the break.
+- Shows the half-time timer from 00:00 until the next period starts.
 
 ## Match-End Summary
 

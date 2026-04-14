@@ -4,6 +4,7 @@
 **Created**: 2026-04-13  
 **Status**: Draft  
 **Input**: User description: "Currently, when the countdown timer runs out it does not automatically end the half or end the match depending on if it is the final period. Make this the behavior. Additionally, if there are card timers that have not expired by the time we reach the end of a period, they are to pause and that timer will be present for the next period. Ask me about any ambiguities"
+**Correction**: User correction on 2026-04-14: "There is no half-time timer at all it seems. We need a half-time timer as well just to track the time in between halves."
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -13,13 +14,14 @@ As a referee, I need the app to automatically end the current non-final period w
 
 **Why this priority**: The requested behavior corrects the core match timing lifecycle. If a half expires but remains running, the referee can lose trust in all visible match state.
 
-**Independent Test**: Start a match in a variant with another period remaining, let the main countdown reach 00:00, and confirm the app leaves active play timing and enters the between-period state without a manual end-period action.
+**Independent Test**: Start a match in a variant with another period remaining, let the main countdown reach 00:00, and confirm the app leaves active play timing, enters the between-period state, and shows a half-time timer that tracks time between periods without a manual end-period action.
 
 **Acceptance Scenarios**:
 
 1. **Given** a match is in a non-final period and the main countdown is running, **When** the countdown reaches 00:00, **Then** the app automatically ends the current period.
-2. **Given** the current period automatically ends, **When** the referee views the app, **Then** the app shows the normal between-period flow for starting the next period.
-3. **Given** the current period automatically ends, **When** the referee starts the next period through the existing start-next-period flow, **Then** the next period begins with the correct period number and match timing state.
+2. **Given** the current period automatically ends, **When** the referee views the app, **Then** the app shows a between-period half-time timer that starts from 00:00 and counts elapsed time since the period ended.
+3. **Given** the current period automatically ends, **When** the half-time timer is visible, **Then** the main match countdown remains stopped and the half-time timer is clearly distinguishable from match play time.
+4. **Given** the current period automatically ends, **When** the referee starts the next period through the existing start-next-period flow, **Then** the next period begins with the correct period number and match timing state and the half-time timer stops or leaves view.
 
 ---
 
@@ -57,6 +59,7 @@ As a referee, I need unexpired yellow card timers to pause at the end of a perio
 ### Edge Cases
 
 - A countdown reaches 00:00 while match time is running: the app must transition once and must not require a manual end-period or end-match action.
+- A non-final period reaches 00:00: the half-time timer must begin at 00:00 and track elapsed time between periods while match play time remains stopped.
 - A countdown is already paused at or near 00:00: automatic transition is tied to time advancing to 00:00, and paused time must not unexpectedly end the period until match timing resumes or an explicit end action is used.
 - The final configured period reaches 00:00: the match ends rather than entering another between-period state.
 - Multiple period lengths or variant defaults are used: the app must use the selected match setup to determine whether the expired period is final.
@@ -65,6 +68,7 @@ As a referee, I need unexpired yellow card timers to pause at the end of a perio
 - A red card is active at period end: it remains recorded according to existing red-card behavior, but no countdown pause/resume is required.
 - A conversion timer is active when the main countdown reaches 00:00: existing conversion-timer behavior must be preserved unless a separate specification changes it.
 - Activity recording or match-end summary is unavailable on a target device: automatic final-period expiry must still produce the existing in-app match-ended fallback behavior.
+- The referee remains in the between-period state longer than the expected break: the half-time timer continues tracking elapsed break time rather than forcing the next period to start automatically.
 
 ## Requirements *(mandatory)*
 
@@ -85,6 +89,10 @@ As a referee, I need unexpired yellow card timers to pause at the end of a perio
 - **FR-013**: Existing scoring, card entry, conversion timer, pause/resume, haptic alert, event log, variant selection, and activity-recording behavior MUST be preserved except where directly affected by automatic countdown expiry.
 - **FR-014**: Period-end and match-end displays MUST remain readable on supported watch screen sizes after automatic transitions, including when one or more card timers are carried forward.
 - **FR-015**: Automatic final-period match end MUST preserve the current score, period state, card state, event log, and activity-save state as of the countdown expiry.
+- **FR-016**: After a non-final period ends, the app MUST show a half-time timer that counts elapsed time between periods starting from 00:00.
+- **FR-017**: The half-time timer MUST remain separate from match play time; the main match countdown and carried yellow-card timers MUST NOT decrement while the half-time timer is running.
+- **FR-018**: The half-time timer MUST stop or leave view when the referee starts the next period through the start-next-period flow.
+- **FR-019**: The half-time timer MUST be available after automatic non-final period end and after any existing deliberate non-final period-end path.
 
 ### Key Entities
 
@@ -92,6 +100,7 @@ As a referee, I need unexpired yellow card timers to pause at the end of a perio
 - **Main Countdown**: The referee-facing period timer whose expiry determines automatic period or match transition.
 - **Yellow Card Timer**: A team-assigned sanction countdown with active, paused, expired, cleared, and carried-forward states.
 - **Between-Period Flow**: The user-facing state shown after a non-final period ends and before the next period starts.
+- **Half-Time Timer**: A between-period count-up timer that starts at 00:00 when a non-final period ends and tracks elapsed break time until the next period starts.
 - **Match-End Summary**: The user-facing state shown after the final period ends, including score and existing save/review behavior.
 
 ## Success Criteria *(mandatory)*
@@ -105,6 +114,8 @@ As a referee, I need unexpired yellow card timers to pause at the end of a perio
 - **SC-005**: In paused-at-00:00 tests, 100% of runs avoid unexpected automatic period or match transition until timing resumes to the expiry boundary or the referee explicitly ends the period or match.
 - **SC-006**: Regression validation confirms existing scoring, card entry, conversion timer, pause/resume, haptic alert, event log, variant selection, display, and activity-recording behaviors still pass after the automatic transition change.
 - **SC-007**: On representative supported watch screen sizes, automatic transition states remain readable with no overlap between period status, score, and carried yellow card timers.
+- **SC-008**: In 10 non-final period-end tests, 100% of runs show a half-time timer starting from 00:00 and advancing while the app remains between periods.
+- **SC-009**: In 10 next-period start tests, 100% of runs stop or hide the half-time timer and start the next period without decrementing carried yellow-card timers during the break.
 
 ## Assumptions
 
@@ -112,6 +123,7 @@ As a referee, I need unexpired yellow card timers to pause at the end of a perio
 - "Card timers" refers to yellow card countdown timers; red cards remain non-countdown sanctions under existing behavior.
 - Unexpired yellow card timers carry forward only across non-final period boundaries. At final match end there is no next period, so active timers stop as part of the match-ended state.
 - The existing between-period and match-ended flows remain the user-facing destination for automatic transitions.
+- The half-time timer is a simple elapsed break timer; it does not automatically start the next period or enforce a break duration.
 - Conversion timer behavior at period end remains governed by existing behavior and is not changed by this feature.
 - No new match-history persistence, network communication, analytics, or account behavior is added by this feature.
 

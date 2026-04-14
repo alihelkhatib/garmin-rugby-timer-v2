@@ -31,4 +31,4 @@
 
 ## Notes
 
-- Validation completed on 2026-04-13. No clarification markers remain. Scope assumes "card timers" means yellow-card countdown timers; red cards keep existing non-countdown behavior.
+- Validation completed on 2026-04-13 and rechecked after the 2026-04-14 half-time timer correction. No clarification markers remain. Scope assumes "card timers" means yellow-card countdown timers; red cards keep existing non-countdown behavior. Half-time timer scope is a simple elapsed break timer, not an automatic break-duration enforcer.

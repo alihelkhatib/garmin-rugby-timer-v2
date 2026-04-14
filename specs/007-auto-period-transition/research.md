@@ -24,6 +24,15 @@
 - Automatically start the next period after a break duration: rejected because the spec asks to pause card timers and have them present for the next period, not to remove referee control of restart.
 - Create a new "auto period ended" screen: rejected as unnecessary surface area.
 
+## Decision: Half-time timer is a derived between-period count-up timer
+
+**Rationale**: The user correction asks for a timer that tracks the time between halves, not a mandated break duration. Deriving elapsed break time from the existing between-period state keeps match play time and yellow-card active time stopped while still giving the referee a visible count-up from 00:00 until the next period starts.
+
+**Alternatives considered**:
+- Add a configurable half-time countdown: rejected because no break duration was requested and enforcing one would add setup complexity.
+- Let the main count-up continue during the break: rejected because it would mix active match time with elapsed half-time.
+- Use an independent `Timer.Timer` loop for half-time: rejected because the model snapshot can derive elapsed break time without adding another timing loop.
+
 ## Decision: Final-period expiry enters the existing match-ended summary/save flow
 
 **Rationale**: The final 00:00 boundary is equivalent to the existing deliberate end-match outcome. Reusing the match-ended flow preserves final score, event log, activity-save behavior, and fallback review behavior.
