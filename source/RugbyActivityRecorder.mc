@@ -82,7 +82,7 @@ class RugbyActivityRecorder {
         var eventCount = eventLog == null ? 0 : eventLog.size();
         // Default export state; update if we successfully attach/export events
         _eventExportState = eventCount > 0 ? RUGBY_RECORDER_EVENT_EXPORT_UNSUPPORTED : "skipped";
-        System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents eventCount=" + eventCount.format("%d") + " exportState=" + _eventExportState);
+        System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents eventCount=" + ("" + eventCount) + " exportState=" + _eventExportState);
 
         if (_session == null) {
             return false;
@@ -191,7 +191,7 @@ function emitActivityExportDiagnostic(payload as Dictionary) {
                 _exportRetryTimer = new Timer.Timer();
             }
             _exportRetryTimer.start(method(:_onExportRetryTimer), delay, false);
-            System.println("RUGBY|RugbyActivityRecorder|scheduled export retry #1 in " + delay.format("%d") + "ms");
+            System.println("RUGBY|RugbyActivityRecorder|scheduled export retry #1 in " + ("" + delay) + "ms");
         } else {
             _fallbackReason = "Recording failed and no retries configured";
             emitActivityExportDiagnostic({"status" => "failed", "attempts" => 0, "exportState" => _eventExportState});
@@ -218,7 +218,7 @@ function emitActivityExportDiagnostic(payload as Dictionary) {
             _session.save();
             _state = RUGBY_RECORDER_STATE_SAVED;
             _session = null;
-            System.println("RUGBY|RugbyActivityRecorder|exportRetry saved exportState=" + _eventExportState + " attempts=" + attemptNumber.format("%d"));
+            System.println("RUGBY|RugbyActivityRecorder|exportRetry saved exportState=" + _eventExportState + " attempts=" + ("" + attemptNumber));
             emitActivityExportDiagnostic({"status" => "exported", "attempts" => attemptNumber, "exportState" => _eventExportState});
             // cleanup
             _pendingEventLog = null;
@@ -229,7 +229,7 @@ function emitActivityExportDiagnostic(payload as Dictionary) {
             _exportRetryCount = 0;
             return;
         } catch (ex2) {
-            System.println("RUGBY|RugbyActivityRecorder|exportRetry attempt " + attemptNumber.format("%d") + " failed ex=" + ex2.toString());
+            System.println("RUGBY|RugbyActivityRecorder|exportRetry attempt " + ("" + attemptNumber) + " failed ex=" + ex2.toString());
             emitActivityExportDiagnostic({"status" => "retry_failed", "attempts" => attemptNumber, "error" => ex2.toString()});
             if (_exportRetryCount < RUGBY_RECORDER_MAX_EXPORT_RETRIES) {
                 var nextDelay = RUGBY_RECORDER_EXPORT_BACKOFFS[_exportRetryCount];
@@ -237,9 +237,9 @@ function emitActivityExportDiagnostic(payload as Dictionary) {
                     _exportRetryTimer = new Timer.Timer();
                 }
                 _exportRetryTimer.start(method(:_onExportRetryTimer), nextDelay, false);
-                System.println("RUGBY|RugbyActivityRecorder|scheduled next export retry #" + (_exportRetryCount+1).format("%d") + " in " + nextDelay.format("%d") + "ms");
+                System.println("RUGBY|RugbyActivityRecorder|scheduled next export retry #" + ("" + (_exportRetryCount+1)) + " in " + ("" + nextDelay) + "ms");
             } else {
-                System.println("RUGBY|RugbyActivityRecorder|exportRetry exhausted attempts=" + attemptNumber.format("%d"));
+                System.println("RUGBY|RugbyActivityRecorder|exportRetry exhausted attempts=" + ("" + attemptNumber));
                 emitActivityExportDiagnostic({"status" => "failed", "attempts" => attemptNumber});
                 _fallbackReason = "Recording failed after retries";
                 _pendingEventLog = null;

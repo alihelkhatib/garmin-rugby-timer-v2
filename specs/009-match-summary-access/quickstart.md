@@ -17,3 +17,10 @@ Notes
 
 Deliverable
 - A short checklist that verifies SC-001..SC-007 on at least two device profiles.
+
+Reproducing non-blocking export + retry (T023)
+- Build instrumented test that injects an ActivityRecording session which throws on save or addEvent, or run tests/impl_export_retry_test.mc which stubs the session.
+- Run on simulator (fenix6 profile) with:
+  monkeyc -f monkey.jungle -o build/app.prg && monkeydo run -d fenix6 build/app.prg --script tests/impl_export_retry_test.mc
+- Expected: stopAndSave triggers immediate non-blocking save attempt, then scheduled retries with backoffs 2000/5000/10000 ms. Verify logs contain `RUGBY_DIAG|activity_export` entries and final status 'failed' after retries. Assert attempts == 3. Document expected log snippets in this quickstart.
+

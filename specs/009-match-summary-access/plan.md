@@ -11,21 +11,16 @@
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: Monkey C 4.1.6 (minimum). Develop and test with Connect IQ SDK 9.1.0; validate backward compatibility as needed.
+**Primary Dependencies**: Toybox modules: Application, WatchUi, Graphics, Lang, System, Timer, Attention, Activity, ActivityRecording. Avoid nonstandard Toybox modules unless validated per-device.
+**Storage**: No new persistent storage. Use ActivityRecording for FIT export; fallback to in-memory RugbyEventLog on devices without ActivityRecording.
+**Testing**: Unit tests under tests/, integration via monkeyc/monkeydo on local simulator. Use scripts/run_simulator.sh for perf runs and device validation.
+**Target Platform**: Primary: fenix6 family. Secondary: Forerunner and Venu families if perf budgets pass. Record device matrix in specs/009-match-summary-access/device-validation-report.md.
+**Performance Goals**: fenix-family: binary_size_delta <= 200 KB; peak_heap_delta <= 128 KB; avg_cpu_overhead <= 5.0% over a 90-minute simulated match. Record per-device thresholds in perf-validation.md.
+**Constraints**: Declarative resource-first UI; MAX_EXPORT_RETRIES = 3 with backoffs [2000,5000,10000] ms; ActivityRecording export must be non-blocking and not block match end flows.
+**Scope**: Single-referee match runs; support rugby variants (15s, 7s, 10s, U19).
+**Owners**: Feature owner: TBD; Approver: TBD.
 
-**Language/Version**: Monkey C / Garmin Connect IQ SDK [version or NEEDS CLARIFICATION]  
-**Primary Dependencies**: Garmin Connect IQ APIs, Toybox modules [specific modules or NEEDS CLARIFICATION]  
-**Storage**: Connect IQ app storage only if required; otherwise N/A  
-**Testing**: Monkey C unit tests and Garmin simulator/device checks [or NEEDS CLARIFICATION]  
-**Target Platform**: Garmin watches from fenix 6 onward, plus compatible Connect IQ watch lines [or NEEDS CLARIFICATION]  
-**Project Type**: Garmin Connect IQ watch app  
-**Performance Goals**: Synchronized timer updates with no visible drift or lag during each UI refresh  
-**Constraints**: Lightweight offline watch app; dark color-blind-friendly UI; haptic critical alerts; minimal files/dependencies  
-**Scale/Scope**: Single-referee in-match use across rugby variants including 15s, 7s, 10s, and U19
 
 ## Constitution Check
 
