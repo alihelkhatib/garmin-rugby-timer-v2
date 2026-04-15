@@ -389,6 +389,8 @@ class MatchOptionDelegate extends WatchUi.Menu2InputDelegate {
         System.println("RUGBY|MatchOptionDelegate|onSelect itemId=" + itemId);
         if (valueEquals(itemId, :match_option_end) || valueEquals(itemId, "match_option_end")) {
             _timerDelegate.requestEndMatchSave();
+        } else if (valueEquals(itemId, :match_option_summary) || valueEquals(itemId, "match_option_summary")) {
+            _timerDelegate.showMatchSummary();
         } else if (valueEquals(itemId, :match_option_reset) || valueEquals(itemId, "match_option_reset")) {
             _timerDelegate.requestResetMatch();
         }

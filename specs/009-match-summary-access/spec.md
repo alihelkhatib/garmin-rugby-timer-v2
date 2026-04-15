@@ -1,9 +1,21 @@
 # Feature Specification: Match Summary Access
 
+Terminology: UI label: "Match Summary (Event Log)" — user-facing screens and resource strings SHOULD use exactly this phrasing for the summary view. Canonical code/module name: RugbyEventLog (source/RugbyEventLog.mc). Feature documentation and plan items MUST use "Match Summary (Event Log)" when referring to UI copy and "RugbyEventLog" when referring to the code/module or API.
+
 **Feature Branch**: `009-match-summary-access`  
 **Created**: 2026-04-14  
 **Status**: Draft  
 **Input**: User description: "as a part of this at match end, there should be an option to see the match summary somehow in the menu that ends or resets a match. or perhaps even have the ability to see the event log/event summary at any point in time by using the dialog menu with the back button, would that be a good idea?"
+
+## Clarifications
+
+### Session 2026-04-14
+
+- Q: Should match summary be integrated with ActivityRecording/FIT export? → A: Use existing ActivityRecording/FIT export (RugbyActivityRecorder).
+- Q: On devices without ActivityRecording, fallback behavior? → A: Fallback to in-app summary (in-memory events).
+- Q: What format should be exported to ActivityRecording (raw vs summary)? → A: Export raw chronological events (type, timestamp, details).
+- Q: Should the summary view be scrollable or truncated? → A: Use a scrollable list for summary viewing.
+- Q: When should ActivityRecording export occur (timing)? → A: Export at match end (flush events).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -43,6 +55,14 @@ As a referee, I need the new summary option to stay out of the way of end-match 
 - The summary option must not destroy or clear the recorded event log.
 - If the match is reset after viewing the summary, the app should still honor the existing reset confirmation behavior.
 - If there are no events recorded, the summary view should still be accessible and clearly indicate an empty summary.
+- The summary view must support scrolling to view older events; ensure navigation and focus on the most recent event for immediate glanceability.
+
+## Constraints & Tradeoffs
+
+- No new persistent storage; reuse ActivityRecording when available.
+- Default export at match end to minimize writes and battery impact.
+- Use declarative resource-first UI (per Constitution VII) for layouts where possible.
+- Devices without ActivityRecording fall back to in-app summary (in-memory), which maintains parity of visible events but may not produce an external activity export.
 
 ## Requirements *(mandatory)*
 
@@ -55,12 +75,18 @@ As a referee, I need the new summary option to stay out of the way of end-match 
 - **FR-005**: The summary option MUST not require the referee to lose or discard the current match before viewing it.
 - **FR-006**: The summary view MUST clearly handle the case where no match events are available.
 - **FR-007**: If the design also supports accessing summary from the Back-button dialog during an active or paused match, that access path MUST not interfere with the existing end/reset confirmation flow or primary match controls.
+- **FR-008**: If ActivityRecording is not available on the device, the app MUST present the match summary using the in-memory recorded event log without requiring persistent storage.
+- **FR-009**: When exporting to ActivityRecording/FIT, recorded match events MUST be exported as raw chronological events including at minimum: event type, timestamp (monotonic match time), optional actor identifier, and optional numeric value.
+- **FR-010**: When ActivityRecording export is available, the app MUST initiate a flush immediately after the referee confirms match end. The flush MUST be started without blocking the end/reset UI. If the underlying API provides only asynchronous confirmation, record the export as 'pending' and follow FR-011 retry semantics. If the save does not complete within a timeout (10 seconds), the app MUST continue match termination and mark the export as pending/failed per FR-011.
+- **FR-011**: ActivityRecording export MUST NOT block match end or reset flows. The app MUST attempt up to 3 non-blocking retries (MAX_EXPORT_RETRIES = 3) using exponential backoff (e.g., 2000ms, 5000ms, 10000ms). If all attempts fail, set _eventExportState = 'failed' and exportAttempts = N, emit a Diagnostic trace named `activity_export` with payload {status, attempts, reason, timestamp}, and retain events in-memory so the match ends without blocking. Persisting a retry queue across app restarts is optional only if the platform's ActivityRecording APIs and device resources safely support background persistence; otherwise provide a manual retry UI for post-match retry. Integration tests MUST simulate export failures and assert non-blocking match end, exact retry counts, backoff timings, and the presence and contents of the `activity_export` diagnostic trace. For the general diagnostic obligations (schema, non-PII rules, inspector tooling), reference the cross-cutting diagnostics requirement FR-DIAG-001 (see specs/cross-cutting/diagnostics.md). Feature-level traces (such as `activity_export`) remain documented here as feature-specific payload examples.
+- **FR-012**: When exporting to ActivityRecording, the app MUST set the activity type to Activity.SPORT_RUGBY where the Connect IQ SDK exposes a rugby activity constant. If a rugby-specific activity constant is absent on a target device, a documented fallback mapping (to the closest available activity type) MUST be recorded in the plan and validated per-device during testing.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Match Summary**: A readable list or view of recorded match events for the current match.
 - **End/Reset Menu**: The menu used to finish or discard the current match.
 - **Summary Access Path**: The menu or dialog entry point that opens the match summary.
+- **Event**: Minimal exported event schema: { type: String, timestamp: MonotonicMatchTime, actor?: String, value?: Number, details?: String } — used for in-app rendering and ActivityRecording exports.
 
 ## Success Criteria *(mandatory)*
 
@@ -70,6 +96,13 @@ As a referee, I need the new summary option to stay out of the way of end-match 
 - **SC-002**: In summary-access tests, 100% of recorded match events remain visible after the referee opens and exits the summary view.
 - **SC-003**: In regression tests, the end-match and reset flows still complete with the same outcomes as before the summary option was added.
 - **SC-004**: If the optional Back-button summary access is implemented, testers can reach the summary without breaking the existing active-match back menu behavior.
+- **SC-005**: Where ActivityRecording/FIT export is available, recorded match events are included in the exported activity and remain visible in the summary view.
+- **SC-006**: Exported ActivityRecording/FIT activity must contain raw chronological events matching the declared event schema and be verifiable in integration tests.
+- **SC-007**: When ActivityRecording export is used, exported activity must be produced at match end as a flush operation (not continuous writes) and validated in integration tests.
+- **SC-010**: Activity-type mapping verified on representative devices (Activity.SPORT_RUGBY used when supported; documented fallback used otherwise).
+- **SC-011**: Export error handling verified: failed exports do not block match end, retries are attempted, and failures are logged for inspection.
+- **SC-008**: Performance budgets (binary size, memory, CPU/battery) validated on representative devices.
+- **SC-009**: Integration tests confirm exported ActivityRecording contains raw chronological events matching the in-app event list.
 
 ## Assumptions
 
@@ -77,6 +110,16 @@ As a referee, I need the new summary option to stay out of the way of end-match 
 - The current match summary view can be reused instead of inventing a second summary screen.
 - If an always-available summary access path is later added, it should be treated as a follow-on refinement rather than required for the initial release.
 - No new persistent storage is required.
+- Match summary will reuse existing ActivityRecording/FIT export (RugbyActivityRecorder) where available; this avoids creating new persistent storage.
+- On devices without ActivityRecording, the app will fall back to the in-app summary view using the in-memory recorded event log.
+- ActivityRecording exports will be produced at match end by default (flush operation).
+
+## Performance Budgets
+
+- Binary size target (compiled): <= 200 KB (initial target; refine per device in Phase 0 research)
+- Max memory usage (heap & working set): <= 128 KB (initial target)
+- Battery/CPU impact: <= 5% additional battery drain over baseline for a 90-minute match (initial target)
+- Validation: Add device/simulator checks and automation in plan to measure, verify, and refine budgets per target device family.
 
 ## Security & Privacy Considerations
 

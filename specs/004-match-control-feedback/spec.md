@@ -89,7 +89,7 @@ As a tester or maintainer, I need the app to emit clear diagnostic traces for ma
 - **FR-006**: The system MUST route score-team selections to score-type choices for the selected team.
 - **FR-007**: The system MUST route card-team selections to card-type choices for the selected team, without interfering with score routing.
 - **FR-008**: The system MUST keep score controls available only in active match states and unavailable before kickoff or after match end.
-- **FR-009**: The system MUST emit diagnostic traces for match start, pause, timer update scheduling, score menu routing, card menu routing, yellow-card creation, and yellow-card display.
+- **FR-DIAG-001**: Cross-cutting diagnostics requirement (see specs/cross-cutting/diagnostics.md). The feature MUST emit the following feature-specific traces (examples): match_start, match_pause, timer_update, score_menu_routing, card_menu_routing, yellow_card_created, yellow_card_displayed. Feature-specific trace names and payload schemas MUST be documented in this spec's "Diagnostics" section.
 - **FR-010**: Diagnostic traces MUST include enough context to distinguish input handling, state transition, haptic feedback, timer refresh, menu routing, and rendering outcomes.
 - **FR-011**: Diagnostic traces MUST avoid collecting or transmitting personally identifiable information.
 
