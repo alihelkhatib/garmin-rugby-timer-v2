@@ -4,10 +4,10 @@
 import Toybox.Lang;
 
 class RugbyEventLog {
-    var events;
+    var events as Array<Dictionary>;
 
     function initialize() {
-        self.events = [];
+        self.events = [] as Array<Dictionary>;
     }
 
     function addEvent(event) {

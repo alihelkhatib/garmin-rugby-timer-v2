@@ -17,7 +17,7 @@ class RugbyActivityExporter {
     }
 
     // Translate Event[] to an array of string records suitable for appendRecords/addComment
-    function eventsToRecords(events as Array<Dictionary>) as Array<String> {
+    function eventsToRecords(events as Array<Dictionary>?) as Array<String> {
         var recs = [] as Array<String>;
         if (events == null) {
             return recs;
@@ -38,13 +38,13 @@ class RugbyActivityExporter {
     }
 
     // Attach records to a session using the best available API; returns true on success
-    function attachEvents(session, events as Array<Dictionary>) as Boolean {
+    function attachEvents(session, events as Array<Dictionary>?) as Boolean {
         if (session == null) {
             return false;
         }
         try {
             // Prefer addEvent which appears to be widely available on ActivityRecording sessions
-            if (session has :addEvent) {
+            if (session has :addEvent && events != null) {
                 var j = 0;
                 while (j < events.size()) {
                     var ev = events[j];

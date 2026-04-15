@@ -30,9 +30,9 @@ class RugbyActivityRecorder {
     var _fallbackReason;
     var _eventExportState;
     var _exportRetryTimer;
-    var _exportRetryCount;
-    var _pendingEventLog;
-    var _lastExportDiagnostic;
+    var _exportRetryCount as Number;
+    var _pendingEventLog as Array<Dictionary>?;
+    var _lastExportDiagnostic as Dictionary?;
 /* Initialize recorder state; no session active by default. */
 
     function initialize() {
@@ -78,7 +78,7 @@ class RugbyActivityRecorder {
         return stopAndSaveWithEvents(null);
     }
 
-    function stopAndSaveWithEvents(eventLog) {
+    function stopAndSaveWithEvents(eventLog as Array<Dictionary>?) {
         var eventCount = eventLog == null ? 0 : eventLog.size();
         // Default export state; update if we successfully attach/export events
         _eventExportState = eventCount > 0 ? RUGBY_RECORDER_EVENT_EXPORT_UNSUPPORTED : "skipped";
@@ -159,7 +159,7 @@ class RugbyActivityRecorder {
     function fallbackReason() {
         return _fallbackReason;
     }
-function emitActivityExportDiagnostic(payload) {
+function emitActivityExportDiagnostic(payload as Dictionary) {
         try {
             _lastExportDiagnostic = payload;
             var status = payload["status"] == null ? "" : payload["status"];
@@ -182,7 +182,7 @@ function emitActivityExportDiagnostic(payload) {
         return _lastExportDiagnostic;
     }
 
-    function _startExportRetries(eventLog) {
+    function _startExportRetries(eventLog as Array<Dictionary>?) {
         _pendingEventLog = eventLog;
         _exportRetryCount = 0;
         if (RUGBY_RECORDER_MAX_EXPORT_RETRIES > 0) {
