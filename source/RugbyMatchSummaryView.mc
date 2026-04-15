@@ -20,12 +20,12 @@ class RugbyMatchSummaryView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(dc.getWidth() / 2, 8, Graphics.FONT_SMALL, "MATCH EVENTS", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(dc.getWidth() / 2, 8, Graphics.FONT_SMALL, "Match Summary (Event Log)", Graphics.TEXT_JUSTIFY_CENTER);
 
         var events = _model.eventLog() as Array<Dictionary>;
         if (events.size() == 0) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_XTINY, "NO EVENTS", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_XTINY, "No events recorded", Graphics.TEXT_JUSTIFY_CENTER);
             return;
         }
 
