@@ -6,7 +6,7 @@ import Toybox.System;
 import Toybox.Lang;
 
 class RugbySummaryView {
-    var eventLog as Object?;
+    var eventLog as RugbyEventLog?;
 
     function initialize(eventLog) {
         self.eventLog = eventLog;

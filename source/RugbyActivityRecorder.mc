@@ -40,6 +40,10 @@ class RugbyActivityRecorder {
         _state = RUGBY_RECORDER_STATE_NOT_STARTED;
         _fallbackReason = null;
         _eventExportState = "skipped";
+        _exportRetryCount = 0;
+        _exportRetryTimer = null;
+        _pendingEventLog = null;
+        _lastExportDiagnostic = null;
     }
 /* Try to create and start an ActivityRecording session. Returns false if unsupported or on error. */
 
