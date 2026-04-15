@@ -13,6 +13,7 @@ import Toybox.ActivityRecording;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.Timer;
+import Toybox.Json;
 
 const RUGBY_RECORDER_STATE_NOT_STARTED = "notStarted";
 const RUGBY_RECORDER_STATE_RECORDING = "recording";
@@ -209,8 +210,6 @@ function emitActivityExportDiagnostic(payload) {
     function getLastExportDiagnosticForTest() {
         return _lastExportDiagnostic;
     }
-
-    function _startExportRetries(eventLog) {
 
     function _startExportRetries(eventLog) {
         _pendingEventLog = eventLog;
