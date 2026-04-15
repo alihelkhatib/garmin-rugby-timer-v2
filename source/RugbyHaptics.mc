@@ -20,28 +20,28 @@ class RugbyHaptics {
     /* Original coalesced single-vibe path (kept for compatibility). */
     function fireCoalesced(snapshotId) {
         if (_lastAlertSnapshotId == snapshotId) {
-            System.println("RUGBY|RugbyHaptics|fireCoalesced skipped duplicate snapshotId=" + (snapshotId == null ? "null" : ("" + snapshotId)));
+            System.println("RUGBY|RugbyHaptics|fireCoalesced skipped duplicate snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")));
             return false;
         }
         _lastAlertSnapshotId = snapshotId;
         if (Attention has :vibrate) {
-            System.println("RUGBY|RugbyHaptics|fireCoalesced vibrate snapshotId=" + (snapshotId == null ? "null" : ("" + snapshotId)));
+            System.println("RUGBY|RugbyHaptics|fireCoalesced vibrate snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")));
             Attention.vibrate([ new Attention.VibeProfile(80, 500) ]);
             return true;
         }
-        System.println("RUGBY|RugbyHaptics|fireCoalesced unavailable snapshotId=" + (snapshotId == null ? "null" : ("" + snapshotId)));
+        System.println("RUGBY|RugbyHaptics|fireCoalesced unavailable snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")));
         return false;
     }
 
     /* New: coalesced handler that accepts event list and fires per-event patterns once per snapshot. */
     function fireCoalescedForEvents(snapshotId as Number, events as Array<Dictionary>) as Boolean {
         if (_lastAlertSnapshotId == snapshotId) {
-            System.println("RUGBY|RugbyHaptics|fireCoalescedForEvents skipped duplicate snapshotId=" + (snapshotId == null ? "null" : ("" + snapshotId)));
+            System.println("RUGBY|RugbyHaptics|fireCoalescedForEvents skipped duplicate snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")));
             return false;
         }
         _lastAlertSnapshotId = snapshotId;
         if (!(Attention has :vibrate)) {
-            System.println("RUGBY|RugbyHaptics|fireCoalescedForEvents unavailable snapshotId=" + (snapshotId == null ? "null" : ("" + snapshotId)));
+            System.println("RUGBY|RugbyHaptics|fireCoalescedForEvents unavailable snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")));
             return false;
         }
         for (var i = 0; i < events.size(); i += 1) {
@@ -49,14 +49,14 @@ class RugbyHaptics {
             var et = ev["type"];
             if (et != null && ("" + et).equals("half_two_min")) {
                 var halfIdx = ev["halfIndex"] == null ? null : ev["halfIndex"];
-                System.println("RUGBY|RugbyHaptics|fireHalfTwoMin vibrate snapshotId=" + (snapshotId == null ? "null" : ("" + snapshotId)) + " halfIndex=" + (halfIdx == null ? "null" : ("" + halfIdx)));
+                System.println("RUGBY|RugbyHaptics|fireHalfTwoMin vibrate snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")) + " halfIndex=" + (halfIdx == null ? "null" : halfIdx.format("%d")));
                 Attention.vibrate([ new Attention.VibeProfile(100, 300), new Attention.VibeProfile(0, 120), new Attention.VibeProfile(100, 300) ]);
             } else if (et != null && ("" + et).equals("yellow")) {
                 var sid = ev["id"];
-                System.println("RUGBY|RugbyHaptics|fireCardOneMin vibrate snapshotId=" + (snapshotId == null ? "null" : ("" + snapshotId)) + " sanctionId=" + (sid == null ? "null" : ("" + sid)));
+                System.println("RUGBY|RugbyHaptics|fireCardOneMin vibrate snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")) + " sanctionId=" + (sid == null ? "null" : sid.format("%d")));
                 Attention.vibrate([ new Attention.VibeProfile(55, 200) ]);
             } else {
-                System.println("RUGBY|RugbyHaptics|fireCoalesced vibrate snapshotId=" + (snapshotId == null ? "null" : ("" + snapshotId)));
+                System.println("RUGBY|RugbyHaptics|fireCoalesced vibrate snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")));
                 Attention.vibrate([ new Attention.VibeProfile(80, 500) ]);
             }
         }

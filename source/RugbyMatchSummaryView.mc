@@ -15,11 +15,11 @@ class RugbyMatchSummaryView extends WatchUi.View {
     function initialize(model as RugbyGameModel) {
         View.initialize();
         _model = model;
-("" +         System.println("RUGBY|RugbyMatchSummaryView|initialize eventCount=" + (_model == null ? "null" : _model.eventLog().size())));
+        System.println("RUGBY|RugbyMatchSummaryView|initialize eventCount=" + (_model == null ? "null" : _model.eventLog().size().format("%d")));
     }
 
     function onLayout(dc as Graphics.Dc) as Void {
-("" +         System.println("RUGBY|RugbyMatchSummaryView|onLayout width=" + dc.getWidth())("" +  + " height=" + dc.getHeight()));
+        System.println("RUGBY|RugbyMatchSummaryView|onLayout width=" + dc.getWidth().format("%d") + " height=" + dc.getHeight().format("%d"));
         View.onLayout(dc);
     }
 
@@ -45,7 +45,7 @@ class RugbyMatchSummaryView extends WatchUi.View {
                 i = i + 1;
             }
             if (events.size() > maxRows) {
-("" +                 System.println("UI|match_summary|more|" + (events.size() - maxRows)));
+                System.println("UI|match_summary|more|" + (events.size() - maxRows).format("%d"));
             }
             return;
         } catch (ex) {
@@ -77,7 +77,7 @@ class RugbyMatchSummaryView extends WatchUi.View {
 
         if (events.size() > maxRows) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-("" +             dc.drawText(dc.getWidth() / 2, dc.getHeight() - 24, Graphics.FONT_XTINY, "+" + (events.size() - maxRows)) + " MORE", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() - 24, Graphics.FONT_XTINY, "+" + (events.size() - maxRows).format("%d") + " MORE", Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
 
@@ -125,11 +125,11 @@ class RugbyMatchSummaryView extends WatchUi.View {
         }
         var minutes = (seconds / 60) as Number;
         var remainder = (seconds % 60) as Number;
-        var text = ("" + minutes) + ":";
+        var text = minutes.format("%d") + ":";
         if (remainder < 10) {
             text += "0";
         }
-        return text + ("" + remainder);
+        return text + remainder.format("%d");
     }
 
     function valueEquals(value, expected) as Boolean {

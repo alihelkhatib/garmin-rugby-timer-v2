@@ -50,7 +50,7 @@ class RugbyTimerView extends WatchUi.View {
 /* Apply layout and cache drawable references for fast drawing. */
 
     function onLayout(dc as Graphics.Dc) as Void {
-("" +         System.println("RUGBY|RugbyTimerView|onLayout width=" + dc.getWidth())("" +  + " height=" + dc.getHeight()));
+        System.println("RUGBY|RugbyTimerView|onLayout width=" + dc.getWidth().format("%d") + " height=" + dc.getHeight().format("%d"));
         RugbyLayoutSupport.applyLayout(self, dc, dc.getWidth(), dc.getHeight());
         cacheDrawables();
         _layoutReady = true;
@@ -63,8 +63,8 @@ class RugbyTimerView extends WatchUi.View {
         }
         var now = System.getTimer() as Number;
         var snap = _model.snapshot(now) as Dictionary;
-        System.println("RUGBY|RugbyTimerView|onUpdate nowMs=" + ("" + now)
-            + " snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"]))
+        System.println("RUGBY|RugbyTimerView|onUpdate nowMs=" + now.format("%d")
+            + " snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d"))
             + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"])
             + " pending=" + (snap["pendingConfirmAction"] == null ? "null" : snap["pendingConfirmAction"]));
         updateRefreshTimer(snap);
@@ -105,11 +105,11 @@ class RugbyTimerView extends WatchUi.View {
             if (_refreshTimer == null) {
                 _refreshTimer = new Timer.Timer();
             }
-            System.println("RUGBY|RugbyTimerView|updateRefreshTimer start snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])));
+            System.println("RUGBY|RugbyTimerView|updateRefreshTimer start snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")));
             _refreshTimer.start(method(:onRefreshTimer), 1000, true);
             _refreshActive = true;
         } else if (!shouldRun && _refreshActive) {
-            System.println("RUGBY|RugbyTimerView|updateRefreshTimer stop snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
+            System.println("RUGBY|RugbyTimerView|updateRefreshTimer stop snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
             _refreshTimer.stop();
             _refreshActive = false;
         } else {
@@ -129,11 +129,11 @@ class RugbyTimerView extends WatchUi.View {
                 _pauseReminderTimer = new Timer.Timer();
             }
             var interval = snap["pauseReminderIntervalMs"] == null ? RUGBY_PAUSE_REMINDER_INTERVAL_MS : snap["pauseReminderIntervalMs"];
-            System.println("RUGBY|RugbyTimerView|updatePauseReminderTimer start snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])) + " intervalMs=" + ("" + interval));
+            System.println("RUGBY|RugbyTimerView|updatePauseReminderTimer start snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " intervalMs=" + interval.format("%d"));
             _pauseReminderTimer.start(method(:onPauseReminderTimer), interval, true);
             _pauseReminderActive = true;
         } else if (!shouldRun && _pauseReminderActive) {
-            System.println("RUGBY|RugbyTimerView|updatePauseReminderTimer stop snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
+            System.println("RUGBY|RugbyTimerView|updatePauseReminderTimer stop snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
             _pauseReminderTimer.stop();
             _pauseReminderActive = false;
         } else {
@@ -146,7 +146,7 @@ class RugbyTimerView extends WatchUi.View {
         var snap = _model.snapshot(now) as Dictionary;
         if (valueEquals(snap["clockState"], RUGBY_STATE_PAUSED)) {
             var haptic = _haptics.firePauseReminder() as Boolean;
-            System.println("RUGBY|RugbyTimerView|onPauseReminderTimer fired nowMs=" + ("" + now) + " haptic=" + (haptic ? "true" : "false"));
+            System.println("RUGBY|RugbyTimerView|onPauseReminderTimer fired nowMs=" + now.format("%d") + " haptic=" + (haptic ? "true" : "false"));
         } else {
             System.println("RUGBY|RugbyTimerView|onPauseReminderTimer stopping clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
             if (_pauseReminderTimer != null) {
@@ -347,7 +347,7 @@ class RugbyTimerView extends WatchUi.View {
         if (value == null) {
             return "0";
         }
-        return ("" + value);
+        return value.format("%d");
     }
 /* Format a seconds value into MM:SS text, clamp negative values to 0. */
 
@@ -361,10 +361,10 @@ class RugbyTimerView extends WatchUi.View {
         }
         var minutes = (seconds / 60) as Number;
         var remainder = (seconds % 60) as Number;
-        var text = (("" + minutes) + ":") as String;
+        var text = (minutes.format("%d") + ":") as String;
         if (remainder < 10) {
             text = text + "0";
         }
-        return text + ("" + remainder);
+        return text + remainder.format("%d");
     }
 }
