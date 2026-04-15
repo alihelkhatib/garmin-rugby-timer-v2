@@ -32,6 +32,7 @@ class RugbyActivityRecorder {
     var _exportRetryTimer;
     var _exportRetryCount;
     var _pendingEventLog;
+    var _lastExportDiagnostic;
 /* Initialize recorder state; no session active by default. */
 
     function initialize() {
@@ -192,12 +193,24 @@ class RugbyActivityRecorder {
     }
 function emitActivityExportDiagnostic(payload) {
         try {
+            _lastExportDiagnostic = payload;
             var diag = Json.toString(payload);
             System.println("RUGBY_DIAG|activity_export|" + diag);
         } catch (e) {
             System.println("RUGBY|RugbyActivityRecorder|emitActivityExportDiagnostic failed ex=" + e.toString());
         }
     }
+
+    /* Test helpers */
+    function setSessionForTest(session) {
+        _session = session;
+    }
+
+    function getLastExportDiagnosticForTest() {
+        return _lastExportDiagnostic;
+    }
+
+    function _startExportRetries(eventLog) {
 
     function _startExportRetries(eventLog) {
         _pendingEventLog = eventLog;
