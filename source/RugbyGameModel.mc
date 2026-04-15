@@ -106,7 +106,7 @@ class RugbyGameModel {
 /* Transition to RUNNING when allowed; set half start time and initialize elapsed counters. */
 
     function startMatch(nowMs as Number) as Void {
-        System.println("RUGBY|RugbyGameModel|startMatch requested nowMs=" + ("" + nowMs) + " clockState=" + _clockState + " halfIndex=" + (currentHalf()).format("%d") + " activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : ("" + _setup["activeElapsedMs"])));
+("" +         System.println("RUGBY|RugbyGameModel|startMatch requested nowMs=" + ("" + nowMs) + " clockState=" + _clockState + " halfIndex=" + (currentHalf())) + " activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : ("" + _setup["activeElapsedMs"])));
         if (isClockState(RUGBY_STATE_NOT_STARTED) || isClockState(RUGBY_STATE_HALF_ENDED)) {
             if (isClockState(RUGBY_STATE_NOT_STARTED)) {
                 clearEventLog("newMatchStart");
@@ -218,11 +218,11 @@ class RugbyGameModel {
         _pendingConfirmAction = null;
         _summaryVisible = true;
         expireActiveTimers(nowMs);
-        System.println("RUGBY|RugbyGameModel|endMatch applied nowMs=" + ("" + nowMs) + " eventCount=" + _eventLog.size().format("%d") + " summaryVisible=" + (_summaryVisible ? "true" : "false"));
+("" +         System.println("RUGBY|RugbyGameModel|endMatch applied nowMs=" + ("" + nowMs) + " eventCount=" + _eventLog.size()) + " summaryVisible=" + (_summaryVisible ? "true" : "false"));
     }
 
     function resetMatch() as Void {
-        System.println("RUGBY|RugbyGameModel|resetMatch requested eventCount=" + _eventLog.size().format("%d"));
+("" +         System.println("RUGBY|RugbyGameModel|resetMatch requested eventCount=" + _eventLog.size()));
         var variantId = _setup["variantId"] as String;
         _setup = RugbyVariantConfig.defaultSetup(variantId);
         _clockState = RUGBY_STATE_NOT_STARTED;
@@ -238,7 +238,7 @@ class RugbyGameModel {
         clearEventLog("resetMatch");
         _summaryVisible = false;
         _autoMatchEndPendingSave = false;
-        System.println("RUGBY|RugbyGameModel|resetMatch applied clockState=" + _clockState + " eventCount=" + _eventLog.size().format("%d"));
+("" +         System.println("RUGBY|RugbyGameModel|resetMatch applied clockState=" + _clockState + " eventCount=" + _eventLog.size()));
     }
 /* Apply try points and start the conversion timer for the scoring team. */
 
@@ -510,7 +510,7 @@ class RugbyGameModel {
         } as Dictionary;
         _nextSanctionId += 1;
         _sanctions.add(sanction);
-        System.println("RUGBY|RugbyGameModel|addSanction id=" + ("" + sanction["id"]) + " teamId=" + teamId + " cardType=" + cardType + " startedAtActiveMs=" + ("" + sanction["startedAtActiveMs"]) + " durationSeconds=" + (durationSeconds == null ? "null" : ("" + durationSeconds)) + " count=" + _sanctions.size().format("%d"));
+("" +         System.println("RUGBY|RugbyGameModel|addSanction id=" + ("" + sanction["id"]) + " teamId=" + teamId + " cardType=" + cardType + " startedAtActiveMs=" + ("" + sanction["startedAtActiveMs"]) + " durationSeconds=" + (durationSeconds == null ? "null" : ("" + durationSeconds)) + " count=" + _sanctions.size()));
         return sanction["id"];
     }
 /* Materialize conversion timer view model and deactivate when expired. */
@@ -690,11 +690,11 @@ class RugbyGameModel {
         } as Dictionary;
         _nextEventId += 1;
         _eventLog.add(entry);
-        System.println("RUGBY|RugbyGameModel|addEvent id=" + ("" + entry["id"]) + " teamId=" + teamId + " action=" + action + " matchElapsedSeconds=" + ("" + matchSeconds) + " eventCount=" + _eventLog.size().format("%d"));
+("" +         System.println("RUGBY|RugbyGameModel|addEvent id=" + ("" + entry["id"]) + " teamId=" + teamId + " action=" + action + " matchElapsedSeconds=" + ("" + matchSeconds) + " eventCount=" + _eventLog.size()));
     }
 
     function clearEventLog(reason as String) as Void {
-        System.println("RUGBY|RugbyGameModel|clearEventLog reason=" + reason + " oldCount=" + _eventLog.size().format("%d"));
+("" +         System.println("RUGBY|RugbyGameModel|clearEventLog reason=" + reason + " oldCount=" + _eventLog.size()));
         _eventLog = [] as Array<Dictionary>;
         _nextEventId = 1;
     }

@@ -7,7 +7,7 @@ function main() {
     var e = {"type" => "test", "timestamp" => 12345, "actor" => "ref", "value" => 1, "details" => "ok"};
     log.addEvent(e);
     var snap = log.snapshot();
-    System.println("TEST|eventlog|count=" + snap.size().format("%d"));
+("" +     System.println("TEST|eventlog|count=" + snap.size()));
     var s = log.serialize();
     System.println("TEST|eventlog|serialize=" + s);
     if (snap.size() == 1 && s != null) {

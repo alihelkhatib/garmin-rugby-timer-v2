@@ -310,11 +310,11 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function showMatchSummary() as Void {
-        System.println("RUGBY|RugbyTimerDelegate|showMatchSummary eventCount=" + _model.eventLog().size().format("%d"));
-        System.println("RUGBY|RugbyTimerDelegate|showMatchSummary push_attempt eventCount=" + _model.eventLog().size().format("%d"));
+("" +         System.println("RUGBY|RugbyTimerDelegate|showMatchSummary eventCount=" + _model.eventLog().size()));
+("" +         System.println("RUGBY|RugbyTimerDelegate|showMatchSummary push_attempt eventCount=" + _model.eventLog().size()));
         try {
             WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(), WatchUi.SLIDE_UP);
-            System.println("RUGBY|RugbyTimerDelegate|showMatchSummary push_success eventCount=" + _model.eventLog().size().format("%d"));
+("" +             System.println("RUGBY|RugbyTimerDelegate|showMatchSummary push_success eventCount=" + _model.eventLog().size()));
         } catch (ex) {
             System.println("RUGBY|RugbyTimerDelegate|showMatchSummary push_failed ex=" + ex.toString());
         }

@@ -50,7 +50,7 @@ class RugbyTimerView extends WatchUi.View {
 /* Apply layout and cache drawable references for fast drawing. */
 
     function onLayout(dc as Graphics.Dc) as Void {
-        System.println("RUGBY|RugbyTimerView|onLayout width=" + dc.getWidth().format("%d") + " height=" + dc.getHeight().format("%d"));
+("" +         System.println("RUGBY|RugbyTimerView|onLayout width=" + dc.getWidth())("" +  + " height=" + dc.getHeight()));
         RugbyLayoutSupport.applyLayout(self, dc, dc.getWidth(), dc.getHeight());
         cacheDrawables();
         _layoutReady = true;
