@@ -1,6 +1,8 @@
 // RugbyEventLog.mc - Minimal in-memory EventLog API
 // Provides a small, safe implementation: addEvent(event), serialize(), snapshot()
 
+import Toybox.Lang;
+
 class RugbyEventLog {
     var events;
 
@@ -30,7 +32,7 @@ class RugbyEventLog {
             var out = "[";
             var i = 0;
             while (i < self.events.size()) {
-                var e = self.events[i] as Dictionary;
+                var e = self.events[i];
                 var ts = e["timestamp"] == null ? "null" : ("" + e["timestamp"]);
                 var t = e["type"] == null ? "" : e["type"];
                 var a = e["actor"] == null ? "" : e["actor"];
