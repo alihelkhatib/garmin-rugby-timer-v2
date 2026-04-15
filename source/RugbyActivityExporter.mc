@@ -42,31 +42,14 @@ class RugbyActivityExporter {
         if (session == null) {
             return false;
         }
-        var recs = eventsToRecords(events);
         try {
-            if (session has :appendRecords) {
-                session.appendRecords(recs);
-                return true;
-            } else if (session has :addEvent) {
+            // Prefer addEvent which appears to be widely available on ActivityRecording sessions
+            if (session has :addEvent) {
                 var j = 0;
                 while (j < events.size()) {
                     var ev = events[j];
                     session.addEvent(ev["type"], ev["timestamp"], ev["actor"], ev["value"], ev["details"]);
                     j = j + 1;
-                }
-                return true;
-            } else if (session has :addComment) {
-                var k = 0;
-                while (k < recs.size()) {
-                    session.addComment(recs[k]);
-                    k = k + 1;
-                }
-                return true;
-            } else if (session has :addMarker) {
-                var m = 0;
-                while (m < recs.size()) {
-                    session.addMarker(recs[m]);
-                    m = m + 1;
                 }
                 return true;
             }
@@ -78,4 +61,4 @@ class RugbyActivityExporter {
     }
 }
 
-var RugbyActivityExporter = new RugbyActivityExporter();
+var gRugbyActivityExporter = new RugbyActivityExporter();

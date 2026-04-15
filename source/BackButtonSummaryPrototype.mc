@@ -3,6 +3,10 @@
 // This prototype demonstrates hooking the back button to open the match summary without interfering with end/reset confirmation flows.
 // It is intentionally minimal and intended for manual prototyping on device simulator.
 
+import Toybox.System;
+import Toybox.WatchUi;
+import Toybox.Lang;
+
 class BackButtonSummaryPrototype {
     var _model;
     var _recorder;

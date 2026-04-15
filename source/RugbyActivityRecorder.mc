@@ -13,7 +13,6 @@ import Toybox.ActivityRecording;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.Timer;
-import Toybox.Json;
 
 const RUGBY_RECORDER_STATE_NOT_STARTED = "notStarted";
 const RUGBY_RECORDER_STATE_RECORDING = "recording";
@@ -92,49 +91,17 @@ class RugbyActivityRecorder {
         var attached = false;
         if (eventCount > 0) {
             try {
-                // Best-effort: try multiple session APIs to attach events
-                if (_session has :appendRecords) {
-                    var recs = [];
-                    var i = 0;
-                    while (i < eventCount) {
-                        var e = eventLog[i];
-                        var ts = e["timestamp"];
-                        var t = e["type"];
-                        var a = e["actor"];
-                        var v = e["value"];
-                        var d = e["details"];
-                        var s = t + "|" + (ts == null ? "" : ts.format("%d")) + "|" + (a == null ? "" : a) + "|" + (v == null ? "" : v.format("%d")) + "|" + (d == null ? "" : d);
-                        recs.add(s);
-                        i = i + 1;
-                    }
-                    _session.appendRecords(recs);
-                    attached = true;
-                } else if (_session has :addEvent) {
-                    var i2 = 0;
-                    while (i2 < eventCount) {
-                        var e2 = eventLog[i2];
-                        _session.addEvent(e2["type"], e2["timestamp"], e2["actor"], e2["value"], e2["details"]);
-                        i2 = i2 + 1;
+                // Prefer addEvent for maximum compatibility
+                if (_session has :addEvent) {
+                    var idx = 0;
+                    while (idx < eventCount) {
+                        var ev = eventLog[idx];
+                        _session.addEvent(ev["type"], ev["timestamp"], ev["actor"], ev["value"], ev["details"]);
+                        idx = idx + 1;
                     }
                     attached = true;
-                } else if (_session has :addComment) {
-                    var j = 0;
-                    while (j < eventCount) {
-                        var ej = eventLog[j];
-                        var s2 = ej["type"] + "|" + (ej["timestamp"] == null ? "" : ej["timestamp"].format("%d")) + "|" + (ej["actor"] == null ? "" : ej["actor"]) + "|" + (ej["value"] == null ? "" : ej["value"].format("%d")) + "|" + (ej["details"] == null ? "" : ej["details"]);
-                        _session.addComment(s2);
-                        j = j + 1;
-                    }
-                    attached = true;
-                } else if (_session has :addMarker) {
-                    var k = 0;
-                    while (k < eventCount) {
-                        var ek = eventLog[k];
-                        var s3 = ek["type"] + "|" + (ek["timestamp"] == null ? "" : ek["timestamp"].format("%d")) + "|" + (ek["actor"] == null ? "" : ek["actor"]) + "|" + (ek["value"] == null ? "" : ek["value"].format("%d")) + "|" + (ek["details"] == null ? "" : ek["details"]);
-                        _session.addMarker(s3);
-                        k = k + 1;
-                    }
-                    attached = true;
+                } else {
+                    attached = false;
                 }
             } catch (ex2) {
                 System.println("RUGBY|RugbyActivityRecorder|attachEvents failed ex=" + ex2.toString());
@@ -233,17 +200,7 @@ function emitActivityExportDiagnostic(payload) {
         try {
             if (_pendingEventLog != null && _session != null) {
                 var evCount = _pendingEventLog.size();
-                if (_session has :appendRecords) {
-                    var recs = [];
-                    var idx = 0;
-                    while (idx < evCount) {
-                        var ev = _pendingEventLog[idx];
-                        var s = ev["type"] + "|" + (ev["timestamp"] == null ? "" : ev["timestamp"].format("%d")) + "|" + (ev["actor"] == null ? "" : ev["actor"]) + "|" + (ev["value"] == null ? "" : ev["value"].format("%d")) + "|" + (ev["details"] == null ? "" : ev["details"]);
-                        recs.add(s);
-                        idx = idx + 1;
-                    }
-                    _session.appendRecords(recs);
-                } else if (_session has :addEvent) {
+                if (_session has :addEvent) {
                     var idx2 = 0;
                     while (idx2 < evCount) {
                         var ev2 = _pendingEventLog[idx2];

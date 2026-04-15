@@ -1,8 +1,6 @@
 // RugbyEventLog.mc - Minimal in-memory EventLog API
 // Provides a small, safe implementation: addEvent(event), serialize(), snapshot()
 
-import Toybox.Json;
-
 class RugbyEventLog {
     var events;
 
@@ -12,14 +10,16 @@ class RugbyEventLog {
 
     function addEvent(event) {
         // Store a shallow copy to avoid external mutation
-        self.events.push(event);
+        self.events.add(event);
     }
 
     function snapshot() {
         // Return a shallow copy of events for safe iteration
         var copy = [];
-        for (var i = 0; i < self.events.length; i++) {
-            copy.push(self.events[i]);
+        var i = 0;
+        while (i < self.events.size()) {
+            copy.add(self.events[i]);
+            i = i + 1;
         }
         return copy;
     }
