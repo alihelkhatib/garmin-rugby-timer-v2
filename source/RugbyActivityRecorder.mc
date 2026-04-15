@@ -13,7 +13,6 @@ import Toybox.ActivityRecording;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.Timer;
-import Toybox.Json;
 
 const RUGBY_RECORDER_STATE_NOT_STARTED = "notStarted";
 const RUGBY_RECORDER_STATE_RECORDING = "recording";
@@ -163,7 +162,11 @@ class RugbyActivityRecorder {
 function emitActivityExportDiagnostic(payload) {
         try {
             _lastExportDiagnostic = payload;
-            var diag = Json.toString(payload);
+            var status = payload["status"] == null ? "" : payload["status"];
+            var attempts = payload["attempts"] == null ? "null" : ("" + payload["attempts"]);
+            var exportState = payload["exportState"] == null ? "" : payload["exportState"];
+            var error = payload["error"] == null ? null : payload["error"];
+            var diag = "{\"status\":\"" + status + "\",\"attempts\":" + attempts + ",\"exportState\":\"" + exportState + "\"" + (error != null ? (",\"error\":\"" + error + "\"") : "") + "}";
             System.println("RUGBY_DIAG|activity_export|" + diag);
         } catch (e) {
             System.println("RUGBY|RugbyActivityRecorder|emitActivityExportDiagnostic failed ex=" + e.toString());

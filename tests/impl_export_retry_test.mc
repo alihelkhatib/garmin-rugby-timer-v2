@@ -2,7 +2,6 @@
 // Purpose: deterministically simulate a failing initial save() then a successful retry and assert diagnostics
 
 import Toybox.System;
-import Toybox.Json;
 
 function main() {
     System.println("TEST|impl_export_retry|start");
@@ -55,14 +54,16 @@ function main() {
     // Inspect last diagnostic emitted by recorder
     var lastDiag = recorder.getLastExportDiagnosticForTest();
     if (lastDiag != null) {
-        System.println("TEST|impl_export_retry|last_diag=" + Json.toString(lastDiag));
+        var diagStr = "{\"status\":\"" + (lastDiag["status"] == null ? "" : lastDiag["status"]) + "\",\"attempts\":" + (lastDiag["attempts"] == null ? "null" : ("" + lastDiag["attempts"])) + ",\"exportState\":\"" + (lastDiag["exportState"] == null ? "" : lastDiag["exportState"]) + "\"" + (lastDiag["error"] != null ? (",\"error\":\"" + lastDiag["error"] + "\"") : "") + "}";
+        System.println("TEST|impl_export_retry|last_diag=" + diagStr);
     } else {
         System.println("TEST|impl_export_retry|no_diag");
     }
 
     // Snapshot recorder state for assertions
     var snap = recorder.snapshot();
-    System.println("TEST|impl_export_retry|snapshot=" + Json.toString(snap));
+    var snapStr = "{\"state\":\"" + (snap["state"] == null ? "" : snap["state"]) + "\",\"eventExportState\":\"" + (snap["eventExportState"] == null ? "" : snap["eventExportState"]) + "\"}";
+    System.println("TEST|impl_export_retry|snapshot=" + snapStr);
 
     System.println("TEST|impl_export_retry|end");
 }

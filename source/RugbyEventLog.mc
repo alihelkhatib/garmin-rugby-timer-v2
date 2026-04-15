@@ -1,8 +1,6 @@
 // RugbyEventLog.mc - Minimal in-memory EventLog API
 // Provides a small, safe implementation: addEvent(event), serialize(), snapshot()
 
-import Toybox.Json;
-
 class RugbyEventLog {
     var events;
 
@@ -29,7 +27,24 @@ class RugbyEventLog {
     function serialize() {
         // Minimal serialization to JSON-like string for tests and export
         try {
-            return Json.toString(self.events);
+            var out = "[";
+            var i = 0;
+            while (i < self.events.size()) {
+                var e = self.events[i] as Dictionary;
+                var ts = e["timestamp"] == null ? "null" : ("" + e["timestamp"]);
+                var t = e["type"] == null ? "" : e["type"];
+                var a = e["actor"] == null ? "" : e["actor"];
+                var v = e["value"] == null ? "null" : ("" + e["value"]);
+                var d = e["details"] == null ? "" : e["details"];
+                var obj = "{\"type\":\"" + t + "\",\"timestamp\":" + ts + ",\"actor\":\"" + a + "\",\"value\":" + v + ",\"details\":\"" + d + "\"}";
+                if (i > 0) {
+                    out = out + ",";
+                }
+                out = out + obj;
+                i = i + 1;
+            }
+            out = out + "]";
+            return out;
         } catch (e) {
             return "[]";
         }

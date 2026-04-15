@@ -1,6 +1,5 @@
 // tests/eventlog_unit_test.mc - Unit test for RugbyEventLog
 import Toybox.System;
-import Toybox.Json;
 
 function main() {
     var log = new RugbyEventLog.RugbyEventLog();
