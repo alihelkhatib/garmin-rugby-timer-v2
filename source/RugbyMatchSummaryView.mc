@@ -15,6 +15,12 @@ class RugbyMatchSummaryView extends WatchUi.View {
     function initialize(model as RugbyGameModel) {
         View.initialize();
         _model = model;
+        System.println("RUGBY|RugbyMatchSummaryView|initialize eventCount=" + (_model == null ? "null" : _model.eventLog().size().format("%d")));
+    }
+
+    function onLayout(dc as Graphics.Dc) as Void {
+        System.println("RUGBY|RugbyMatchSummaryView|onLayout width=" + dc.getWidth().format("%d") + " height=" + dc.getHeight().format("%d"));
+        View.onLayout(dc);
     }
 
     function onUpdate(dc as Graphics.Dc) as Void {

@@ -9,7 +9,7 @@
 ## Phase 2 - Foundational Implementation (blocking)
 
 - [ ] T004 Implement diagnostics helper module at `source/Diagnostics.mc` (trace API: trace(action, ctx))
-- [ ] T005 [P] Instrument `source/RugbyTimerDelegate.mc` to emit diagnostic traces for select/start, pause, menu routing, and back actions
+- [X] T005 [P] Instrument `source/RugbyTimerDelegate.mc` to emit diagnostic traces for select/start, pause, menu routing, and back actions
 - [ ] T006 [P] Instrument `source/RugbyGameModel.mc` to emit diagnostics for timer scheduling decisions and expose a single synchronized timebase accessor
 - [ ] T007 [P] Add `tests/diagnostics_test.mc` to validate diagnostics format and presence for a few synthetic actions
 
@@ -19,7 +19,7 @@
 
 - [ ] T008 [US1] Fix start behavior so Select/Start calls `_model.startMatch`, `_recorder.start`, triggers haptic via `source/RugbyHaptics.mc` and requests immediate UI update — edit `source/RugbyTimerDelegate.mc` and `source/RugbyTimerView.mc`
 - [ ] T009 [US1] Add integration test `tests/start_and_timer_update_test.mc` that asserts start path fires haptic (or logs fallback) and visible timers update over first 5 simulated seconds
-- [ ] T010 [US1] Update `source/RugbyHaptics.mc` to expose `fireMatchStart()` and ensure no-op on devices without haptics; add unit test `tests/test_haptics.mc`
+- [X] T010 [US1] Update `source/RugbyHaptics.mc` to expose `fireMatchStart()` and ensure no-op on devices without haptics; add unit test `tests/test_haptics.mc`
 
 ### User Story 2 - Show Yellow Card Identity Clearly (P2)
 

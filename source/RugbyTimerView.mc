@@ -324,7 +324,7 @@ class RugbyTimerView extends WatchUi.View {
     function handleHaptics(snap as Dictionary) as Void {
         var events = snap["hapticEvents"] as Array<Dictionary>?;
         if (events != null && events.size() > 0) {
-            _haptics.fireCoalesced(snap["snapshotId"]);
+            _haptics.fireCoalescedForEvents(snap["snapshotId"], events);
             _model.markHapticEventsFired(events);
         }
     }

@@ -37,6 +37,7 @@ class RugbyGameModel {
     var _nextSanctionId as Number;
     var _snapshotId as Number;
     var _lastHapticEvents as Array<Dictionary>;
+    var _halfTwoMinAlertFiredHalfIndex as Number?;
     var _pendingConfirmAction as String?;
     var _eventLog as Array<Dictionary>;
     var _nextEventId as Number;
@@ -61,6 +62,7 @@ class RugbyGameModel {
         _nextEventId = 1;
         _summaryVisible = false;
         _autoMatchEndPendingSave = false;
+        _halfTwoMinAlertFiredHalfIndex = null;
     }
 
     function setup() as Dictionary {
@@ -358,7 +360,7 @@ class RugbyGameModel {
         var countdownSeconds = remainingForDuration(_setup["halfLengthSeconds"], elapsedMs) as Number;
         var conversion = conversionSnapshot(elapsedMs, nowMs) as Dictionary?;
         var sanctions = sanctionSnapshots(elapsedMs) as Array<Dictionary>;
-        var hapticEvents = dueHapticEvents(conversion, sanctions) as Array<Dictionary>;
+        var hapticEvents = dueHapticEvents(conversion, sanctions, countdownSeconds) as Array<Dictionary>;
         return {
             "snapshotId" => _snapshotId,
             "clockState" => _clockState,
@@ -413,6 +415,8 @@ class RugbyGameModel {
                 _conversionTimer["nearExpiryAlertFired"] = true;
             } else if (valueEquals(event["type"], "yellow")) {
                 setSanctionAlertFired(event["id"]);
+            } else if (valueEquals(event["type"], "half_two_min")) {
+                _halfTwoMinAlertFiredHalfIndex = event["halfIndex"];
             }
         }
         _lastHapticEvents = events;
@@ -554,15 +558,26 @@ class RugbyGameModel {
     }
 /* Return haptic events for conversion or yellow sanctions nearing expiry (<= threshold). */
 
-    function dueHapticEvents(conversion as Dictionary?, sanctions as Array<Dictionary>) as Array<Dictionary> {
+    function dueHapticEvents(conversion as Dictionary?, sanctions as Array<Dictionary>, mainCountdownSeconds as Number) as Array<Dictionary> {
         var events = [] as Array<Dictionary>;
+        // Half two-minute warning (fire once per half)
+        if (mainCountdownSeconds != null && mainCountdownSeconds <= 120) {
+            var halfIdx = currentHalf() as Number;
+            if (_halfTwoMinAlertFiredHalfIndex == null || _halfTwoMinAlertFiredHalfIndex != halfIdx) {
+                events.add({ "type" => "half_two_min", "halfIndex" => halfIdx } as Dictionary);
+                System.println("RUGBY|RugbyGameModel|haptic_warning_half halfIndex=" + halfIdx.format("%d") + " remainingSeconds=" + mainCountdownSeconds.format("%d") + " snapshotId=" + _snapshotId.format("%d"));
+            }
+        }
+        // Conversion near-expiry (existing behavior)
         if (conversion != null && conversion["active"] && !conversion["nearExpiryAlertFired"] && conversion["remainingSeconds"] <= RUGBY_ALERT_THRESHOLD_SECONDS) {
             events.add({ "type" => "conversion" } as Dictionary);
+            System.println("RUGBY|RugbyGameModel|haptic_warning_conversion remainingSeconds=" + (conversion["remainingSeconds"] == null ? "null" : ("" + conversion["remainingSeconds"]) ) + " snapshotId=" + _snapshotId.format("%d"));
         }
         for (var i = 0; i < sanctions.size(); i += 1) {
             var sanction = sanctions[i] as Dictionary;
             if (valueEquals(sanction["cardType"], RUGBY_CARD_YELLOW) && valueEquals(sanction["state"], "active") && !sanction["nearExpiryAlertFired"] && sanction["remainingSeconds"] <= RUGBY_ALERT_THRESHOLD_SECONDS) {
-                events.add({ "type" => "yellow", "id" => sanction["id"] } as Dictionary);
+                events.add({ "type" => "yellow", "id" => sanction["id"], "teamId" => sanction["teamId"], "remainingSeconds" => sanction["remainingSeconds"] } as Dictionary);
+                System.println("RUGBY|RugbyGameModel|haptic_warning_card sanctionId=" + sanction["id"].format("%d") + " teamId=" + sanction["teamId"] + " remainingSeconds=" + sanction["remainingSeconds"].format("%d") + " snapshotId=" + _snapshotId.format("%d"));
             }
         }
         return events;

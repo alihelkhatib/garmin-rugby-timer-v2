@@ -119,7 +119,27 @@ As a referee, I need the new summary option to stay out of the way of end-match 
 - Binary size target (compiled): <= 200 KB (initial target; refine per device in Phase 0 research)
 - Max memory usage (heap & working set): <= 128 KB (initial target)
 - Battery/CPU impact: <= 5% additional battery drain over baseline for a 90-minute match (initial target)
-- Validation: Add device/simulator checks and automation in plan to measure, verify, and refine budgets per target device family.
+
+Device-specific measurable checks (executable procedure)
+
+1) Build and measure
+- Build for each device target using your local Connect IQ toolchain or CI job. Record the compiled artifact size (bytes). Example build invocation (local): `monkeyc -f <device-profile> -o build/<artifact>` and inspect the artifact size.
+- PASS threshold (example): fenix-family: build_size_delta <= 200000 bytes. Record precise thresholds per-device in `specs/009-match-summary-access/perf-validation.md` during Phase 0 research.
+
+2) Runtime measurement (simulator)
+- Run the perf script for the target device (e.g., `tests/perf_check_fenix6.mc`) to simulate a 90-minute match with representative event generation.
+- Collect metrics: peak heap bytes, average CPU percent over the run, and wall-clock time. Produce JSON output with fields: {"device":"<profile>", "build_size_bytes":<int>, "peak_heap_bytes":<int>, "avg_cpu_pct":<float>, "passed":<bool> }.
+
+3) Acceptance criteria
+- Example pass thresholds (refine in Phase 0):
+  - fenix-family: `build_size_delta <= 200 KB`, `peak_heap_delta <= 128 KB`, `avg_cpu_pct <= 5.0`.
+  - For smaller or older devices: tighten thresholds and record exceptions in perf-validation.md.
+
+4) Reporting
+- Append per-device JSON result rows to `specs/009-match-summary-access/perf-validation.md` and include a short human-readable summary table for reviewers and CI artifacts.
+
+Notes
+- These checks require local SDK/simulator and are not runnable in this environment. Capture raw measurements and machine-readable JSON so CI or reviewer tooling can parse and aggregate results.
 
 ## Security & Privacy Considerations
 
