@@ -73,7 +73,7 @@ class RugbyGameModel {
         System.println("RUGBY|RugbyGameModel|setVariant requested variantId=" + variantId + " clockState=" + _clockState);
         if (isClockState(RUGBY_STATE_NOT_STARTED)) {
             _setup = RugbyVariantConfig.defaultSetup(variantId);
-            System.println("RUGBY|RugbyGameModel|setVariant applied variantId=" + _setup["variantId"] + " variantName=" + _setup["variantName"] + " halfLengthSeconds=" + ("" + _setup["halfLengthSeconds"]) + " sinBinLengthSeconds=" + ("" + _setup["sinBinLengthSeconds"]) + " conversionLengthSeconds=" + ("" + _setup["conversionLengthSeconds"]));
+            System.println("RUGBY|RugbyGameModel|setVariant applied variantId=" + _setup["variantId"] + " variantName=" + _setup["variantName"] + " halfLengthSeconds=" + _setup["halfLengthSeconds"].format("%d") + " sinBinLengthSeconds=" + _setup["sinBinLengthSeconds"].format("%d") + " conversionLengthSeconds=" + _setup["conversionLengthSeconds"].format("%d"));
         } else {
             System.println("RUGBY|RugbyGameModel|setVariant blocked clockState=" + _clockState);
         }
@@ -88,7 +88,7 @@ class RugbyGameModel {
             var oldHalf = _setup["halfLengthSeconds"] as Number;
             _setup = RugbyVariantConfig.adjustHalfMinutes(_setup, deltaMinutes);
             var newHalf = _setup["halfLengthSeconds"] as Number;
-            System.println("RUGBY|RugbyGameModel|adjustIdleMainTimer deltaMinutes=" + (deltaMinutes == null ? "null" : ("" + deltaMinutes)) + " oldHalf=" + (oldHalf == null ? "null" : ("" + oldHalf)) + " newHalf=" + (newHalf == null ? "null" : ("" + newHalf)));
+            System.println("RUGBY|RugbyGameModel|adjustIdleMainTimer deltaMinutes=" + (deltaMinutes == null ? "null" : deltaMinutes.format("%d")) + " oldHalf=" + (oldHalf == null ? "null" : oldHalf.format("%d")) + " newHalf=" + (newHalf == null ? "null" : newHalf.format("%d")));
         }
     }
 
@@ -106,7 +106,7 @@ class RugbyGameModel {
 /* Transition to RUNNING when allowed; set half start time and initialize elapsed counters. */
 
     function startMatch(nowMs as Number) as Void {
-        System.println("RUGBY|RugbyGameModel|startMatch requested nowMs=" + ("" + nowMs) + " clockState=" + _clockState + " halfIndex=" + (currentHalf()).format("%d") + " activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : ("" + _setup["activeElapsedMs"])));
+        System.println("RUGBY|RugbyGameModel|startMatch requested nowMs=" + nowMs.format("%d") + " clockState=" + _clockState + " halfIndex=" + (currentHalf()).format("%d") + " activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : _setup["activeElapsedMs"].format("%d")));
         if (isClockState(RUGBY_STATE_NOT_STARTED) || isClockState(RUGBY_STATE_HALF_ENDED)) {
             if (isClockState(RUGBY_STATE_NOT_STARTED)) {
                 clearEventLog("newMatchStart");
@@ -122,7 +122,7 @@ class RugbyGameModel {
                 _setup["activeElapsedMs"] = 0;
             }
             resumeCarriedYellowCardsForPeriodStart(nowMs);
-            System.println("RUGBY|RugbyGameModel|startMatch applied clockState=" + _clockState + " halfStartedAtMs=" + (_setup["halfStartedAtMs"] == null ? "null" : ("" + _setup["halfStartedAtMs"])) + " activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : ("" + _setup["activeElapsedMs"])));
+            System.println("RUGBY|RugbyGameModel|startMatch applied clockState=" + _clockState + " halfStartedAtMs=" + (_setup["halfStartedAtMs"] == null ? "null" : _setup["halfStartedAtMs"].format("%d")) + " activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : _setup["activeElapsedMs"].format("%d")));
         } else {
             System.println("RUGBY|RugbyGameModel|startMatch ignored clockState=" + _clockState);
         }
@@ -130,11 +130,11 @@ class RugbyGameModel {
 /* If running, persist active elapsed ms and mark PAUSED. */
 
     function pause(nowMs as Number) as Void {
-        System.println("RUGBY|RugbyGameModel|pause requested nowMs=" + ("" + nowMs) + " clockState=" + _clockState);
+        System.println("RUGBY|RugbyGameModel|pause requested nowMs=" + nowMs.format("%d") + " clockState=" + _clockState);
         if (isClockState(RUGBY_STATE_RUNNING)) {
             _setup["activeElapsedMs"] = activeElapsedMs(nowMs);
             _clockState = RUGBY_STATE_PAUSED;
-            System.println("RUGBY|RugbyGameModel|pause applied activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : ("" + _setup["activeElapsedMs"])) + " clockState=" + _clockState + " pauseReminderIntervalMs=" + ("" + RUGBY_PAUSE_REMINDER_INTERVAL_MS));
+            System.println("RUGBY|RugbyGameModel|pause applied activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : _setup["activeElapsedMs"].format("%d")) + " clockState=" + _clockState + " pauseReminderIntervalMs=" + RUGBY_PAUSE_REMINDER_INTERVAL_MS.format("%d"));
         } else {
             System.println("RUGBY|RugbyGameModel|pause ignored clockState=" + _clockState);
         }
@@ -142,11 +142,11 @@ class RugbyGameModel {
 /* If paused, set halfStartedAtMs to now and mark RUNNING. */
 
     function resume(nowMs as Number) as Void {
-        System.println("RUGBY|RugbyGameModel|resume requested nowMs=" + ("" + nowMs) + " clockState=" + _clockState);
+        System.println("RUGBY|RugbyGameModel|resume requested nowMs=" + nowMs.format("%d") + " clockState=" + _clockState);
         if (isClockState(RUGBY_STATE_PAUSED)) {
             _setup["halfStartedAtMs"] = nowMs;
             _clockState = RUGBY_STATE_RUNNING;
-            System.println("RUGBY|RugbyGameModel|resume applied halfStartedAtMs=" + (_setup["halfStartedAtMs"] == null ? "null" : ("" + _setup["halfStartedAtMs"])) + " activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : ("" + _setup["activeElapsedMs"])) + " clockState=" + _clockState);
+            System.println("RUGBY|RugbyGameModel|resume applied halfStartedAtMs=" + (_setup["halfStartedAtMs"] == null ? "null" : _setup["halfStartedAtMs"].format("%d")) + " activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : _setup["activeElapsedMs"].format("%d")) + " clockState=" + _clockState);
         } else {
             System.println("RUGBY|RugbyGameModel|resume ignored clockState=" + _clockState);
         }
@@ -218,7 +218,7 @@ class RugbyGameModel {
         _pendingConfirmAction = null;
         _summaryVisible = true;
         expireActiveTimers(nowMs);
-        System.println("RUGBY|RugbyGameModel|endMatch applied nowMs=" + ("" + nowMs) + " eventCount=" + _eventLog.size().format("%d") + " summaryVisible=" + (_summaryVisible ? "true" : "false"));
+        System.println("RUGBY|RugbyGameModel|endMatch applied nowMs=" + nowMs.format("%d") + " eventCount=" + _eventLog.size().format("%d") + " summaryVisible=" + (_summaryVisible ? "true" : "false"));
     }
 
     function resetMatch() as Void {
@@ -329,7 +329,7 @@ class RugbyGameModel {
         pauseForCardIfRunning(nowMs, RUGBY_CARD_YELLOW);
         var id = addSanction(teamId, RUGBY_CARD_YELLOW, _setup["sinBinLengthSeconds"], nowMs) as Number;
         addEvent(teamId, "yellowCard", nowMs);
-        System.println("RUGBY|RugbyGameModel|startYellowCard teamId=" + teamId + " nowMs=" + ("" + nowMs) + " sanctionId=" + ("" + id) + " sinBinSeconds=" + (_setup["sinBinLengthSeconds"] == null ? "null" : ("" + _setup["sinBinLengthSeconds"])));
+        System.println("RUGBY|RugbyGameModel|startYellowCard teamId=" + teamId + " nowMs=" + nowMs.format("%d") + " sanctionId=" + id.format("%d") + " sinBinSeconds=" + (_setup["sinBinLengthSeconds"] == null ? "null" : _setup["sinBinLengthSeconds"].format("%d")));
         return id;
     }
 
@@ -337,7 +337,7 @@ class RugbyGameModel {
         pauseForCardIfRunning(nowMs, RUGBY_CARD_RED);
         var id = addSanction(teamId, RUGBY_CARD_RED, null, nowMs) as Number;
         addEvent(teamId, "redCard", nowMs);
-        System.println("RUGBY|RugbyGameModel|recordRedCard teamId=" + teamId + " nowMs=" + ("" + nowMs) + " sanctionId=" + ("" + id));
+        System.println("RUGBY|RugbyGameModel|recordRedCard teamId=" + teamId + " nowMs=" + nowMs.format("%d") + " sanctionId=" + id.format("%d"));
         return id;
     }
 
@@ -354,7 +354,7 @@ class RugbyGameModel {
 
     function snapshot(nowMs as Number) as Dictionary {
         _snapshotId += 1;
-        System.println("RUGBY|RugbyGameModel|snapshot nowMs=" + ("" + nowMs) + " snapshotId=" + ("" + _snapshotId) + " clockState=" + _clockState + " pending=" + (_pendingConfirmAction == null ? "null" : _pendingConfirmAction));
+        System.println("RUGBY|RugbyGameModel|snapshot nowMs=" + nowMs.format("%d") + " snapshotId=" + _snapshotId.format("%d") + " clockState=" + _clockState + " pending=" + (_pendingConfirmAction == null ? "null" : _pendingConfirmAction));
         applyAutomaticCountdownExpiry(nowMs);
         var elapsedMs = activeElapsedMs(nowMs) as Number;
         var countdownSeconds = remainingForDuration(_setup["halfLengthSeconds"], elapsedMs) as Number;
@@ -494,7 +494,7 @@ class RugbyGameModel {
             "durationSeconds" => _setup["conversionLengthSeconds"],
             "nearExpiryAlertFired" => false
         } as Dictionary;
-        System.println("RUGBY|RugbyGameModel|startConversionTimer teamId=" + teamId + " nowMs=" + ("" + nowMs) + " startedAtActiveMs=" + ("" + _conversionTimer["startedAtActiveMs"]) + " startedAtMs=" + ("" + _conversionTimer["startedAtMs"]) + " durationSeconds=" + ("" + _conversionTimer["durationSeconds"]) + " clockState=" + _clockState);
+        System.println("RUGBY|RugbyGameModel|startConversionTimer teamId=" + teamId + " nowMs=" + nowMs.format("%d") + " startedAtActiveMs=" + _conversionTimer["startedAtActiveMs"].format("%d") + " startedAtMs=" + _conversionTimer["startedAtMs"].format("%d") + " durationSeconds=" + _conversionTimer["durationSeconds"].format("%d") + " clockState=" + _clockState);
     }
 /* Insert a sanction (yellow/red) and return its id; yellow includes duration. */
 
@@ -510,7 +510,7 @@ class RugbyGameModel {
         } as Dictionary;
         _nextSanctionId += 1;
         _sanctions.add(sanction);
-        System.println("RUGBY|RugbyGameModel|addSanction id=" + ("" + sanction["id"]) + " teamId=" + teamId + " cardType=" + cardType + " startedAtActiveMs=" + ("" + sanction["startedAtActiveMs"]) + " durationSeconds=" + (durationSeconds == null ? "null" : ("" + durationSeconds)) + " count=" + _sanctions.size().format("%d"));
+        System.println("RUGBY|RugbyGameModel|addSanction id=" + sanction["id"].format("%d") + " teamId=" + teamId + " cardType=" + cardType + " startedAtActiveMs=" + sanction["startedAtActiveMs"].format("%d") + " durationSeconds=" + (durationSeconds == null ? "null" : durationSeconds.format("%d")) + " count=" + _sanctions.size().format("%d"));
         return sanction["id"];
     }
 /* Materialize conversion timer view model and deactivate when expired. */
@@ -565,19 +565,19 @@ class RugbyGameModel {
             var halfIdx = currentHalf() as Number;
             if (_halfTwoMinAlertFiredHalfIndex == null || _halfTwoMinAlertFiredHalfIndex != halfIdx) {
                 events.add({ "type" => "half_two_min", "halfIndex" => halfIdx } as Dictionary);
-                System.println("RUGBY|RugbyGameModel|haptic_warning_half halfIndex=" + ("" + halfIdx) + " remainingSeconds=" + ("" + mainCountdownSeconds) + " snapshotId=" + ("" + _snapshotId));
+                System.println("RUGBY|RugbyGameModel|haptic_warning_half halfIndex=" + halfIdx.format("%d") + " remainingSeconds=" + mainCountdownSeconds.format("%d") + " snapshotId=" + _snapshotId.format("%d"));
             }
         }
         // Conversion near-expiry (existing behavior)
         if (conversion != null && conversion["active"] && !conversion["nearExpiryAlertFired"] && conversion["remainingSeconds"] <= RUGBY_ALERT_THRESHOLD_SECONDS) {
             events.add({ "type" => "conversion" } as Dictionary);
-            System.println("RUGBY|RugbyGameModel|haptic_warning_conversion remainingSeconds=" + (conversion["remainingSeconds"] == null ? "null" : ("" + conversion["remainingSeconds"]) ) + " snapshotId=" + ("" + _snapshotId));
+            System.println("RUGBY|RugbyGameModel|haptic_warning_conversion remainingSeconds=" + (conversion["remainingSeconds"] == null ? "null" : ("" + conversion["remainingSeconds"]) ) + " snapshotId=" + _snapshotId.format("%d"));
         }
         for (var i = 0; i < sanctions.size(); i += 1) {
             var sanction = sanctions[i] as Dictionary;
             if (valueEquals(sanction["cardType"], RUGBY_CARD_YELLOW) && valueEquals(sanction["state"], "active") && !sanction["nearExpiryAlertFired"] && sanction["remainingSeconds"] <= RUGBY_ALERT_THRESHOLD_SECONDS) {
                 events.add({ "type" => "yellow", "id" => sanction["id"], "teamId" => sanction["teamId"], "remainingSeconds" => sanction["remainingSeconds"] } as Dictionary);
-                System.println("RUGBY|RugbyGameModel|haptic_warning_card sanctionId=" + ("" + sanction["id"]) + " teamId=" + sanction["teamId"] + " remainingSeconds=" + ("" + sanction["remainingSeconds"]) + " snapshotId=" + ("" + _snapshotId));
+                System.println("RUGBY|RugbyGameModel|haptic_warning_card sanctionId=" + sanction["id"].format("%d") + " teamId=" + sanction["teamId"] + " remainingSeconds=" + sanction["remainingSeconds"].format("%d") + " snapshotId=" + _snapshotId.format("%d"));
             }
         }
         return events;
@@ -616,7 +616,7 @@ class RugbyGameModel {
         }
         var halfIndex = currentHalf() as Number;
         var elapsedMs = activeElapsedMs(nowMs) as Number;
-        System.println("RUGBY|RugbyGameModel|applyAutomaticCountdownExpiry halfIndex=" + ("" + halfIndex) + " halfCount=" + (_setup["halfCount"] == null ? "null" : ("" + _setup["halfCount"])) + " elapsedMs=" + ("" + elapsedMs) + " finalPeriod=" + (isFinalPeriod() ? "true" : "false"));
+        System.println("RUGBY|RugbyGameModel|applyAutomaticCountdownExpiry halfIndex=" + halfIndex.format("%d") + " halfCount=" + (_setup["halfCount"] == null ? "null" : _setup["halfCount"].format("%d")) + " elapsedMs=" + elapsedMs.format("%d") + " finalPeriod=" + (isFinalPeriod() ? "true" : "false"));
         if (isFinalPeriod()) {
             endMatch(nowMs);
             _autoMatchEndPendingSave = true;
@@ -633,12 +633,12 @@ class RugbyGameModel {
                 var remaining = remainingForTimer(sanction, elapsedMs) as Number;
                 if (remaining <= 0) {
                     sanction["state"] = "expired";
-                    System.println("RUGBY|RugbyGameModel|preserveYellowCardsForPeriodEnd expired id=" + ("" + sanction["id"]));
+                    System.println("RUGBY|RugbyGameModel|preserveYellowCardsForPeriodEnd expired id=" + sanction["id"].format("%d"));
                 } else {
                     sanction["durationSeconds"] = remaining;
                     sanction["startedAtActiveMs"] = 0;
                     sanction["state"] = "pausedForPeriod";
-                    System.println("RUGBY|RugbyGameModel|preserveYellowCardsForPeriodEnd carried id=" + ("" + sanction["id"]) + " teamId=" + sanction["teamId"] + " remainingSeconds=" + ("" + remaining));
+                    System.println("RUGBY|RugbyGameModel|preserveYellowCardsForPeriodEnd carried id=" + sanction["id"].format("%d") + " teamId=" + sanction["teamId"] + " remainingSeconds=" + remaining.format("%d"));
                 }
             }
         }
@@ -651,7 +651,7 @@ class RugbyGameModel {
             if (valueEquals(sanction["cardType"], RUGBY_CARD_YELLOW) && valueEquals(sanction["state"], "pausedForPeriod")) {
                 sanction["startedAtActiveMs"] = elapsedMs;
                 sanction["state"] = "active";
-                System.println("RUGBY|RugbyGameModel|resumeCarriedYellowCardsForPeriodStart id=" + ("" + sanction["id"]) + " teamId=" + sanction["teamId"] + " remainingSeconds=" + ("" + sanction["durationSeconds"]));
+                System.println("RUGBY|RugbyGameModel|resumeCarriedYellowCardsForPeriodStart id=" + sanction["id"].format("%d") + " teamId=" + sanction["teamId"] + " remainingSeconds=" + sanction["durationSeconds"].format("%d"));
             }
         }
     }
@@ -671,7 +671,7 @@ class RugbyGameModel {
 
     function pauseForCardIfRunning(nowMs as Number, cardType as String) as Boolean {
         if (isClockState(RUGBY_STATE_RUNNING)) {
-            System.println("RUGBY|RugbyGameModel|pauseForCardIfRunning cardType=" + cardType + " nowMs=" + ("" + nowMs));
+            System.println("RUGBY|RugbyGameModel|pauseForCardIfRunning cardType=" + cardType + " nowMs=" + nowMs.format("%d"));
             pause(nowMs);
             return true;
         }
@@ -690,7 +690,7 @@ class RugbyGameModel {
         } as Dictionary;
         _nextEventId += 1;
         _eventLog.add(entry);
-        System.println("RUGBY|RugbyGameModel|addEvent id=" + ("" + entry["id"]) + " teamId=" + teamId + " action=" + action + " matchElapsedSeconds=" + ("" + matchSeconds) + " eventCount=" + _eventLog.size().format("%d"));
+        System.println("RUGBY|RugbyGameModel|addEvent id=" + entry["id"].format("%d") + " teamId=" + teamId + " action=" + action + " matchElapsedSeconds=" + matchSeconds.format("%d") + " eventCount=" + _eventLog.size().format("%d"));
     }
 
     function clearEventLog(reason as String) as Void {

@@ -20,7 +20,7 @@ class TeamActionTypeDelegate extends WatchUi.Menu2InputDelegate {
     function onSelect(item) {
         var now = System.getTimer();
         var itemId = item.getId();
-        System.println("RUGBY|TeamActionTypeDelegate|onSelect itemId=" + itemId + " action=" + (_action == null ? "null" : _action) + " teamId=" + (_teamId == null ? "null" : _teamId) + " nowMs=" + ("" + now));
+        System.println("RUGBY|TeamActionTypeDelegate|onSelect itemId=" + itemId + " action=" + (_action == null ? "null" : _action) + " teamId=" + (_teamId == null ? "null" : _teamId) + " nowMs=" + now.format("%d"));
 
         if (valueEquals(_action, "score")) {
             if (valueEquals(itemId, :score_try) || valueEquals(itemId, "score_try")) {
@@ -48,10 +48,10 @@ class TeamActionTypeDelegate extends WatchUi.Menu2InputDelegate {
             var wasRunning = valueEquals(beforeSnap["clockState"], RUGBY_STATE_RUNNING) as Boolean;
             if (valueEquals(itemId, :card_yellow) || valueEquals(itemId, "card_yellow")) {
                 var yellowId = _model.startYellowCard(_teamId, now) as Number;
-                System.println("RUGBY|TeamActionTypeDelegate|card yellow teamId=" + _teamId + " sanctionId=" + ("" + yellowId));
+                System.println("RUGBY|TeamActionTypeDelegate|card yellow teamId=" + _teamId + " sanctionId=" + yellowId.format("%d"));
             } else {
                 var redId = _model.recordRedCard(_teamId, now) as Number;
-                System.println("RUGBY|TeamActionTypeDelegate|card red teamId=" + _teamId + " sanctionId=" + ("" + redId));
+                System.println("RUGBY|TeamActionTypeDelegate|card red teamId=" + _teamId + " sanctionId=" + redId.format("%d"));
             }
             if (wasRunning) {
                 var haptic = _haptics.firePause() as Boolean;

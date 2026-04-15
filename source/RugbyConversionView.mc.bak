@@ -56,11 +56,11 @@ class RugbyConversionView extends WatchUi.View {
             if (_refreshTimer == null) {
                 _refreshTimer = new Timer.Timer();
             }
-            System.println("RUGBY|RugbyConversionView|updateRefreshTimer start snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])));
+            System.println("RUGBY|RugbyConversionView|updateRefreshTimer start snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")));
             _refreshTimer.start(method(:onRefreshTimer), 1000, true);
             _refreshActive = true;
         } else if (!shouldRun && _refreshActive) {
-            System.println("RUGBY|RugbyConversionView|updateRefreshTimer stop snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])));
+            System.println("RUGBY|RugbyConversionView|updateRefreshTimer stop snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")));
             _refreshTimer.stop();
             _refreshActive = false;
         }
@@ -101,7 +101,7 @@ class RugbyConversionView extends WatchUi.View {
         var remaining = (conversion == null ? 0 : conversion["remainingSeconds"]) as Number;
         setText("ConversionTitle", "CONVERSION", Graphics.COLOR_YELLOW);
         var isHome = valueEquals(_teamId, RUGBY_TEAM_HOME) as Boolean;
-        System.println("RUGBY|RugbyConversionView|bindLayout teamId=" + (_teamId == null ? "null" : _teamId) + " isHome=" + (isHome ? "true" : "false") + " remainingSeconds=" + ("" + remaining));
+        System.println("RUGBY|RugbyConversionView|bindLayout teamId=" + (_teamId == null ? "null" : _teamId) + " isHome=" + (isHome ? "true" : "false") + " remainingSeconds=" + remaining.format("%d"));
         setText("ConversionTeam", isHome ? "HOME TRY" : "AWAY TRY", isHome ? Graphics.COLOR_BLUE : Graphics.COLOR_ORANGE);
         setText("ConversionTimer", formatClock(remaining), Graphics.COLOR_WHITE);
         setText("ConversionMadeHint", "UP/MENU +2", Graphics.COLOR_WHITE);
@@ -145,11 +145,11 @@ class RugbyConversionView extends WatchUi.View {
         }
         var minutes = (seconds / 60) as Number;
         var remainder = (seconds % 60) as Number;
-        var text = (("" + minutes) + ":") as String;
+        var text = (minutes.format("%d") + ":") as String;
         if (remainder < 10) {
             text = text + "0";
         }
-        return text + ("" + remainder);
+        return text + remainder.format("%d");
     }
 }
 

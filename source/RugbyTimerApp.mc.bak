@@ -37,7 +37,7 @@ class FallbackDelegate extends WatchUi.BehaviorDelegate {
     function onKey(evt as WatchUi.KeyEvent) as Boolean {
         try {
             var k = evt.getKey() as Number;
-            System.println("RUGBY|FallbackDelegate|onKey key=" + ("" + k));
+            System.println("RUGBY|FallbackDelegate|onKey key=" + k.format("%d"));
         } catch (ex) {
             System.println("RUGBY|FallbackDelegate|onKey ex=" + ex.toString());
         }

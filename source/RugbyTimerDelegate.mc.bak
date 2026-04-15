@@ -25,8 +25,8 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
         var snap = _model.snapshot(now) as Dictionary;
         var cs = snap["clockState"] == null ? "" : ("" + snap["clockState"]);
         System.println("RUGBY|RugbyTimerDelegate|selectAction csRaw=<" + (snap["clockState"] == null ? "null" : snap["clockState"]) + "> csCoerced=<" + cs + ">");
-        System.println("RUGBY|RugbyTimerDelegate|selectAction nowMs=" + ("" + now)
-            + " snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"]))
+        System.println("RUGBY|RugbyTimerDelegate|selectAction nowMs=" + now.format("%d")
+            + " snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d"))
             + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"])
             + " pending=" + (snap["pendingConfirmAction"] == null ? "null" : snap["pendingConfirmAction"]));
 
@@ -52,7 +52,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
             System.println("RUGBY|RugbyTimerDelegate|selectAction calling _model.startMatch");
             _model.startMatch(now);
             var afterStart = _model.snapshot(now) as Dictionary;
-            System.println("RUGBY|RugbyTimerDelegate|selectAction afterStart snapshotId=" + (afterStart["snapshotId"] == null ? "null" : ("" + afterStart["snapshotId"])) + " clockState=" + (afterStart["clockState"] == null ? "null" : afterStart["clockState"]) + " mainCountdownSeconds=" + (afterStart["mainCountdownSeconds"] == null ? "null" : ("" + afterStart["mainCountdownSeconds"])) + " countUpSeconds=" + (afterStart["countUpSeconds"] == null ? "null" : ("" + afterStart["countUpSeconds"])));
+            System.println("RUGBY|RugbyTimerDelegate|selectAction afterStart snapshotId=" + (afterStart["snapshotId"] == null ? "null" : afterStart["snapshotId"].format("%d")) + " clockState=" + (afterStart["clockState"] == null ? "null" : afterStart["clockState"]) + " mainCountdownSeconds=" + (afterStart["mainCountdownSeconds"] == null ? "null" : afterStart["mainCountdownSeconds"].format("%d")) + " countUpSeconds=" + (afterStart["countUpSeconds"] == null ? "null" : afterStart["countUpSeconds"].format("%d")));
             if (stateEquals(cs, RUGBY_STATE_NOT_STARTED)) {
                 System.println("RUGBY|RugbyTimerDelegate|selectAction calling _recorder.start");
                 _recorder.start();
@@ -64,12 +64,12 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
             _model.pause(now);
             var pauseHaptic = _haptics.firePause() as Boolean;
             var afterPause = _model.snapshot(now) as Dictionary;
-            System.println("RUGBY|RugbyTimerDelegate|selectAction afterPause snapshotId=" + (afterPause["snapshotId"] == null ? "null" : ("" + afterPause["snapshotId"])) + " clockState=" + (afterPause["clockState"] == null ? "null" : afterPause["clockState"]) + " countUpSeconds=" + (afterPause["countUpSeconds"] == null ? "null" : ("" + afterPause["countUpSeconds"])) + " pauseHaptic=" + (pauseHaptic ? "true" : "false"));
+            System.println("RUGBY|RugbyTimerDelegate|selectAction afterPause snapshotId=" + (afterPause["snapshotId"] == null ? "null" : afterPause["snapshotId"].format("%d")) + " clockState=" + (afterPause["clockState"] == null ? "null" : afterPause["clockState"]) + " countUpSeconds=" + (afterPause["countUpSeconds"] == null ? "null" : afterPause["countUpSeconds"].format("%d")) + " pauseHaptic=" + (pauseHaptic ? "true" : "false"));
         } else if (stateEquals(cs, RUGBY_STATE_PAUSED)) {
             System.println("RUGBY|RugbyTimerDelegate|selectAction calling _model.resume");
             _model.resume(now);
             var afterResume = _model.snapshot(now) as Dictionary;
-            System.println("RUGBY|RugbyTimerDelegate|selectAction afterResume snapshotId=" + (afterResume["snapshotId"] == null ? "null" : ("" + afterResume["snapshotId"])) + " clockState=" + (afterResume["clockState"] == null ? "null" : afterResume["clockState"]) + " countUpSeconds=" + (afterResume["countUpSeconds"] == null ? "null" : ("" + afterResume["countUpSeconds"])));
+            System.println("RUGBY|RugbyTimerDelegate|selectAction afterResume snapshotId=" + (afterResume["snapshotId"] == null ? "null" : afterResume["snapshotId"].format("%d")) + " clockState=" + (afterResume["clockState"] == null ? "null" : afterResume["clockState"]) + " countUpSeconds=" + (afterResume["countUpSeconds"] == null ? "null" : afterResume["countUpSeconds"].format("%d")));
         }
         System.println("RUGBY|RugbyTimerDelegate|selectAction requestUpdate");
         WatchUi.requestUpdate();
@@ -108,7 +108,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
 
     function upMenuAction() as Boolean {
         var snap = _model.snapshot(System.getTimer()) as Dictionary;
-        System.println("RUGBY|RugbyTimerDelegate|upMenuAction snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
+        System.println("RUGBY|RugbyTimerDelegate|upMenuAction snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
         System.println("RUGBY|RugbyTimerDelegate|upMenuAction rawClockState=<" + (snap["clockState"] == null ? "null" : snap["clockState"]) + "> coerced=<" + (snap["clockState"] == null ? "null" : ("" + snap["clockState"])) + ">");
         var isAdjust = isIdleTimerAdjustmentState(snap["clockState"]);
         System.println("RUGBY|RugbyTimerDelegate|upMenuAction isIdleAdjustment=" + (isAdjust ? "true" : "false"));
@@ -128,7 +128,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
 
     function downAction() as Boolean {
         var snap = _model.snapshot(System.getTimer()) as Dictionary;
-        System.println("RUGBY|RugbyTimerDelegate|downAction snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
+        System.println("RUGBY|RugbyTimerDelegate|downAction snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
         System.println("RUGBY|RugbyTimerDelegate|downAction rawClockState=<" + (snap["clockState"] == null ? "null" : snap["clockState"]) + "> coerced=<" + (snap["clockState"] == null ? "null" : ("" + snap["clockState"])) + ">");
         var isAdjust = isIdleTimerAdjustmentState(snap["clockState"]);
         System.println("RUGBY|RugbyTimerDelegate|downAction isIdleAdjustment=" + (isAdjust ? "true" : "false"));
@@ -154,12 +154,12 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
         var keyNum;
         try {
             keyNum = evt.getKey() as Number;
-            System.println("RUGBY|RugbyTimerDelegate|onKey(KeyEvent) key=" + ("" + keyNum));
+            System.println("RUGBY|RugbyTimerDelegate|onKey(KeyEvent) key=" + keyNum.format("%d"));
         } catch (ex) {
             System.println("RUGBY|RugbyTimerDelegate|onKey EX getKey: " + ex.toString());
             try {
                 keyNum = evt as Number;
-                System.println("RUGBY|RugbyTimerDelegate|onKey cast evt as Number key=" + ("" + keyNum));
+                System.println("RUGBY|RugbyTimerDelegate|onKey cast evt as Number key=" + keyNum.format("%d"));
             } catch (ex2) {
                 System.println("RUGBY|RugbyTimerDelegate|onKey unable to extract key; evt=" + evt);
                 return false;
@@ -169,7 +169,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function handleKey(key as Number) as Boolean {
-        System.println("RUGBY|RugbyTimerDelegate|handleKey key=" + ("" + key));
+        System.println("RUGBY|RugbyTimerDelegate|handleKey key=" + key.format("%d"));
         if (key == WatchUi.KEY_ENTER || key == WatchUi.KEY_START) {
             System.println("RUGBY|RugbyTimerDelegate|handleKey -> selectAction");
             return selectAction();
@@ -186,7 +186,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
             System.println("RUGBY|RugbyTimerDelegate|handleKey -> downAction");
             return downAction();
         }
-        System.println("RUGBY|RugbyTimerDelegate|handleKey UNHANDLED key=" + ("" + key));
+        System.println("RUGBY|RugbyTimerDelegate|handleKey UNHANDLED key=" + key.format("%d"));
         return false;
     }
 
@@ -230,7 +230,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
             WatchUi.requestUpdate();
             return true;
         }
-        System.println("RUGBY|RugbyTimerDelegate|openScoreDialog push ScoreTeamMenu snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
+        System.println("RUGBY|RugbyTimerDelegate|openScoreDialog push ScoreTeamMenu snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
         WatchUi.pushView(new Rez.Menus.ScoreTeamMenu(), new TeamSelectionDelegate(_model, "score"), WatchUi.SLIDE_UP);
         return true;
     }
@@ -241,7 +241,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
             WatchUi.requestUpdate();
             return true;
         }
-        System.println("RUGBY|RugbyTimerDelegate|openCardDialog push CardTeamMenu snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
+        System.println("RUGBY|RugbyTimerDelegate|openCardDialog push CardTeamMenu snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
         WatchUi.pushView(new Rez.Menus.CardTeamMenu(), new TeamSelectionDelegate(_model, "card"), WatchUi.SLIDE_UP);
         return true;
     }
@@ -304,7 +304,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
 
     function openMatchOptions() as Boolean {
         var snap = _model.snapshot(System.getTimer()) as Dictionary;
-        System.println("RUGBY|RugbyTimerDelegate|openMatchOptions snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
+        System.println("RUGBY|RugbyTimerDelegate|openMatchOptions snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
         WatchUi.pushView(new Rez.Menus.MatchOptionsMenu(), new MatchOptionDelegate(self), WatchUi.SLIDE_UP);
         return true;
     }
@@ -327,7 +327,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
             WatchUi.requestUpdate();
             return true;
         }
-        System.println("RUGBY|RugbyTimerDelegate|openVariantMenu snapshotId=" + (snap["snapshotId"] == null ? "null" : ("" + snap["snapshotId"])) + " currentVariant=" + (snap["variantId"] == null ? "null" : snap["variantId"]));
+        System.println("RUGBY|RugbyTimerDelegate|openVariantMenu snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " currentVariant=" + (snap["variantId"] == null ? "null" : snap["variantId"]));
         WatchUi.pushView(new Rez.Menus.VariantMenu(), new RugbyVariantMenuDelegate(self), WatchUi.SLIDE_UP);
         return true;
     }

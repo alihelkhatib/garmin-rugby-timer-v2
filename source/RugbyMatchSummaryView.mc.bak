@@ -125,11 +125,11 @@ class RugbyMatchSummaryView extends WatchUi.View {
         }
         var minutes = (seconds / 60) as Number;
         var remainder = (seconds % 60) as Number;
-        var text = ("" + minutes) + ":";
+        var text = minutes.format("%d") + ":";
         if (remainder < 10) {
             text += "0";
         }
-        return text + ("" + remainder);
+        return text + remainder.format("%d");
     }
 
     function valueEquals(value, expected) as Boolean {
