@@ -1,13 +1,7 @@
-<!-- Resource-first layout: match_summary_layout.xml -->
-<layout name="match_summary_layout">
-  <!-- Simple vertical list showing timestamp and short description per row. Implement device variants with style overrides. -->
-  <list id="matchSummaryList" rowHeight="24">
-    <row>
-      <text id="ts" fontSize="14" />
-      <text id="desc" fontSize="14" />
-    </row>
-  </list>
-  <emptyState>
-    <text id="emptyText">No events recorded</text>
-  </emptyState>
-</layout>
+<layouts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+  <layout id="MatchSummaryLayout" background="Graphics.COLOR_BLACK">
+    <label id="Title" text="Match Summary (Event Log)" x="center" y="8%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
+    <text-area id="EventsArea" text="" x="5%" y="20%" width="90%" height="60%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_LEFT" color="Graphics.COLOR_WHITE" />
+    <label id="EmptyText" text="No events recorded" x="center" y="50%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_LT_GRAY" />
+  </layout>
+</layouts>

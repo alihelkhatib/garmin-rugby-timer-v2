@@ -1,9 +1,7 @@
-<!-- Row layout for a single rugby event in the summary list -->
-<row id="rugbyEventRow">
-  <!-- timestamp / elapsed time -->
-  <text id="event_ts" fontSize="12" />
-  <!-- short event type label e.g., TRY, PEN -->
-  <text id="event_type" fontSize="12" />
-  <!-- optional details (actor/value) -->
-  <text id="event_detail" fontSize="12" />
-</row>
+<layouts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+  <layout id="RugbyEventRow" background="Graphics.COLOR_BLACK">
+    <label id="EventTimestamp" text="" x="5%" y="center" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_LEFT" color="Graphics.COLOR_WHITE" />
+    <label id="EventType" text="" x="40%" y="center" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_LEFT" color="Graphics.COLOR_WHITE" />
+    <label id="EventDetail" text="" x="70%" y="center" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_LEFT" color="Graphics.COLOR_LT_GRAY" />
+  </layout>
+</layouts>
