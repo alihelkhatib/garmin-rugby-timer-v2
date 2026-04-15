@@ -1,5 +1,8 @@
 // BackButtonSummaryPrototype.mc - exploratory prototype for Back-button summary access
 
+import Toybox.System;
+import Toybox.WatchUi;
+
 // This prototype demonstrates hooking the back button to open the match summary without interfering with end/reset confirmation flows.
 // It is intentionally minimal and intended for manual prototyping on device simulator.
 
@@ -12,9 +15,9 @@ class BackButtonSummaryPrototype {
         _recorder = recorder;
     }
 
-    function onBackPressed() as Boolean {
+    function onBackPressed() {
         // If a pending confirmation is active, respect it
-        var snap = _model.snapshot(System.getTimer()) as Dictionary;
+        var snap = _model.snapshot(System.getTimer());
         if (snap["pendingConfirmAction"] != null) {
             return false;
         }

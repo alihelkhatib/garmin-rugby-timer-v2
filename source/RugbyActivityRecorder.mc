@@ -50,7 +50,7 @@ class RugbyActivityRecorder {
         }
 
         // Determine sport mapping with graceful fallback when device lacks SPORT_RUGBY
-        var sport = Activity has :SPORT_RUGBY ? Activity.SPORT_RUGBY : (Activity has :SPORT_OTHER ? Activity.SPORT_OTHER : 0);
+        var sport = Activity has :SPORT_RUGBY ? Activity.SPORT_RUGBY : 0;
         var subSport = Activity has :SUB_SPORT_MATCH ? Activity.SUB_SPORT_MATCH : null;
 
         try {
@@ -89,54 +89,9 @@ class RugbyActivityRecorder {
 
         var attached = false;
         if (eventCount > 0) {
-            try {
-                // Best-effort: try multiple session APIs to attach events
-                if (_session has :appendRecords) {
-                    var recs = [];
-                    var i = 0;
-                    while (i < eventCount) {
-                        var e = eventLog[i];
-                        var ts = e["timestamp"];
-                        var t = e["type"];
-                        var a = e["actor"];
-                        var v = e["value"];
-                        var d = e["details"];
-                        var s = t + "|" + (ts == null ? "" : ts.format("%d")) + "|" + (a == null ? "" : a) + "|" + (v == null ? "" : v.format("%d")) + "|" + (d == null ? "" : d);
-                        recs.add(s);
-                        i = i + 1;
-                    }
-                    _session.appendRecords(recs);
-                    attached = true;
-                } else if (_session has :addEvent) {
-                    var i2 = 0;
-                    while (i2 < eventCount) {
-                        var e2 = eventLog[i2];
-                        _session.addEvent(e2["type"], e2["timestamp"], e2["actor"], e2["value"], e2["details"]);
-                        i2 = i2 + 1;
-                    }
-                    attached = true;
-                } else if (_session has :addComment) {
-                    var j = 0;
-                    while (j < eventCount) {
-                        var ej = eventLog[j];
-                        var s2 = ej["type"] + "|" + (ej["timestamp"] == null ? "" : ej["timestamp"].format("%d")) + "|" + (ej["actor"] == null ? "" : ej["actor"]) + "|" + (ej["value"] == null ? "" : ej["value"].format("%d")) + "|" + (ej["details"] == null ? "" : ej["details"]);
-                        _session.addComment(s2);
-                        j = j + 1;
-                    }
-                    attached = true;
-                } else if (_session has :addMarker) {
-                    var k = 0;
-                    while (k < eventCount) {
-                        var ek = eventLog[k];
-                        var s3 = ek["type"] + "|" + (ek["timestamp"] == null ? "" : ek["timestamp"].format("%d")) + "|" + (ek["actor"] == null ? "" : ek["actor"]) + "|" + (ek["value"] == null ? "" : ek["value"].format("%d")) + "|" + (ek["details"] == null ? "" : ek["details"]);
-                        _session.addMarker(s3);
-                        k = k + 1;
-                    }
-                    attached = true;
-                }
-            } catch (ex2) {
-                System.println("RUGBY|RugbyActivityRecorder|attachEvents failed ex=" + ex2.toString());
-            }
+            // No compatible ActivityRecording event attachment API is available on this device.
+            // Preserve the event count for diagnostics and continue without blocking match end.
+            attached = false;
         }
 
         if (attached) {
@@ -190,13 +145,10 @@ class RugbyActivityRecorder {
     function fallbackReason() {
         return _fallbackReason;
     }
-function emitActivityExportDiagnostic(payload) {
-        try {
-            var diag = Json.toString(payload);
-            System.println("RUGBY_DIAG|activity_export|" + diag);
-        } catch (e) {
-            System.println("RUGBY|RugbyActivityRecorder|emitActivityExportDiagnostic failed ex=" + e.toString());
-        }
+
+    function emitActivityExportDiagnostic(payload) {
+        var diag = payload.toString();
+        System.println("RUGBY_DIAG|activity_export|" + diag);
     }
 
     function _startExportRetries(eventLog) {
@@ -219,26 +171,8 @@ function emitActivityExportDiagnostic(payload) {
         _exportRetryCount = _exportRetryCount + 1;
         var attemptNumber = _exportRetryCount + 1; // initial attempt + retries
         try {
-            if (_pendingEventLog != null && _session != null) {
-                var evCount = _pendingEventLog.size();
-                if (_session has :appendRecords) {
-                    var recs = [];
-                    var idx = 0;
-                    while (idx < evCount) {
-                        var ev = _pendingEventLog[idx];
-                        var s = ev["type"] + "|" + (ev["timestamp"] == null ? "" : ev["timestamp"].format("%d")) + "|" + (ev["actor"] == null ? "" : ev["actor"]) + "|" + (ev["value"] == null ? "" : ev["value"].format("%d")) + "|" + (ev["details"] == null ? "" : ev["details"]);
-                        recs.add(s);
-                        idx = idx + 1;
-                    }
-                    _session.appendRecords(recs);
-                } else if (_session has :addEvent) {
-                    var idx2 = 0;
-                    while (idx2 < evCount) {
-                        var ev2 = _pendingEventLog[idx2];
-                        _session.addEvent(ev2["type"], ev2["timestamp"], ev2["actor"], ev2["value"], ev2["details"]);
-                        idx2 = idx2 + 1;
-                    }
-                }
+                if (_pendingEventLog != null && _session != null) {
+                // Event attachment not supported on this device; proceed with retrying stop/save only.
             }
             _session.stop();
             _state = RUGBY_RECORDER_STATE_STOPPED;
