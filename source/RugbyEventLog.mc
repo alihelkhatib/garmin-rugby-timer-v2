@@ -1,6 +1,8 @@
 // RugbyEventLog.mc - Minimal in-memory EventLog API
 // Provides a small, safe implementation: addEvent(event), serialize(), snapshot()
 
+import Toybox.Json;
+
 class RugbyEventLog {
     var events;
 
