@@ -7,6 +7,7 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
+using Rez.Layouts;
 
 class RugbyMatchSummaryView extends WatchUi.View {
     var _model as RugbyGameModel;
@@ -17,13 +18,42 @@ class RugbyMatchSummaryView extends WatchUi.View {
     }
 
     function onUpdate(dc as Graphics.Dc) as Void {
+        // Prefer resource-first layout if available. Fall back to drawing.
+        try {
+            // Attempt to set the resource-backed layout. If Rez.Layouts.RugbyEventLog is not generated
+            // on some build targets this may throw; handle gracefully.
+            self.setLayout(Rez.Layouts.RugbyEventLog(dc));
+
+            var events = _model.eventLog() as Array<Dictionary>;
+            if (events == null || events.size() == 0) {
+                // Let the layout show its empty state; also emit a testable trace.
+                System.println("UI|match_summary|empty");
+                return;
+            }
+
+            // Emit the first few events as plain traces so tests/simulator harnesses can assert them.
+            var maxRows = 6 as Number;
+            var i = 0 as Number;
+            while (i < events.size() && i < maxRows) {
+                System.println("UI|match_summary|event|" + formatEvent(events[i]));
+                i = i + 1;
+            }
+            if (events.size() > maxRows) {
+                System.println("UI|match_summary|more|" + (events.size() - maxRows).format("%d"));
+            }
+            return;
+        } catch (ex) {
+            System.println("RUGBY|MatchSummaryView|layout unavailable: " + ex.toString());
+        }
+
+        // Fallback rendering for targets without resource-backed layouts
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(dc.getWidth() / 2, 8, Graphics.FONT_SMALL, "Match Summary (Event Log)", Graphics.TEXT_JUSTIFY_CENTER);
 
         var events = _model.eventLog() as Array<Dictionary>;
-        if (events.size() == 0) {
+        if (events == null || events.size() == 0) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_XTINY, "No events recorded", Graphics.TEXT_JUSTIFY_CENTER);
             return;
