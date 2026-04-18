@@ -34,3 +34,4 @@
 ## Notes
 
 - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
+- 2026-04-18 update: Rugby activity labeling, GPS default behavior, and total distance or mileage handling were added to the activity-recording spec; checklist remains pending a separate formal validation pass.

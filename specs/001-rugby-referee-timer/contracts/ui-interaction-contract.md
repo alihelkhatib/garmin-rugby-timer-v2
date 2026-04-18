@@ -83,6 +83,8 @@ Required behavior:
 - If exact rugby labeling is unavailable for a validated target, validation records the rugby-equivalent fallback sport/sub-sport and reason; arbitrary non-rugby fallbacks exclude the target from v1.
 - Only one recording session is owned by the app.
 - Confirmed match end stops and saves the recording when recording is available.
+- When GPS is available and permitted, saved recordings include total distance or mileage, current speed, average speed, and route data.
+- If GPS is unavailable or denied, the recording still saves match and event data without motion data.
 
 ## Scoring Dialog Flow
 

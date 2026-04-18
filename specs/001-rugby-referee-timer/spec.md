@@ -71,6 +71,7 @@ As a rugby referee, I can use fixed Home/Away team labels, record tries, convers
 4. **Given** a penalty or drop goal is scored, **When** the referee records it for the correct team, **Then** that team gains 3 points.
 5. **Given** the conversion timer reaches 60 seconds remaining, **When** haptics are supported, **Then** the referee receives a near-expiry haptic alert.
 6. **Given** a match has started, **When** the referee presses UP/MENU, **Then** the app opens the scoring flow for selecting Home or Away and then selecting try, penalty goal, or drop goal.
+7. **Given** the conversion action screen is open, **When** the referee views the overlay, **Then** the current countdown remains visible in a smaller format at the very top of the screen.
 
 ---
 
@@ -107,6 +108,54 @@ As a rugby referee, I can select a rugby variant and adjust key timing values so
 2. **Given** the referee changes sin-bin or conversion length, **When** a card or try is recorded, **Then** the modified length is used.
 3. **Given** a referee needs a variant not exactly covered by built-in presets, **When** they adjust the configurable timing values, **Then** the app can support the match without requiring a new app version.
 
+---
+
+### User Story 5 - Confirm Match Start And Leave Safely (Priority: P2)
+
+As a rugby referee, I can get a tactile confirmation when the match starts and I can leave the app through a clear exit path when I am not actively managing a match so I am not trapped on the watch.
+
+**Why this priority**: Match start confirmation prevents silent launches, and a clear exit path is necessary for basic watch usability.
+
+**Independent Test**: Start a match on a haptic-capable device and verify one start vibration, then verify the referee can leave the app from the pre-match or terminal state through the documented exit flow.
+
+**Acceptance Scenarios**:
+
+1. **Given** the referee is on the pre-match screen, **When** the referee starts the match, **Then** the watch provides one tactile confirmation of match start.
+2. **Given** the referee is on the pre-match screen, **When** the referee chooses to leave the app, **Then** the app provides a clear exit path without altering match state.
+3. **Given** the match has ended or has been explicitly reset, **When** the referee chooses to leave the app, **Then** the app exits cleanly without trapping the referee in a terminal screen.
+
+---
+
+### User Story 6 - Record Rugby Activity, Distance, And Speed (Priority: P2)
+
+As a rugby referee, I can have the match saved as a rugby activity with GPS route, total distance, current speed, and average speed information so my activity history reflects the running work of the match.
+
+**Why this priority**: Activity recording is part of the app's value, and incorrect labeling or missing distance data makes the saved session unreliable.
+
+**Independent Test**: Record and save a match on a supported device with GPS available, then verify the saved activity is labeled as rugby or the documented fallback and includes route, distance, current speed, and average speed data when supported.
+
+**Acceptance Scenarios**:
+
+1. **Given** activity recording is supported on the device, **When** the match is saved, **Then** the activity history records the session as rugby or the documented fallback rugby-equivalent activity.
+2. **Given** GPS is available and permitted during the activity, **When** the match is saved, **Then** the activity includes total distance or mileage, current speed, average speed, and a GPS route trace.
+3. **Given** GPS is unavailable or denied, **When** the match is saved, **Then** the activity still saves with match timing and event data even if no route trace, distance, current speed, or average speed data is available.
+
+---
+
+### User Story 7 - Half-Remaining Warning Haptic (Priority: P3)
+
+As a rugby referee, I receive a vibration when a half has 2 minutes remaining so I can prepare for the end of the period without watching the clock constantly.
+
+**Why this priority**: The warning is useful during live refereeing, but it is secondary to core timing, scoring, and lifecycle controls.
+
+**Independent Test**: Run a half until the countdown reaches 2 minutes remaining and verify a single haptic warning on supported devices.
+
+**Acceptance Scenarios**:
+
+1. **Given** a half is running, **When** the countdown reaches 2 minutes remaining, **Then** the device provides a single warning vibration on supported hardware.
+2. **Given** the countdown passes the 2-minute threshold, **When** the match continues running, **Then** the warning does not repeat continuously for the same threshold.
+3. **Given** haptics are not supported, **When** the 2-minute threshold is reached, **Then** the match continues normally without a crash or blocked interaction.
+
 ### Edge Cases
 
 - Multiple timers are active at once: main countdown, secondary timer, conversion timer, and one or more yellow card timers must update together without visible drift, while red card indicators remain persistent until cleared by the referee.
@@ -116,6 +165,9 @@ As a rugby referee, I can select a rugby variant and adjust key timing values so
 - A red card is recorded: the red card indicator must remain visible as an active sanction until the referee clears it or the match ends.
 - Multiple yellow-card sanctions may be active for the same or different teams: each sanction is tracked independently, the most urgent remaining times stay visible when space allows, and constrained layouts must still preserve a visible count/indicator for additional active sanctions.
 - A haptic-capable event occurs while another alert is due in the same update cycle: the app sends one coalesced haptic alert, marks each due yellow-card or conversion alert as fired, and avoids repeated vibration for the same threshold.
+- Match-start and half-warning haptics fire only once per threshold and must not block normal match behavior if haptics are unavailable.
+- GPS is unavailable or denied during activity recording: the saved activity must still preserve match events and timing data without inventing distance or route data.
+- Exact rugby activity labeling is unavailable on a target: only the documented rugby-equivalent fallback may be used, and unsupported targets must not silently record as an unrelated sport.
 - The display is constrained on a smaller supported watch: main countdown, score, half indicator, and active critical timer/indicator state must remain readable; the secondary count-up timer may be abbreviated before any critical match state is hidden; color must not be the only way to distinguish card state.
 - Timing values are adjusted while a timer is already active: updated half length affects match setup or not-yet-started halves only; updated sin-bin and conversion lengths affect newly created yellow-card and conversion timers only, while already-active timers keep the duration they started with.
 - An accidental action occurs: pause/resume can be reversed directly, end-half/end-match/save require deliberate confirmation, active sanctions can be cleared, and incorrect scoring entries can be corrected with explicit lightweight correction actions.
@@ -151,14 +203,14 @@ rendering, storage, and activity-recording behavior so regression isolation can 
 - **FR-020**: The app MUST use haptic alerts for critical referee attention events, including yellow card timers and conversion timers reaching 60 seconds remaining; simultaneous alerts in one update cycle MUST coalesce into one haptic event.
 - **FR-021**: The app MUST use a dark, color-blind-friendly display treatment with stable, readable watch-scale layout, non-color sanction cues, and validation on representative small and large round watch screens. The v1 match screen MUST place the count-up active match timer at the very top, the half indicator directly below it, both teams' try counts below the half indicator, blue Home and orange Away labels with scores directly underneath those labels, team-assigned card timers underneath each team score, and the large main countdown at the bottom.
 - **FR-022**: The app MUST support Garmin watches from the fenix 6 generation onward where device capabilities and the selected Connect IQ API level allow, plus other compatible watch models where feasible after simulator or device validation.
-- **FR-023**: The app MUST record the session as a rugby activity in the user's activity history when the target device supports a rugby activity label. When activity recording is enabled, GPS traces MUST be included by default in recordings unless the user explicitly disables GPS collection for that recording; GPS collection MUST be opt-out per recording, respect platform permissions, and be clearly documented to the user. The app SHOULD provide a global setting to disable GPS collection by default and a per-recording toggle to opt-out for individual sessions. If GPS is not available or permissions are denied, recordings MUST still capture event timestamps and metadata (scores, cards, substitutions) without GPS.
+- **FR-023**: The app MUST record the session as a rugby activity in the user's activity history when the target device supports a rugby activity label. When activity recording is enabled, GPS traces and total distance or mileage MUST be included in recordings by default unless the user explicitly disables GPS collection for that recording; GPS collection MUST be opt-out per recording, respect platform permissions, and be clearly documented to the user. The app SHOULD provide a global setting to disable GPS collection by default and a per-recording toggle to opt out for individual sessions. If GPS is not available or permissions are denied, recordings MUST still capture event timestamps and match metadata without GPS.
 - **FR-024**: The app MUST document and validate the closest supported rugby-equivalent activity-label fallback when an exact rugby activity label is unavailable on a supported target; unsupported or arbitrary non-rugby fallbacks MUST result in target exclusion for v1.
 - **FR-025**: The app MUST provide lightweight recovery for accidental actions: reversible pause/resume, deliberate confirmation for end-half/end-match/save, clear sanction controls, and explicit correction actions for incorrect scoring entries.
 - **FR-026**: The app MUST store only lightweight preferences for selected variant and timing defaults, with no match-history persistence or network dependency in v1. Variant presets MUST be persisted locally on the device only for v1 (device-local storage); export/import or automated companion sync is out of scope for v1 unless explicitly requested.
 - **FR-027**: The app MUST avoid heavyweight, non-referee-facing features such as in-match network dependency, complex post-match analytics, or large data-entry workflows.
 - **FR-028**: The app MUST preserve existing functioning timer, scoring, variant, display, haptic, storage, and activity-recording behavior when adding or changing features.
 - **FR-029**: Pressing UP/MENU during active match management MUST open a lightweight scoring dialog. The dialog MUST first offer top-level options: Home, Away, Undo last — Home (only if a last event exists for Home), and Undo last — Away (only if a last event exists for Away). Selecting Home or Away then asks the score type; supported v1 score types MUST include try, penalty goal, and drop goal.
-- **FR-030**: Selecting try in the scoring dialog MUST immediately add 5 points, increment that team's try count, start the active variant's conversion timer, and show a conversion action screen. On that screen UP/MENU MUST record a successful conversion for +2 points, DOWN MUST record the conversion as missed with no score change, and either action MUST return the referee to the main match screen. SELECT on the conversion action screen MUST pause or resume the match clock only, identical to its behaviour on the main match screen, and MUST NOT record any conversion outcome.
+- **FR-030**: Selecting try in the scoring dialog MUST immediately add 5 points, increment that team's try count, start the active variant's conversion timer, and show a conversion action screen. That screen MUST keep the current match countdown visible in a smaller format at the very top. On that screen UP/MENU MUST record a successful conversion for +2 points, DOWN MUST record the conversion as missed with no score change, and either action MUST return the referee to the main match screen. SELECT on the conversion action screen MUST pause or resume the match clock only, identical to its behaviour on the main match screen, and MUST NOT record any conversion outcome.
 - **FR-031**: Before the first match start only, UP/MENU MUST increase the half length by 1 minute, DOWN MUST decrease the half length by 1 minute, and SELECT MUST start the match clock. Half-length +/- controls MUST NOT remain active after the match has started.
 - **FR-032**: During a started match, UP/MENU MUST open the scoring flow for selecting Home or Away and a score type; DOWN MUST open the discipline/sanction flow for selecting Home or Away and yellow or red card.
 - **FR-033**: Issuing a yellow or red card during a started match MUST pause the match clock before creating the selected sanction, so all match-derived timers stop together while the sanction is recorded.
@@ -172,6 +224,9 @@ rendering, storage, and activity-recording behavior so regression isolation can 
 - **FR-040**: The half-time default target duration MUST be variant-specific: 10 minutes for 15s and U19, 2 minutes for 7s, and 5 minutes for 10s; the referee MAY adjust the target duration using UP/MENU and DOWN before confirming the second half start.
 - **FR-041**: After the second half ends the app MUST display a brief post-match summary screen showing the final score and half results; the activity recording MUST auto-save on entry to the summary screen; the referee exits the summary screen via BACK or SELECT.
 - **FR-042**: Yellow card sequence numbers MUST be assigned as a single match-wide counter regardless of team, expiry, or clear; the first card issued is Y1, the second Y2, and so on. Red card sequence numbers MUST follow the same pattern starting at R1 and incrementing match-wide.
+- **FR-044**: The app MUST provide a single tactile confirmation when the referee starts a match from the pre-match screen on haptic-capable devices.
+- **FR-045**: The app MUST provide a single tactile warning when 2 minutes remain in the current half on haptic-capable devices.
+- **FR-046**: The app MUST provide a clear exit path from the pre-match screen and from terminal match screens so the referee can leave the app without being trapped in an active session.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -182,6 +237,7 @@ rendering, storage, and activity-recording behavior so regression isolation can 
 - **Conversion Timer**: Remaining time, associated try context, active/expired state, and alert state.
 - **Half-time State**: Half-time timer elapsed value, current target duration (variant-specific default, incrementable/decrementable), and whether the second half has been confirmed to start.
 - **Activity Recording State**: Whether the match session is being recorded as rugby or an accepted rugby-equivalent fallback.
+- **Activity Motion Data**: Total distance or mileage, current speed, average speed, and optional GPS route data captured during the recorded session when location services are available.
 
 ## Success Criteria *(mandatory)*
 
@@ -197,7 +253,7 @@ those areas are affected.
 - **SC-004**: In representative small and large round watch-size validation, the top count-up timer, half indicator, try counts, Home/Away labels, team scores, team-assigned card timers, and bottom main countdown are readable without overlap; the main countdown is the largest timer and yellow/red sanctions use non-color cues.
 - **SC-005**: Haptic alerts occur for 100% of yellow card and conversion timer events at 60 seconds remaining during simulator or device validation when haptics are supported; simultaneous due alerts in one update cycle produce one coalesced haptic event and mark each due alert as fired.
 - **SC-006**: Regression validation confirms previously functioning timer, scoring, card, conversion, variant, display, haptic, storage, and activity-recording behaviors still pass after feature changes.
-- **SC-007**: Activity history validation shows the recorded session appears as rugby or a documented rugby-equivalent fallback on each validated supported device class.
+- **SC-007**: Activity history validation shows the recorded session appears as rugby or a documented rugby-equivalent fallback on each validated supported device class, and on GPS-capable devices the saved session includes distance or mileage, current speed, average speed, and route data when location permission is granted.
 - **SC-008**: Input validation confirms idle UP/MENU and DOWN adjust half length by exactly +1/-1 minute before first start only; after the match starts, UP/MENU opens scoring, DOWN opens discipline, and SELECT does not fail to start the match from idle.
 - **SC-009**: A referee can pause the match countdown and apply manual stoppage/added time using the UI in under 10 seconds; stoppage additions MUST require explicit confirmation by the referee.
 - **SC-009**: Card-entry validation confirms issuing either team a yellow or red card pauses the match first; yellow cards display with a `Y#` label and countdown under the affected team score, and red cards display with a persistent `R#` indicator.
@@ -212,12 +268,25 @@ those areas are affected.
 - **SC-018**: Conversion screen SELECT validation confirms pressing SELECT on the conversion action screen pauses or resumes the match clock without recording any conversion outcome.
 - **SC-019**: Card sequence validation confirms yellow and red card sequence numbers increment match-wide (Y1, Y2… and R1, R2…) regardless of which team received the card or whether earlier cards have expired or been cleared.
 
+- **SC-020**: In 10 match-start tests on haptic-capable devices, 100% of runs produce exactly one tactile confirmation when the match starts.
+- **SC-021**: In 10 half-warning tests on haptic-capable devices, 100% of runs produce a single tactile warning when the countdown reaches 2 minutes remaining in a half.
+- **SC-022**: In 10 GPS-available activity-recording tests, 100% of saved activities include the rugby label or documented fallback plus total distance or mileage and route data when location permission is granted.
+- **SC-023**: In pre-match exit tests, the referee can leave the app through the documented exit path without starting a match, and canceling the exit path leaves match setup unchanged.
+
 ## Assumptions
 
 - Built-in variant presets cover 15s, 7s, 10s, and U19; additional variants are supported through configurable timing values rather than a separate preset for every possible local rule variation.
 - The referee is the only active user during a match, so no multi-user permissions or account management are required.
 - Team labels are fixed to Home and Away in v1 to avoid adding setup friction.
-- If a supported watch lacks an exact rugby activity label, only a documented rugby-equivalent Garmin sports activity label such as a team-sport match fallback is acceptable; otherwise the target is excluded for v1.
+ - If a supported watch lacks an exact rugby activity label, only a documented rugby-equivalent Garmin sports activity label such as a team-sport match fallback is acceptable; otherwise the target is excluded for v1.
 - Haptic behavior is only required on devices that support haptic alerts.
 - The app has no in-match network dependency and stores preferences locally only.
 - Any additional beneficial feature must directly support live referee match control and must not add network dependency, bulky data entry, or complex post-match workflows.
+
+## Security & Privacy Considerations
+
+- Data classification: Match timing, score, card, and event-log data are local match records; GPS route samples and distance or mileage are location-derived activity data. None of these fields are intended to contain player PII by default.
+- Telemetry opt-in: No telemetry or remote analytics are added.
+- Retention & deletion: Activity data, including route and distance information when available, is retained only through the existing activity-save lifecycle and is cleared by reset or deletion of the saved activity.
+- External communications: No new network calls are required. Any activity export uses the existing device activity-recording path.
+- Required security tests: Confirm the app does not transmit location data outside the existing activity-save flow, does not add new personal-data fields, and continues to respect platform permissions for GPS collection.

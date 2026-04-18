@@ -115,3 +115,15 @@ Rules:
 - Only one activity recording session owner exists in the app.
 - Session lifecycle follows match lifecycle: create/start with match start, stop/save at confirmed match end, discard only through explicit error/cancel handling.
 - Fallback labeling must be `Activity.SPORT_RUGBY` when supported or a documented rugby-equivalent Garmin sport/sub-sport fallback; otherwise the target remains unsupported for v1.
+
+## ActivityMotionData
+
+Fields:
+- `distance`: total distance or mileage captured for the current recording.
+- `currentSpeed`: instantaneous speed value derived during recording.
+- `averageSpeed`: average speed value derived during recording.
+- `routeSamples`: optional route trace samples when GPS is available and permitted.
+
+Rules:
+- Motion data is recorded only when GPS and positioning permission are available.
+- If GPS is unavailable or denied, the activity still saves with match and event data but without motion data values.

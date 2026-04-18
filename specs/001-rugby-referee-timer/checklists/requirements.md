@@ -34,3 +34,4 @@
 - Validation passed on initial review.
 - 2026-04-12 update: Input-mode and card-pause/display requirements were added and rechecked; no clarification markers remain.
 - Platform-specific implementation terms from the original prompt were routed to constitution and future planning concerns; this specification keeps requirements focused on referee-visible behavior and outcomes.
+- 2026-04-18 update: Added explicit match-start vibration, 2-minute half warning vibration, rugby activity labeling with GPS distance/mileage, GPS fallback behavior, and a clear exit path requirement; checklist remains pass-ready after spec refresh.

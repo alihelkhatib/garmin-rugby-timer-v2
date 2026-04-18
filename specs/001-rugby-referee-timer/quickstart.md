@@ -28,6 +28,7 @@
 11. Attempt end-half and end-match/save actions; confirm deliberate confirmation protects against accidental terminal state changes.
 12. Correct an entered score/counter action; confirm score and counter correction updates within one display refresh and no match-history database is created.
 13. End the match and save the recording; confirm Garmin activity history shows rugby or the documented fallback for that target.
+14. Validate a GPS-enabled recording; confirm the saved activity includes distance, current speed, average speed, and route data when permissions are granted.
 
 ## Fallback Policy
 
