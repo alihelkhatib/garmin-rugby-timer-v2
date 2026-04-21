@@ -26,6 +26,7 @@ const RUGBY_CARD_YELLOW = "yellow";
 const RUGBY_CARD_RED = "red";
 const RUGBY_EVENT_CONVERSION_MADE = "conversionMade";
 const RUGBY_PAUSE_REMINDER_INTERVAL_MS = 10000;
+const RUGBY_HALF_WARNING_THRESHOLD_SECONDS = 120;
 
 class RugbyGameModel {
 
@@ -42,6 +43,7 @@ class RugbyGameModel {
     var _nextEventId as Number;
     var _summaryVisible as Boolean;
     var _autoMatchEndPendingSave as Boolean;
+    var _halfWarningAlertFired as Boolean;
 /* Create teams, default setup and reset timers/snapshots. */
 
     function initialize(setup as Dictionary?) {
@@ -61,6 +63,7 @@ class RugbyGameModel {
         _nextEventId = 1;
         _summaryVisible = false;
         _autoMatchEndPendingSave = false;
+        _halfWarningAlertFired = false;
     }
 
     function setup() as Dictionary {
@@ -110,6 +113,7 @@ class RugbyGameModel {
                 clearEventLog("newMatchStart");
                 _summaryVisible = false;
             }
+            _halfWarningAlertFired = false;
             _clockState = RUGBY_STATE_RUNNING;
             _pendingConfirmAction = null;
             if (_setup["halfIndex"] == null) {
@@ -204,6 +208,7 @@ class RugbyGameModel {
             _setup["halfIndex"] = halfIndex + 1;
             _setup["activeElapsedMs"] = 0;
             _setup["halfStartedAtMs"] = nowMs;
+            _halfWarningAlertFired = false;
         }
     }
 /* Finalize match state, persist elapsed time if running and expire active timers. */
@@ -216,6 +221,7 @@ class RugbyGameModel {
         _pendingConfirmAction = null;
         _summaryVisible = true;
         expireActiveTimers(nowMs);
+        _halfWarningAlertFired = false;
         System.println("RUGBY|RugbyGameModel|endMatch applied nowMs=" + nowMs.format("%d") + " eventCount=" + _eventLog.size().format("%d") + " summaryVisible=" + (_summaryVisible ? "true" : "false"));
     }
 
@@ -236,6 +242,7 @@ class RugbyGameModel {
         clearEventLog("resetMatch");
         _summaryVisible = false;
         _autoMatchEndPendingSave = false;
+        _halfWarningAlertFired = false;
         System.println("RUGBY|RugbyGameModel|resetMatch applied clockState=" + _clockState + " eventCount=" + _eventLog.size().format("%d"));
     }
 /* Apply try points and start the conversion timer for the scoring team. */
@@ -358,7 +365,7 @@ class RugbyGameModel {
         var countdownSeconds = remainingForDuration(_setup["halfLengthSeconds"], elapsedMs) as Number;
         var conversion = conversionSnapshot(elapsedMs, nowMs) as Dictionary?;
         var sanctions = sanctionSnapshots(elapsedMs) as Array<Dictionary>;
-        var hapticEvents = dueHapticEvents(conversion, sanctions) as Array<Dictionary>;
+        var hapticEvents = dueHapticEvents(countdownSeconds, conversion, sanctions) as Array<Dictionary>;
         return {
             "snapshotId" => _snapshotId,
             "clockState" => _clockState,
@@ -375,6 +382,7 @@ class RugbyGameModel {
             "conversionTimer" => conversion,
             "sanctions" => sanctions,
             "hapticEvents" => hapticEvents,
+            "halfWarningAlertFired" => _halfWarningAlertFired,
             "eventLog" => eventLogSnapshot(),
             "matchSummaryVisible" => _summaryVisible,
             "autoMatchEndPendingSave" => _autoMatchEndPendingSave,
@@ -413,6 +421,8 @@ class RugbyGameModel {
                 _conversionTimer["nearExpiryAlertFired"] = true;
             } else if (valueEquals(event["type"], "yellow")) {
                 setSanctionAlertFired(event["id"]);
+            } else if (valueEquals(event["type"], "halfWarning")) {
+                _halfWarningAlertFired = true;
             }
         }
         _lastHapticEvents = events;
@@ -554,8 +564,11 @@ class RugbyGameModel {
     }
 /* Return haptic events for conversion or yellow sanctions nearing expiry (<= threshold). */
 
-    function dueHapticEvents(conversion as Dictionary?, sanctions as Array<Dictionary>) as Array<Dictionary> {
+    function dueHapticEvents(countdownSeconds as Number, conversion as Dictionary?, sanctions as Array<Dictionary>) as Array<Dictionary> {
         var events = [] as Array<Dictionary>;
+        if (isClockState(RUGBY_STATE_RUNNING) && !_halfWarningAlertFired && countdownSeconds <= RUGBY_HALF_WARNING_THRESHOLD_SECONDS) {
+            events.add({ "type" => "halfWarning" } as Dictionary);
+        }
         if (conversion != null && conversion["active"] && !conversion["nearExpiryAlertFired"] && conversion["remainingSeconds"] <= RUGBY_ALERT_THRESHOLD_SECONDS) {
             events.add({ "type" => "conversion" } as Dictionary);
         }

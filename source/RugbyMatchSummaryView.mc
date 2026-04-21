@@ -22,27 +22,28 @@ class RugbyMatchSummaryView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(dc.getWidth() / 2, 8, Graphics.FONT_SMALL, "MATCH EVENTS", Graphics.TEXT_JUSTIFY_CENTER);
 
+        var snap = _model.snapshot(System.getTimer()) as Dictionary;
         var events = _model.eventLog() as Array<Dictionary>;
         if (events.size() == 0) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
             dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_XTINY, "NO EVENTS", Graphics.TEXT_JUSTIFY_CENTER);
-            return;
+        } else {
+            var y = 34 as Number;
+            var maxRows = 6 as Number;
+            for (var i = 0; i < events.size() && i < maxRows; i += 1) {
+                var event = events[i] as Dictionary;
+                var text = formatEvent(event) as String;
+                dc.setColor(teamColor(event["teamId"]), Graphics.COLOR_BLACK);
+                dc.drawText(12, y, Graphics.FONT_XTINY, text, Graphics.TEXT_JUSTIFY_LEFT);
+                y += 22;
+            }
+
+            if (events.size() > maxRows) {
+                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+                dc.drawText(dc.getWidth() / 2, dc.getHeight() - 34, Graphics.FONT_XTINY, "+" + (events.size() - maxRows).format("%d") + " MORE", Graphics.TEXT_JUSTIFY_CENTER);
+            }
         }
 
-        var y = 34 as Number;
-        var maxRows = 6 as Number;
-        for (var i = 0; i < events.size() && i < maxRows; i += 1) {
-            var event = events[i] as Dictionary;
-            var text = formatEvent(event) as String;
-            dc.setColor(teamColor(event["teamId"]), Graphics.COLOR_BLACK);
-            dc.drawText(12, y, Graphics.FONT_XTINY, text, Graphics.TEXT_JUSTIFY_LEFT);
-            y += 22;
-        }
-
-        if (events.size() > maxRows) {
-            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() - 24, Graphics.FONT_XTINY, "+" + (events.size() - maxRows).format("%d") + " MORE", Graphics.TEXT_JUSTIFY_CENTER);
-        }
     }
 
     function formatEvent(event as Dictionary) as String {

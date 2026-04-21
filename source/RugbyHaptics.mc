@@ -16,6 +16,16 @@ class RugbyHaptics {
     function shouldAlert(remainingSeconds, alertFired) {
         return !alertFired && remainingSeconds != null && remainingSeconds <= RUGBY_ALERT_THRESHOLD_SECONDS && remainingSeconds >= 0;
     }
+
+    function _firePattern(patternName as String, vibeProfiles as Array<Attention.VibeProfile>) as Boolean {
+        if (Attention has :vibrate) {
+            System.println("RUGBY|RugbyHaptics|" + patternName + " vibrate");
+            Attention.vibrate(vibeProfiles);
+            return true;
+        }
+        System.println("RUGBY|RugbyHaptics|" + patternName + " unavailable");
+        return false;
+    }
 /* Only vibrate once per snapshot id; returns true if a vibration was performed. */
 
     function fireCoalesced(snapshotId) {
@@ -24,43 +34,31 @@ class RugbyHaptics {
             return false;
         }
         _lastAlertSnapshotId = snapshotId;
-        if (Attention has :vibrate) {
-            System.println("RUGBY|RugbyHaptics|fireCoalesced vibrate snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")));
-            Attention.vibrate([ new Attention.VibeProfile(80, 500) ]);
-            return true;
-        }
-        System.println("RUGBY|RugbyHaptics|fireCoalesced unavailable snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")));
-        return false;
+        return _firePattern("fireCoalesced snapshotId=" + (snapshotId == null ? "null" : snapshotId.format("%d")), [ new Attention.VibeProfile(80, 500) ]);
+    }
+
+    function fireConversionWarning() as Boolean {
+        return _firePattern("fireConversionWarning", [ new Attention.VibeProfile(80, 500) ]);
+    }
+
+    function fireYellowWarning() as Boolean {
+        return _firePattern("fireYellowWarning", [ new Attention.VibeProfile(80, 500) ]);
+    }
+
+    function fireHalfWarning() as Boolean {
+        return _firePattern("fireHalfWarning", [ new Attention.VibeProfile(100, 350) ]);
     }
 
     function fireMatchStart() as Boolean {
-        if (Attention has :vibrate) {
-            System.println("RUGBY|RugbyHaptics|fireMatchStart vibrate");
-            Attention.vibrate([ new Attention.VibeProfile(100, 300) ]);
-            return true;
-        }
-        System.println("RUGBY|RugbyHaptics|fireMatchStart unavailable");
-        return false;
+        return _firePattern("fireMatchStart", [ new Attention.VibeProfile(100, 300) ]);
     }
 
     function firePause() as Boolean {
-        if (Attention has :vibrate) {
-            System.println("RUGBY|RugbyHaptics|firePause vibrate");
-            Attention.vibrate([ new Attention.VibeProfile(70, 250), new Attention.VibeProfile(0, 120), new Attention.VibeProfile(70, 250) ]);
-            return true;
-        }
-        System.println("RUGBY|RugbyHaptics|firePause unavailable");
-        return false;
+        return _firePattern("firePause", [ new Attention.VibeProfile(70, 250), new Attention.VibeProfile(0, 120), new Attention.VibeProfile(70, 250) ]);
     }
 
     function firePauseReminder() as Boolean {
-        if (Attention has :vibrate) {
-            System.println("RUGBY|RugbyHaptics|firePauseReminder vibrate");
-            Attention.vibrate([ new Attention.VibeProfile(55, 200) ]);
-            return true;
-        }
-        System.println("RUGBY|RugbyHaptics|firePauseReminder unavailable");
-        return false;
+        return _firePattern("firePauseReminder", [ new Attention.VibeProfile(55, 200) ]);
     }
 }
 

@@ -11,6 +11,7 @@
 import Toybox.Activity;
 import Toybox.ActivityRecording;
 import Toybox.Lang;
+import Toybox.Position;
 import Toybox.System;
 import Toybox.Timer;
 
@@ -32,6 +33,10 @@ class RugbyActivityRecorder {
     var _exportRetryTimer;
     var _exportRetryCount;
     var _pendingEventLog;
+    var _motionPollTimer;
+    var _motionPollActive;
+    var _motionData;
+    var _motionSampleCount;
 /* Initialize recorder state; no session active by default. */
 
     function initialize() {
@@ -39,6 +44,13 @@ class RugbyActivityRecorder {
         _state = RUGBY_RECORDER_STATE_NOT_STARTED;
         _fallbackReason = null;
         _eventExportState = "skipped";
+        _exportRetryTimer = null;
+        _exportRetryCount = 0;
+        _pendingEventLog = null;
+        _motionPollTimer = null;
+        _motionPollActive = false;
+        _motionData = initialMotionData();
+        _motionSampleCount = 0;
     }
 /* Try to create and start an ActivityRecording session. Returns false if unsupported or on error. */
 
@@ -50,8 +62,20 @@ class RugbyActivityRecorder {
         }
 
         // Determine sport mapping with graceful fallback when device lacks SPORT_RUGBY
-        var sport = Activity has :SPORT_RUGBY ? Activity.SPORT_RUGBY : 0;
-        var subSport = Activity has :SUB_SPORT_MATCH ? Activity.SUB_SPORT_MATCH : null;
+        var sport = Activity.SPORT_GENERIC;
+        var subSport = Activity.SPORT_GENERIC;
+        if (Activity has :SPORT_RUGBY) {
+            sport = Activity.SPORT_RUGBY;
+            _fallbackReason = null;
+        } else if (Activity has :SPORT_TEAM_SPORT) {
+            sport = Activity.SPORT_TEAM_SPORT;
+            _fallbackReason = "SPORT_TEAM_SPORT fallback";
+        } else {
+            _fallbackReason = "SPORT_GENERIC fallback";
+        }
+        if (Activity has :SUB_SPORT_MATCH) {
+            subSport = Activity.SUB_SPORT_MATCH;
+        }
 
         try {
             _session = ActivityRecording.createSession({
@@ -61,8 +85,10 @@ class RugbyActivityRecorder {
             });
             _session.start();
             _state = RUGBY_RECORDER_STATE_RECORDING;
-            _fallbackReason = null;
             _eventExportState = "skipped";
+            _motionData = initialMotionData();
+            _motionSampleCount = 0;
+            startMotionPolling();
             return true;
         } catch (ex) {
             _session = null;
@@ -87,6 +113,9 @@ class RugbyActivityRecorder {
             return false;
         }
 
+        captureMotionData();
+        stopMotionPolling();
+
         var attached = false;
         if (eventCount > 0) {
             // No compatible ActivityRecording event attachment API is available on this device.
@@ -109,6 +138,12 @@ class RugbyActivityRecorder {
             _session.save();
             _state = RUGBY_RECORDER_STATE_SAVED;
             _session = null;
+            _pendingEventLog = null;
+            _exportRetryCount = 0;
+            if (_exportRetryTimer != null) {
+                _exportRetryTimer.stop();
+                _exportRetryTimer = null;
+            }
             System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents saved exportState=" + _eventExportState + " attempts=1");
             emitActivityExportDiagnostic({"status" => "exported", "attempts" => 1, "exportState" => _eventExportState});
             return true;
@@ -135,6 +170,15 @@ class RugbyActivityRecorder {
         _state = RUGBY_RECORDER_STATE_NOT_STARTED;
         _fallbackReason = null;
         _eventExportState = "skipped";
+        _pendingEventLog = null;
+        if (_exportRetryTimer != null) {
+            _exportRetryTimer.stop();
+            _exportRetryTimer = null;
+        }
+        _exportRetryCount = 0;
+        stopMotionPolling();
+        _motionData = initialMotionData();
+        _motionSampleCount = 0;
         return true;
     }
 
@@ -144,6 +188,96 @@ class RugbyActivityRecorder {
 
     function fallbackReason() {
         return _fallbackReason;
+    }
+
+    function initialMotionData() as Dictionary {
+        return {
+            "distance" => null,
+            "currentSpeed" => null,
+            "averageSpeed" => null,
+            "routeSamples" => [] as Array<Dictionary>
+        } as Dictionary;
+    }
+
+    function startMotionPolling() as Void {
+        if (_motionPollTimer == null) {
+            _motionPollTimer = new Timer.Timer();
+        }
+        _motionPollTimer.start(method(:_onMotionPollTimer), 1000, true);
+        _motionPollActive = true;
+        captureMotionData();
+    }
+
+    function stopMotionPolling() as Void {
+        if (_motionPollTimer != null && _motionPollActive) {
+            _motionPollTimer.stop();
+        }
+        _motionPollActive = false;
+    }
+
+    function _onMotionPollTimer() as Void {
+        captureMotionData();
+    }
+
+    function captureMotionData() as Void {
+        var nextData = initialMotionData();
+        var activityInfo = null;
+        try {
+            activityInfo = Activity.getActivityInfo();
+        } catch (ex) {
+            activityInfo = null;
+        }
+
+        if (activityInfo != null) {
+            if (activityInfo.elapsedDistance != null) {
+                nextData["distance"] = activityInfo.elapsedDistance;
+            }
+            if (activityInfo.currentSpeed != null) {
+                nextData["currentSpeed"] = activityInfo.currentSpeed;
+            }
+            if (activityInfo.averageSpeed != null) {
+                nextData["averageSpeed"] = activityInfo.averageSpeed;
+            }
+            if (activityInfo.currentLocation != null) {
+                appendRouteSample(nextData, activityInfo.currentLocation, "activity");
+            }
+        }
+
+        var positionInfo = null;
+        try {
+            positionInfo = Position.getInfo();
+        } catch (ex2) {
+            positionInfo = null;
+        }
+
+        if (positionInfo != null) {
+            if (nextData["currentSpeed"] == null && positionInfo.speed != null) {
+                nextData["currentSpeed"] = positionInfo.speed;
+            }
+            if (positionInfo.position != null) {
+                appendRouteSample(nextData, positionInfo.position, "position");
+            }
+        }
+
+        _motionData = nextData;
+        _motionSampleCount += 1;
+    }
+
+    function appendRouteSample(motion as Dictionary, location, source as String) as Void {
+        var samples = motion["routeSamples"] as Array<Dictionary>;
+        var coordinates = location.toDegrees();
+        samples.add({
+            "source" => source,
+            "latitude" => coordinates[0],
+            "longitude" => coordinates[1]
+        } as Dictionary);
+        if (samples.size() > 30) {
+            var trimmed = [] as Array<Dictionary>;
+            for (var i = samples.size() - 30; i < samples.size(); i += 1) {
+                trimmed.add(samples[i]);
+            }
+            motion["routeSamples"] = trimmed;
+        }
     }
 
     function emitActivityExportDiagnostic(payload) {
@@ -218,10 +352,12 @@ class RugbyActivityRecorder {
     function snapshot() {
         return {
             "state" => _state,
-            "sport" => "Activity.SPORT_RUGBY",
-            "subSport" => "Activity.SUB_SPORT_MATCH",
+            "sport" => Activity has :SPORT_RUGBY ? "Activity.SPORT_RUGBY" : (Activity has :SPORT_TEAM_SPORT ? "Activity.SPORT_TEAM_SPORT" : "Activity.SPORT_GENERIC"),
+            "subSport" => Activity has :SUB_SPORT_MATCH ? "Activity.SUB_SPORT_MATCH" : "Activity.SUB_SPORT_GENERIC",
             "fallbackReason" => _fallbackReason,
-            "eventExportState" => _eventExportState
+            "eventExportState" => _eventExportState,
+            "motionData" => _motionData,
+            "motionSampleCount" => _motionSampleCount
         };
     }
 }

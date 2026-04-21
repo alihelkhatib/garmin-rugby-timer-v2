@@ -86,6 +86,11 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
             WatchUi.requestUpdate();
             return true;
         }
+        if (canExitAppForState(snap["clockState"])) {
+            System.println("RUGBY|RugbyTimerDelegate|onBack exitApp clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
+            System.exit();
+            return true;
+        }
         if (canOpenMatchOptionsForState(snap["clockState"])) {
             return openMatchOptions();
         }
@@ -222,6 +227,10 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
     function canOpenVariantMenuForState(clockState as String) as Boolean {
         return stateEquals(clockState, RUGBY_STATE_NOT_STARTED);
     }
+
+    function canExitAppForState(clockState as String) as Boolean {
+        return stateEquals(clockState, RUGBY_STATE_NOT_STARTED) || stateEquals(clockState, RUGBY_STATE_MATCH_ENDED);
+    }
 /* Guard against invalid states before opening score menus. */
 
     function openScoreDialog() as Boolean {
@@ -311,7 +320,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
 
     function showMatchSummary() as Void {
         System.println("RUGBY|RugbyTimerDelegate|showMatchSummary eventCount=" + _model.eventLog().size().format("%d"));
-        WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(), WatchUi.SLIDE_UP);
+        WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(_model), WatchUi.SLIDE_UP);
     }
 
     function openVariantMenu() as Boolean {
@@ -413,12 +422,38 @@ class MatchOptionDelegate extends WatchUi.Menu2InputDelegate {
 }
 
 class RugbyMatchSummaryDelegate extends WatchUi.BehaviorDelegate {
-    function initialize() {
+    var _model as RugbyGameModel;
+
+    function initialize(model as RugbyGameModel) {
         BehaviorDelegate.initialize();
+        _model = model;
+    }
+
+    function onSelect() as Boolean {
+        return onBack();
+    }
+
+    function shouldExit() as Boolean {
+        if (_model == null) {
+            return false;
+        }
+        var snap = _model.snapshot(System.getTimer()) as Dictionary;
+        return stateEquals(snap["clockState"], RUGBY_STATE_MATCH_ENDED);
+    }
+
+    function stateEquals(value, expected as String) as Boolean {
+        if (value == null || expected == null) {
+            return false;
+        }
+        return ("" + value).equals(expected);
     }
 
     function onBack() as Boolean {
-        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        if (shouldExit()) {
+            System.exit();
+        } else {
+            WatchUi.popView(WatchUi.SLIDE_DOWN);
+        }
         return true;
     }
 }

@@ -96,7 +96,7 @@ class RugbyTimerView extends WatchUi.View {
         }
         _autoMatchSummaryShown = true;
         System.println("RUGBY|RugbyTimerView|handleAutoMatchEnd showSummary");
-        WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(), WatchUi.SLIDE_UP);
+        WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(_model), WatchUi.SLIDE_UP);
     }
 
     function updateRefreshTimer(snap as Dictionary) as Void {
@@ -290,7 +290,7 @@ class RugbyTimerView extends WatchUi.View {
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_HALF_ENDED)) {
             setTextDrawable("StatusMessage", "NEXT HALF", true, RUGBY_COLOR_DIM);
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_MATCH_ENDED)) {
-            setTextDrawable("StatusMessage", "MATCH END", true, RUGBY_COLOR_DIM);
+            setTextDrawable("StatusMessage", "", false, RUGBY_COLOR_DIM);
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_NOT_STARTED)) {
             setTextDrawable("StatusMessage", "" + snap["variantName"], true, RUGBY_COLOR_DIM);
         } else {
@@ -324,7 +324,20 @@ class RugbyTimerView extends WatchUi.View {
     function handleHaptics(snap as Dictionary) as Void {
         var events = snap["hapticEvents"] as Array<Dictionary>?;
         if (events != null && events.size() > 0) {
-            _haptics.fireCoalesced(snap["snapshotId"]);
+            if (events.size() == 1) {
+                var event = events[0] as Dictionary;
+                if (valueEquals(event["type"], "halfWarning")) {
+                    _haptics.fireHalfWarning();
+                } else if (valueEquals(event["type"], "conversion")) {
+                    _haptics.fireConversionWarning();
+                } else if (valueEquals(event["type"], "yellow")) {
+                    _haptics.fireYellowWarning();
+                } else {
+                    _haptics.fireCoalesced(snap["snapshotId"]);
+                }
+            } else {
+                _haptics.fireCoalesced(snap["snapshotId"]);
+            }
             _model.markHapticEventsFired(events);
         }
     }

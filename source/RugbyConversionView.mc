@@ -82,7 +82,7 @@ class RugbyConversionView extends WatchUi.View {
 
     function cacheDrawables() as Void {
         _drawables = {} as Dictionary;
-        var ids = ["ConversionTitle", "ConversionTeam", "ConversionTimer", "ConversionMadeHint", "ConversionMissHint"] as Array<String>;
+        var ids = ["MatchCountdown", "ConversionTitle", "ConversionTeam", "ConversionTimer", "ConversionMadeHint", "ConversionMissHint"] as Array<String>;
         for (var i = 0; i < ids.size(); i += 1) {
             var id = ids[i] as String;
             var drawable = null;
@@ -99,6 +99,7 @@ class RugbyConversionView extends WatchUi.View {
     function bindLayout(snap as Dictionary) as Void {
         var conversion = snap["conversionTimer"] as Dictionary?;
         var remaining = (conversion == null ? 0 : conversion["remainingSeconds"]) as Number;
+        setText("MatchCountdown", formatClock(snap["mainCountdownSeconds"]), Graphics.COLOR_LT_GRAY);
         setText("ConversionTitle", "CONVERSION", Graphics.COLOR_YELLOW);
         var isHome = valueEquals(_teamId, RUGBY_TEAM_HOME) as Boolean;
         System.println("RUGBY|RugbyConversionView|bindLayout teamId=" + (_teamId == null ? "null" : _teamId) + " isHome=" + (isHome ? "true" : "false") + " remainingSeconds=" + remaining.format("%d"));

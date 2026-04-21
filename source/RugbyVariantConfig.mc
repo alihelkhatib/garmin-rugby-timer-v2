@@ -27,7 +27,7 @@ class RugbyVariantConfig {
                 "halfLengthSeconds" => 2400,
                 "halfCount" => 2,
                 "sinBinLengthSeconds" => 600,
-                "conversionLengthSeconds" => 90
+                "conversionLengthSeconds" => 60
             },
             RUGBY_VARIANT_SEVENS => {
                 "id" => RUGBY_VARIANT_SEVENS,
@@ -51,7 +51,7 @@ class RugbyVariantConfig {
                 "halfLengthSeconds" => 2100,
                 "halfCount" => 2,
                 "sinBinLengthSeconds" => 480,
-                "conversionLengthSeconds" => 90
+                "conversionLengthSeconds" => 60
             } as Dictionary
         } as Dictionary;
     }
