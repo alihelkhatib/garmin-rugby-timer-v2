@@ -1,5 +1,17 @@
 # Test Traceability
 
+## 001-rugby-referee-timer
+
+- US1 Match Exit And Start Confirmation: `source/RugbyTimerDelegate.mc`, `source/RugbyTimerView.mc`, `source/RugbyHaptics.mc`, `tests/match_summary_endflow_test.mc`, and `tests/match_summary_regression_test.mc` cover the pre-match and terminal exit path plus the match-start vibration wiring.
+- US2 Conversion Overlay Countdown: `source/RugbyConversionView.mc` and `tests/Test_RugbyGameModel.mc` cover the conversion overlay countdown remaining visible at the top while the match clock is paused; `tests/test_eventlog.mc` keeps event logging smoke coverage in place for scoring flow regressions.
+- US3 Discipline Timing And Half Warnings: `source/RugbyGameModel.mc`, `source/RugbyTimerView.mc`, and `source/RugbyHaptics.mc` cover yellow/red sanction visibility, pause reminders, and the one-time 2-minute half-warning alert; `tests/Test_RugbyGameModel.mc` covers the haptic event emission behavior.
+- US6 Rugby Activity Recording, Distance, And Speed: `source/RugbyActivityRecorder.mc` and `tests/Test_RugbyActivityRecorder.mc` cover rugby-equivalent labeling, motion-data capture, and non-blocking save fallback; `tests/impl_activity_export.mc` and `tests/impl_export_error_handling.mc` add recorder smoke coverage.
+
+Validation status:
+
+- `git diff --check` is clean after CRLF normalization.
+- Signed Connect IQ compile and simulator validation remain pending in this workspace because the SDK CLI could not complete without a signing private key.
+
 ## 003-idle-timer-controls
 
 - US1 Adjust Main Timer Before Kickoff: `tests/Test_RugbyIdleTimerControls.mc`, `tests/Test_RugbyGameModel.mc`, and `tests/Test_RugbyVariantConfig.mc` cover idle Up/Menu increment, idle Down decrement, raw physical Up/Menu/Down/Select-Start key routing, 00:00 lower bound, selected variant normal-half upper bound, and match start from the adjusted idle value.

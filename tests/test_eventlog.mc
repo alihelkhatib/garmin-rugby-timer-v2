@@ -1,14 +1,22 @@
-// tests/test_eventlog.mc - basic test stub for RugbyEventLog
+// tests/test_eventlog.mc - smoke test for RugbyEventLog
 
-// This is a placeholder test that demonstrates intended assertions.
-// Replace with actual Monkey C test harness when available.
+using Toybox.Test;
 
-function run_test_eventlog() {
-    // TODO: instantiate RugbyEventLog, add a few events, assert count and basic fields
-    // Example (pseudocode):
-    // var log = new RugbyEventLog();
-    // log.addEvent("start", 0, null, null, "match start");
-    // assertEquals(log.events.size(), 1);
+(:test)
+function testEventLogStoresAndSerializes(logger) {
+    var log = new RugbyEventLog();
+    var event = {
+        "action" => "try",
+        "teamId" => RUGBY_TEAM_HOME,
+        "matchElapsedSeconds" => 42
+    };
+
+    log.addEvent(event);
+
+    var snapshot = log.snapshot();
+    Test.assertEqual(1, snapshot.size());
+    Test.assertEqual("try", snapshot[0]["action"]);
+    Test.assertEqual(RUGBY_TEAM_HOME, snapshot[0]["teamId"]);
+    Test.assertEqual(42, snapshot[0]["matchElapsedSeconds"]);
+    Test.assertNotEqual("[]", log.serialize());
 }
-
-// To run: use project test harness or simulator test runner (see quickstart.md)

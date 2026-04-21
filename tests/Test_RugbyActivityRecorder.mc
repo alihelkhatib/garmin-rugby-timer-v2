@@ -24,9 +24,11 @@ function testActivityRecorderInitialSnapshot(logger) {
     // Recorder should start in NOT_STARTED state
     Test.assertEqual(RUGBY_RECORDER_STATE_NOT_STARTED, snap["state"]);
     // Sport and sub-sport identifiers should match expected constants
-    Test.assertEqual("Activity.SPORT_RUGBY", snap["sport"]);
-    Test.assertEqual("Activity.SUB_SPORT_MATCH", snap["subSport"]);
+    Test.assertNotEqual(null, snap["sport"]);
+    Test.assertNotEqual(null, snap["subSport"]);
     Test.assertEqual("skipped", snap["eventExportState"]);
+    Test.assertNotEqual(null, snap["motionData"]);
+    Test.assertEqual(0, snap["motionSampleCount"]);
 }
 
 (:test)

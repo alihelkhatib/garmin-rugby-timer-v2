@@ -1,5 +1,18 @@
 # Test Results
 
+## 2026-04-18 Rugby Referee Timer
+
+- Added smoke coverage in `tests/test_eventlog.mc`, `tests/match_summary_empty_state_test.mc`, `tests/match_summary_endflow_test.mc`, `tests/match_summary_regression_test.mc`, `tests/impl_activity_export.mc`, and `tests/impl_export_error_handling.mc`.
+- Normalized the modified test and source files to CRLF and confirmed `git diff --check` is clean.
+- Full Monkey C compile and simulator validation still need a signed SDK run in this workspace; the local CLI would not complete without a signing private key.
+
+Coverage added:
+
+- Event-log snapshot and serialization smoke coverage in `tests/test_eventlog.mc`.
+- Empty-state summary helper coverage in `tests/match_summary_empty_state_test.mc`.
+- Summary entry-point wiring coverage in `tests/match_summary_endflow_test.mc` and `tests/match_summary_regression_test.mc`.
+- Rugby recorder state and export-failure smoke coverage in `tests/impl_activity_export.mc` and `tests/impl_export_error_handling.mc`.
+
 ## 2026-04-13 Idle Timer Controls
 
 - `monkeyc -f monkey.jungle -d fenix7 -o build/garmin-rugby-timer-fenix7.prg -y /tmp/codex-garmin-rugby-timer-key.der -w`: PASS with existing warnings for invalid manifest device ids only.

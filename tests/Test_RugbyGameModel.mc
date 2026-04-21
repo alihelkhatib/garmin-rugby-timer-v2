@@ -355,6 +355,21 @@ function testPauseReminderStateIsInSnapshot(logger) {
 }
 
 (:test)
+function testHalfWarningHapticFiresOnce(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    var warningAt = (40 * 60 * 1000) - (RUGBY_HALF_WARNING_THRESHOLD_SECONDS * 1000);
+
+    var snap = model.snapshot(warningAt);
+    Test.assertEqual(1, snap["hapticEvents"].size());
+    Test.assertEqual("halfWarning", snap["hapticEvents"][0]["type"]);
+
+    model.markHapticEventsFired(snap["hapticEvents"]);
+    snap = model.snapshot(warningAt + 1000);
+    Test.assertEqual(0, snap["hapticEvents"].size());
+}
+
+(:test)
 function testYellowAndRedCards(logger) {
 
     var model = newTestModel();

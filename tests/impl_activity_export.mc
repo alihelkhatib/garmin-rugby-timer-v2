@@ -1,9 +1,14 @@
-// tests/impl_activity_export.mc - integration test stub for ActivityRecording export
+// tests/impl_activity_export.mc - recorder smoke test for activity export state
 
-// This test should:
-// 1. Create an event log with several representative events.
-// 2. Start a RugbyActivityRecorder session.
-// 3. Stop and save with events attached.
-// 4. Verify that an ActivityRecording was created and contains expected event payload (or documented fallback representation).
+using Toybox.Test;
 
-// TODO: Implement with device simulator hooks and FIT parsing utilities.
+(:test)
+function testImplActivityExportSnapshot(logger) {
+    var recorder = new RugbyActivityRecorder();
+    var snap = recorder.snapshot();
+
+    Test.assertEqual(RUGBY_RECORDER_STATE_NOT_STARTED, snap["state"]);
+    Test.assertEqual("skipped", snap["eventExportState"]);
+    Test.assertEqual(0, snap["motionSampleCount"]);
+    Test.assertNotEqual(null, snap["motionData"]);
+}

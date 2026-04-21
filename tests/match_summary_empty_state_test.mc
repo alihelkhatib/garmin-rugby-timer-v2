@@ -1,14 +1,14 @@
-// match_summary_empty_state_test.mc - Placeholder test for empty state
+// match_summary_empty_state_test.mc - empty-state smoke test for the summary helper
 
-class MatchSummaryEmptyStateTest {
-    function run() {
-        var log = new RugbyEventLog.RugbyEventLog();
-        log.initialize();
-        var view = new RugbySummaryView();
-        view.initialize(log);
-        view.show();
-        // Assert: when no events, the view shows "No events recorded" (placeholder assertion)
-        System.println("Test: empty state should display 'No events recorded'");
-        return true;
-    }
+using Toybox.Test;
+
+(:test)
+function testMatchSummaryEmptyState(logger) {
+    var log = new RugbyEventLog();
+    var view = new RugbySummaryView(log);
+
+    view.show();
+
+    Test.assertEqual(0, log.snapshot().size());
+    Test.assertEqual("[]", log.serialize());
 }
