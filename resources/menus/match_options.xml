@@ -1,5 +1,7 @@
 <menu2 id="MatchOptionsMenu" title="@Strings.MatchOptions_Title" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+  <menu-item id="match_option_end_half" label="@Strings.MatchOption_EndHalf" />
   <menu-item id="match_option_end" label="@Strings.MatchOption_End" />
   <menu-item id="match_option_summary" label="@Strings.MatchOption_Summary" />
+  <menu-item id="match_option_undo" label="@Strings.MatchOption_Undo" />
   <menu-item id="match_option_reset" label="@Strings.MatchOption_Reset" />
 </menu2>

@@ -26,8 +26,12 @@
   <string id="CardType_Red">Red</string>
   <string id="MatchOptions_Title">Match</string>
   <string id="MatchOption_End">End match</string>
+  <string id="MatchOption_EndHalf">End half</string>
   <string id="MatchOption_Summary">Match summary</string>
+  <string id="MatchOption_Undo">Undo last event</string>
   <string id="MatchOption_Reset">Reset match</string>
+  <string id="State_TimeUp">TIME</string>
+  <string id="State_ConfirmUndo">UNDO?</string>
   <string id="MatchSummary_Title">Events</string>
   <string id="MatchSummary_Empty">No events</string>
   <string id="Event_Try">Try</string>

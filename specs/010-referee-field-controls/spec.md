@@ -43,7 +43,7 @@ As a rugby referee, I need the watch to alert me when regulation time reaches ze
 
 **Acceptance Scenarios**:
 
-1. **Given** a running half reaches 00:00, **When** regulation time expires, **Then** the app alerts the referee, shows a clear time-up state, and continues tracking overtime instead of immediately ending the period.
+1. **Given** a running half reaches 00:00, **When** regulation time expires, **Then** the app alerts the referee, shows a clear time-up state, changes the main timer to a red negative overtime count-up, and continues tracking overtime instead of immediately ending the period.
 2. **Given** the app is in time-up overtime for a non-final half, **When** the referee opens the Back-button match menu and confirms period end, **Then** the app moves to half-time with existing score, card, conversion, and event state preserved.
 3. **Given** the app is in time-up overtime for the final half, **When** the referee opens the Back-button match menu and confirms match end, **Then** the app follows the existing match-end save and summary flow.
 4. **Given** time-up overtime is active, **When** the referee records a score or card before ending the period, **Then** the event is accepted and timestamped consistently with the ongoing match.
@@ -90,6 +90,7 @@ As a referee, I need a readable match summary that can show all recorded events 
 - **FR-006**: If no event can be undone, the app MUST prevent the undo action and leave the match state unchanged.
 - **FR-007**: When regulation time reaches zero, the app MUST enter a time-up overtime state instead of automatically ending the half or match.
 - **FR-008**: The time-up overtime state MUST provide a clear visual indication that regulation time has expired while continuing to show the match context needed by the referee.
+- **FR-008a**: During time-up overtime, the main countdown timer MUST count upward from `-00:00` in red text to indicate time beyond regulation.
 - **FR-009**: The time-up overtime state MUST continue tracking elapsed overtime until the referee explicitly confirms the period or match end from the Back-button match menu.
 - **FR-010**: Confirming period end from the Back-button match menu during time-up overtime MUST move to half-time for non-final periods and to the existing match-end flow for the final period.
 - **FR-010a**: Select/Start MUST remain dedicated to the existing pause/resume behavior during time-up overtime and MUST NOT confirm period or match end.

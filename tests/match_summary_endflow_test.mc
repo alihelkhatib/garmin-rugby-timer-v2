@@ -9,5 +9,6 @@ function testMatchSummaryEndFlow(logger) {
     var delegate = new RugbyTimerDelegate(model, recorder);
 
     Test.assertEqual(true, delegate.canOpenMatchOptionsForState(RUGBY_STATE_MATCH_ENDED));
-    Test.assertEqual(true, delegate.canExitAppForState(RUGBY_STATE_MATCH_ENDED));
+    Test.assertEqual(false, delegate.canExitAppForState(RUGBY_STATE_MATCH_ENDED));
+    Test.assertEqual(true, delegate.canOpenMatchOptionsForState(RUGBY_STATE_TIME_UP));
 }

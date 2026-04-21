@@ -47,6 +47,8 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
                 if (_recorder has :discard) {
                     _recorder.discard();
                 }
+            } else if (confirmed && stateEquals(pending, RUGBY_PENDING_UNDO_LAST_EVENT)) {
+                System.println("RUGBY|RugbyTimerDelegate|selectAction confirmed undoLastEvent");
             }
         } else if (stateEquals(cs, RUGBY_STATE_NOT_STARTED) || stateEquals(cs, RUGBY_STATE_HALF_ENDED)) {
             System.println("RUGBY|RugbyTimerDelegate|selectAction calling _model.startMatch");
@@ -59,7 +61,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
                 var haptic = _haptics.fireMatchStart() as Boolean;
                 System.println("RUGBY|RugbyTimerDelegate|selectAction matchStartHaptic=" + (haptic ? "true" : "false"));
             }
-        } else if (stateEquals(cs, RUGBY_STATE_RUNNING)) {
+        } else if (stateEquals(cs, RUGBY_STATE_RUNNING) || stateEquals(cs, RUGBY_STATE_TIME_UP)) {
             System.println("RUGBY|RugbyTimerDelegate|selectAction calling _model.pause");
             _model.pause(now);
             var pauseHaptic = _haptics.firePause() as Boolean;
@@ -202,7 +204,8 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
     function isActiveMatchState(clockState as String) as Boolean {
         return stateEquals(clockState, RUGBY_STATE_RUNNING)
             || stateEquals(clockState, RUGBY_STATE_PAUSED)
-            || stateEquals(clockState, RUGBY_STATE_HALF_ENDED);
+            || stateEquals(clockState, RUGBY_STATE_HALF_ENDED)
+            || stateEquals(clockState, RUGBY_STATE_TIME_UP);
     }
 
     function stateEquals(value, expected as String) as Boolean {
@@ -229,7 +232,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function canExitAppForState(clockState as String) as Boolean {
-        return stateEquals(clockState, RUGBY_STATE_NOT_STARTED) || stateEquals(clockState, RUGBY_STATE_MATCH_ENDED);
+        return stateEquals(clockState, RUGBY_STATE_NOT_STARTED);
     }
 /* Guard against invalid states before opening score menus. */
 
@@ -311,6 +314,19 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
         WatchUi.requestUpdate();
     }
 
+    function requestEndHalf() as Void {
+        var snap = _model.snapshot(System.getTimer()) as Dictionary;
+        if (snap["isTimeUp"] == true && snap["halfIndex"] < snap["halfCount"]) {
+            _model.requestEndHalf();
+        }
+        WatchUi.requestUpdate();
+    }
+
+    function requestUndoLastEvent() as Void {
+        _model.requestUndoLastEvent();
+        WatchUi.requestUpdate();
+    }
+
     function openMatchOptions() as Boolean {
         var snap = _model.snapshot(System.getTimer()) as Dictionary;
         System.println("RUGBY|RugbyTimerDelegate|openMatchOptions snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
@@ -320,7 +336,8 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
 
     function showMatchSummary() as Void {
         System.println("RUGBY|RugbyTimerDelegate|showMatchSummary eventCount=" + _model.eventLog().size().format("%d"));
-        WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(_model), WatchUi.SLIDE_UP);
+        var view = new RugbyMatchSummaryView(_model);
+        WatchUi.pushView(view, new RugbyMatchSummaryDelegate(_model, view), WatchUi.SLIDE_UP);
     }
 
     function openVariantMenu() as Boolean {
@@ -398,8 +415,12 @@ class MatchOptionDelegate extends WatchUi.Menu2InputDelegate {
         System.println("RUGBY|MatchOptionDelegate|onSelect itemId=" + itemId);
         if (valueEquals(itemId, :match_option_end) || valueEquals(itemId, "match_option_end")) {
             _timerDelegate.requestEndMatchSave();
+        } else if (valueEquals(itemId, :match_option_end_half) || valueEquals(itemId, "match_option_end_half")) {
+            _timerDelegate.requestEndHalf();
         } else if (valueEquals(itemId, :match_option_summary) || valueEquals(itemId, "match_option_summary")) {
             _timerDelegate.showMatchSummary();
+        } else if (valueEquals(itemId, :match_option_undo) || valueEquals(itemId, "match_option_undo")) {
+            _timerDelegate.requestUndoLastEvent();
         } else if (valueEquals(itemId, :match_option_reset) || valueEquals(itemId, "match_option_reset")) {
             _timerDelegate.requestResetMatch();
         }
@@ -423,22 +444,28 @@ class MatchOptionDelegate extends WatchUi.Menu2InputDelegate {
 
 class RugbyMatchSummaryDelegate extends WatchUi.BehaviorDelegate {
     var _model as RugbyGameModel;
+    var _view as RugbyMatchSummaryView;
 
-    function initialize(model as RugbyGameModel) {
+    function initialize(model as RugbyGameModel, view as RugbyMatchSummaryView) {
         BehaviorDelegate.initialize();
         _model = model;
+        _view = view;
     }
 
     function onSelect() as Boolean {
         return onBack();
     }
 
-    function shouldExit() as Boolean {
-        if (_model == null) {
-            return false;
-        }
-        var snap = _model.snapshot(System.getTimer()) as Dictionary;
-        return stateEquals(snap["clockState"], RUGBY_STATE_MATCH_ENDED);
+    function onNextPage() as Boolean {
+        _view.scrollDown();
+        WatchUi.requestUpdate();
+        return true;
+    }
+
+    function onPreviousPage() as Boolean {
+        _view.scrollUp();
+        WatchUi.requestUpdate();
+        return true;
     }
 
     function stateEquals(value, expected as String) as Boolean {
@@ -449,11 +476,7 @@ class RugbyMatchSummaryDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onBack() as Boolean {
-        if (shouldExit()) {
-            System.exit();
-        } else {
-            WatchUi.popView(WatchUi.SLIDE_DOWN);
-        }
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
         return true;
     }
 }

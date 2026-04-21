@@ -23,7 +23,8 @@ class BackButtonSummaryPrototype {
         }
 
         // Otherwise show summary view non-destructively
-        WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(_model), WatchUi.SLIDE_UP);
+        var view = new RugbyMatchSummaryView(_model);
+        WatchUi.pushView(view, new RugbyMatchSummaryDelegate(_model, view), WatchUi.SLIDE_UP);
         return true;
     }
 }

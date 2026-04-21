@@ -17,6 +17,7 @@ const RUGBY_STATE_NOT_STARTED = "notStarted";
 const RUGBY_STATE_RUNNING = "running";
 const RUGBY_STATE_PAUSED = "paused";
 const RUGBY_STATE_HALF_ENDED = "halfEnded";
+const RUGBY_STATE_TIME_UP = "timeUp";
 const RUGBY_STATE_MATCH_ENDED = "matchEnded";
 const RUGBY_SCORE_TRY = "try";
 const RUGBY_SCORE_CONVERSION = "conversion";
@@ -25,6 +26,12 @@ const RUGBY_SCORE_DROP_GOAL = "dropGoal";
 const RUGBY_CARD_YELLOW = "yellow";
 const RUGBY_CARD_RED = "red";
 const RUGBY_EVENT_CONVERSION_MADE = "conversionMade";
+const RUGBY_EVENT_YELLOW_CARD = "yellowCard";
+const RUGBY_EVENT_RED_CARD = "redCard";
+const RUGBY_PENDING_END_HALF = "endHalf";
+const RUGBY_PENDING_END_MATCH_SAVE = "endMatchSave";
+const RUGBY_PENDING_RESET_MATCH = "resetMatch";
+const RUGBY_PENDING_UNDO_LAST_EVENT = "undoLastEvent";
 const RUGBY_PAUSE_REMINDER_INTERVAL_MS = 10000;
 const RUGBY_HALF_WARNING_THRESHOLD_SECONDS = 120;
 
@@ -44,6 +51,7 @@ class RugbyGameModel {
     var _summaryVisible as Boolean;
     var _autoMatchEndPendingSave as Boolean;
     var _halfWarningAlertFired as Boolean;
+    var _timeUpAlertFired as Boolean;
 /* Create teams, default setup and reset timers/snapshots. */
 
     function initialize(setup as Dictionary?) {
@@ -64,6 +72,7 @@ class RugbyGameModel {
         _summaryVisible = false;
         _autoMatchEndPendingSave = false;
         _halfWarningAlertFired = false;
+        _timeUpAlertFired = false;
     }
 
     function setup() as Dictionary {
@@ -114,6 +123,7 @@ class RugbyGameModel {
                 _summaryVisible = false;
             }
             _halfWarningAlertFired = false;
+            _timeUpAlertFired = false;
             _clockState = RUGBY_STATE_RUNNING;
             _pendingConfirmAction = null;
             if (_setup["halfIndex"] == null) {
@@ -133,7 +143,7 @@ class RugbyGameModel {
 
     function pause(nowMs as Number) as Void {
         System.println("RUGBY|RugbyGameModel|pause requested nowMs=" + nowMs.format("%d") + " clockState=" + _clockState);
-        if (isClockState(RUGBY_STATE_RUNNING)) {
+        if (isClockState(RUGBY_STATE_RUNNING) || isClockState(RUGBY_STATE_TIME_UP)) {
             _setup["activeElapsedMs"] = activeElapsedMs(nowMs);
             _clockState = RUGBY_STATE_PAUSED;
             System.println("RUGBY|RugbyGameModel|pause applied activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : _setup["activeElapsedMs"].format("%d")) + " clockState=" + _clockState + " pauseReminderIntervalMs=" + RUGBY_PAUSE_REMINDER_INTERVAL_MS.format("%d"));
@@ -147,7 +157,7 @@ class RugbyGameModel {
         System.println("RUGBY|RugbyGameModel|resume requested nowMs=" + nowMs.format("%d") + " clockState=" + _clockState);
         if (isClockState(RUGBY_STATE_PAUSED)) {
             _setup["halfStartedAtMs"] = nowMs;
-            _clockState = RUGBY_STATE_RUNNING;
+            _clockState = isElapsedAtOrPastRegulation(_setup["activeElapsedMs"]) ? RUGBY_STATE_TIME_UP : RUGBY_STATE_RUNNING;
             System.println("RUGBY|RugbyGameModel|resume applied halfStartedAtMs=" + (_setup["halfStartedAtMs"] == null ? "null" : _setup["halfStartedAtMs"].format("%d")) + " activeElapsedMs=" + (_setup["activeElapsedMs"] == null ? "null" : _setup["activeElapsedMs"].format("%d")) + " clockState=" + _clockState);
         } else {
             System.println("RUGBY|RugbyGameModel|resume ignored clockState=" + _clockState);
@@ -156,20 +166,26 @@ class RugbyGameModel {
 /* Mark pending confirmation to end the current half; do not mutate timers yet. */
 
     function requestEndHalf() as Void {
-        if (isClockState(RUGBY_STATE_RUNNING) || isClockState(RUGBY_STATE_PAUSED) || isClockState(RUGBY_STATE_HALF_ENDED)) {
-            _pendingConfirmAction = "endHalf";
+        if (isClockState(RUGBY_STATE_RUNNING) || isClockState(RUGBY_STATE_PAUSED) || isClockState(RUGBY_STATE_HALF_ENDED) || isClockState(RUGBY_STATE_TIME_UP)) {
+            _pendingConfirmAction = RUGBY_PENDING_END_HALF;
         }
     }
 /* Request confirmation to end match and save; caller handles recorder. */
 
     function requestEndMatchSave() as Void {
         if (!isClockState(RUGBY_STATE_MATCH_ENDED)) {
-            _pendingConfirmAction = "endMatchSave";
+            _pendingConfirmAction = RUGBY_PENDING_END_MATCH_SAVE;
         }
     }
 
     function requestResetMatch() as Void {
-        _pendingConfirmAction = "resetMatch";
+        _pendingConfirmAction = RUGBY_PENDING_RESET_MATCH;
+    }
+
+    function requestUndoLastEvent() as Void {
+        if (canUndoLastEvent()) {
+            _pendingConfirmAction = RUGBY_PENDING_UNDO_LAST_EVENT;
+        }
     }
 
     function cancelPendingAction() as Void {
@@ -178,24 +194,28 @@ class RugbyGameModel {
 /* If a pending confirm action exists, perform it (endHalf or endMatch) and return true. */
 
     function confirmPending(nowMs as Number) as Boolean {
-        if (valueEquals(_pendingConfirmAction, "endHalf")) {
+        if (valueEquals(_pendingConfirmAction, RUGBY_PENDING_END_HALF)) {
             endHalf(nowMs);
             return true;
         }
-        if (valueEquals(_pendingConfirmAction, "endMatchSave")) {
+        if (valueEquals(_pendingConfirmAction, RUGBY_PENDING_END_MATCH_SAVE)) {
             endMatch(nowMs);
             return true;
         }
-        if (valueEquals(_pendingConfirmAction, "resetMatch")) {
+        if (valueEquals(_pendingConfirmAction, RUGBY_PENDING_RESET_MATCH)) {
             resetMatch();
             return true;
+        }
+        if (valueEquals(_pendingConfirmAction, RUGBY_PENDING_UNDO_LAST_EVENT)) {
+            _pendingConfirmAction = null;
+            return undoLastEvent();
         }
         return false;
     }
 /* Finalize half timing; either end match if last half or advance half index and reset active elapsed. */
 
     function endHalf(nowMs as Number) as Void {
-        if (isClockState(RUGBY_STATE_RUNNING)) {
+        if (isClockState(RUGBY_STATE_RUNNING) || isClockState(RUGBY_STATE_TIME_UP)) {
             _setup["activeElapsedMs"] = activeElapsedMs(nowMs);
         }
         _pendingConfirmAction = null;
@@ -209,12 +229,13 @@ class RugbyGameModel {
             _setup["activeElapsedMs"] = 0;
             _setup["halfStartedAtMs"] = nowMs;
             _halfWarningAlertFired = false;
+            _timeUpAlertFired = false;
         }
     }
 /* Finalize match state, persist elapsed time if running and expire active timers. */
 
     function endMatch(nowMs as Number) as Void {
-        if (isClockState(RUGBY_STATE_RUNNING)) {
+        if (isClockState(RUGBY_STATE_RUNNING) || isClockState(RUGBY_STATE_TIME_UP)) {
             _setup["activeElapsedMs"] = activeElapsedMs(nowMs);
         }
         _clockState = RUGBY_STATE_MATCH_ENDED;
@@ -222,6 +243,7 @@ class RugbyGameModel {
         _summaryVisible = true;
         expireActiveTimers(nowMs);
         _halfWarningAlertFired = false;
+        _timeUpAlertFired = false;
         System.println("RUGBY|RugbyGameModel|endMatch applied nowMs=" + nowMs.format("%d") + " eventCount=" + _eventLog.size().format("%d") + " summaryVisible=" + (_summaryVisible ? "true" : "false"));
     }
 
@@ -243,16 +265,23 @@ class RugbyGameModel {
         _summaryVisible = false;
         _autoMatchEndPendingSave = false;
         _halfWarningAlertFired = false;
+        _timeUpAlertFired = false;
         System.println("RUGBY|RugbyGameModel|resetMatch applied clockState=" + _clockState + " eventCount=" + _eventLog.size().format("%d"));
     }
 /* Apply try points and start the conversion timer for the scoring team. */
 
     function recordTry(teamId as String, nowMs as Number) as Void {
         var applied = applyScore(teamId, RUGBY_SCORE_TRY, 5, 1) as Boolean;
+        var event = null as Dictionary?;
         if (applied) {
-            addEvent(teamId, RUGBY_SCORE_TRY, nowMs);
+            event = addEvent(teamId, RUGBY_SCORE_TRY, nowMs, {
+                "scoreType" => RUGBY_SCORE_TRY,
+                "points" => 5,
+                "countDelta" => 1,
+                "createdConversionTimer" => true
+            } as Dictionary);
         }
-        startConversionTimer(teamId, nowMs);
+        startConversionTimer(teamId, nowMs, event == null ? null : event["id"]);
     }
 /* Apply conversion points and clear conversion timer. */
 
@@ -263,7 +292,11 @@ class RugbyGameModel {
     function recordConversionAt(teamId as String, nowMs as Number) as Boolean {
         var applied = applyScore(teamId, RUGBY_SCORE_CONVERSION, 2, 1) as Boolean;
         if (applied) {
-            addEvent(teamId, RUGBY_EVENT_CONVERSION_MADE, nowMs);
+            addEvent(teamId, RUGBY_EVENT_CONVERSION_MADE, nowMs, {
+                "scoreType" => RUGBY_SCORE_CONVERSION,
+                "points" => 2,
+                "countDelta" => 1
+            } as Dictionary);
         }
         clearConversionTimer();
         return applied;
@@ -287,7 +320,11 @@ class RugbyGameModel {
     function recordPenaltyGoalAt(teamId as String, nowMs as Number) as Void {
         var applied = applyScore(teamId, RUGBY_SCORE_PENALTY_GOAL, 3, 1) as Boolean;
         if (applied) {
-            addEvent(teamId, RUGBY_SCORE_PENALTY_GOAL, nowMs);
+            addEvent(teamId, RUGBY_SCORE_PENALTY_GOAL, nowMs, {
+                "scoreType" => RUGBY_SCORE_PENALTY_GOAL,
+                "points" => 3,
+                "countDelta" => 1
+            } as Dictionary);
         }
     }
 
@@ -298,7 +335,11 @@ class RugbyGameModel {
     function recordDropGoalAt(teamId as String, nowMs as Number) as Void {
         var applied = applyScore(teamId, RUGBY_SCORE_DROP_GOAL, 3, 1) as Boolean;
         if (applied) {
-            addEvent(teamId, RUGBY_SCORE_DROP_GOAL, nowMs);
+            addEvent(teamId, RUGBY_SCORE_DROP_GOAL, nowMs, {
+                "scoreType" => RUGBY_SCORE_DROP_GOAL,
+                "points" => 3,
+                "countDelta" => 1
+            } as Dictionary);
         }
     }
 
@@ -333,7 +374,7 @@ class RugbyGameModel {
     function startYellowCard(teamId as String, nowMs as Number) as Number {
         pauseForCardIfRunning(nowMs, RUGBY_CARD_YELLOW);
         var id = addSanction(teamId, RUGBY_CARD_YELLOW, _setup["sinBinLengthSeconds"], nowMs) as Number;
-        addEvent(teamId, "yellowCard", nowMs);
+        addEvent(teamId, RUGBY_EVENT_YELLOW_CARD, nowMs, { "sanctionId" => id } as Dictionary);
         System.println("RUGBY|RugbyGameModel|startYellowCard teamId=" + teamId + " nowMs=" + nowMs.format("%d") + " sanctionId=" + id.format("%d") + " sinBinSeconds=" + (_setup["sinBinLengthSeconds"] == null ? "null" : _setup["sinBinLengthSeconds"].format("%d")));
         return id;
     }
@@ -341,7 +382,7 @@ class RugbyGameModel {
     function recordRedCard(teamId as String, nowMs as Number) as Number {
         pauseForCardIfRunning(nowMs, RUGBY_CARD_RED);
         var id = addSanction(teamId, RUGBY_CARD_RED, null, nowMs) as Number;
-        addEvent(teamId, "redCard", nowMs);
+        addEvent(teamId, RUGBY_EVENT_RED_CARD, nowMs, { "sanctionId" => id } as Dictionary);
         System.println("RUGBY|RugbyGameModel|recordRedCard teamId=" + teamId + " nowMs=" + nowMs.format("%d") + " sanctionId=" + id.format("%d"));
         return id;
     }
@@ -366,6 +407,7 @@ class RugbyGameModel {
         var conversion = conversionSnapshot(elapsedMs, nowMs) as Dictionary?;
         var sanctions = sanctionSnapshots(elapsedMs) as Array<Dictionary>;
         var hapticEvents = dueHapticEvents(countdownSeconds, conversion, sanctions) as Array<Dictionary>;
+        var timeUp = isTimeUpStateForElapsed(elapsedMs) as Boolean;
         return {
             "snapshotId" => _snapshotId,
             "clockState" => _clockState,
@@ -376,6 +418,8 @@ class RugbyGameModel {
             "halfCount" => _setup["halfCount"],
             "mainCountdownSeconds" => countdownSeconds,
             "countUpSeconds" => elapsedMs / 1000,
+            "overtimeSeconds" => timeUp ? overtimeSecondsForElapsed(elapsedMs) : null,
+            "isTimeUp" => timeUp,
             "halfTimeSeconds" => halfTimeElapsedSeconds(nowMs),
             "home" => _teams[RUGBY_TEAM_HOME],
             "away" => _teams[RUGBY_TEAM_AWAY],
@@ -386,7 +430,9 @@ class RugbyGameModel {
             "eventLog" => eventLogSnapshot(),
             "matchSummaryVisible" => _summaryVisible,
             "autoMatchEndPendingSave" => _autoMatchEndPendingSave,
-            "pauseReminderIntervalMs" => RUGBY_PAUSE_REMINDER_INTERVAL_MS
+            "pauseReminderIntervalMs" => RUGBY_PAUSE_REMINDER_INTERVAL_MS,
+            "canUndoLastEvent" => canUndoLastEvent(),
+            "latestUndoableEvent" => latestUndoableEvent()
         } as Dictionary;
     }
 
@@ -423,6 +469,8 @@ class RugbyGameModel {
                 setSanctionAlertFired(event["id"]);
             } else if (valueEquals(event["type"], "halfWarning")) {
                 _halfWarningAlertFired = true;
+            } else if (valueEquals(event["type"], "timeUp")) {
+                _timeUpAlertFired = true;
             }
         }
         _lastHapticEvents = events;
@@ -430,7 +478,7 @@ class RugbyGameModel {
 
     function activeElapsedMs(nowMs as Number) as Number {
         var base = (_setup["activeElapsedMs"] == null ? 0 : _setup["activeElapsedMs"]) as Number;
-        if (isClockState(RUGBY_STATE_RUNNING)) {
+        if (isClockState(RUGBY_STATE_RUNNING) || isClockState(RUGBY_STATE_TIME_UP)) {
             return base + (nowMs - _setup["halfStartedAtMs"]);
         }
         return base;
@@ -457,6 +505,25 @@ class RugbyGameModel {
 
     function isRunningCountdownExpired(nowMs as Number) as Boolean {
         return isClockState(RUGBY_STATE_RUNNING) && activeElapsedMs(nowMs) >= ((_setup["halfLengthSeconds"] as Number) * 1000);
+    }
+
+    function isElapsedAtOrPastRegulation(elapsedMs as Number?) as Boolean {
+        if (elapsedMs == null) {
+            return false;
+        }
+        return elapsedMs >= ((_setup["halfLengthSeconds"] as Number) * 1000);
+    }
+
+    function isTimeUpStateForElapsed(elapsedMs as Number) as Boolean {
+        return (isClockState(RUGBY_STATE_TIME_UP) || isClockState(RUGBY_STATE_PAUSED)) && isElapsedAtOrPastRegulation(elapsedMs);
+    }
+
+    function overtimeSecondsForElapsed(elapsedMs as Number) as Number {
+        var regulationMs = ((_setup["halfLengthSeconds"] as Number) * 1000) as Number;
+        if (elapsedMs <= regulationMs) {
+            return 0;
+        }
+        return (elapsedMs - regulationMs) / 1000;
     }
 
     function newTeam(teamId as String, label as String) as Dictionary {
@@ -491,14 +558,15 @@ class RugbyGameModel {
     }
 /* Create the conversion timer state anchored to current active elapsed ms. */
 
-    function startConversionTimer(teamId as String, nowMs as Number) as Void {
+    function startConversionTimer(teamId as String, nowMs as Number, sourceEventId as Number?) as Void {
         _conversionTimer = {
             "active" => true,
             "teamId" => teamId,
             "startedAtActiveMs" => activeElapsedMs(nowMs),
             "startedAtMs" => nowMs,
             "durationSeconds" => _setup["conversionLengthSeconds"],
-            "nearExpiryAlertFired" => false
+            "nearExpiryAlertFired" => false,
+            "sourceEventId" => sourceEventId
         } as Dictionary;
         System.println("RUGBY|RugbyGameModel|startConversionTimer teamId=" + teamId + " nowMs=" + nowMs.format("%d") + " startedAtActiveMs=" + _conversionTimer["startedAtActiveMs"].format("%d") + " startedAtMs=" + _conversionTimer["startedAtMs"].format("%d") + " durationSeconds=" + _conversionTimer["durationSeconds"].format("%d") + " clockState=" + _clockState);
     }
@@ -566,6 +634,9 @@ class RugbyGameModel {
 
     function dueHapticEvents(countdownSeconds as Number, conversion as Dictionary?, sanctions as Array<Dictionary>) as Array<Dictionary> {
         var events = [] as Array<Dictionary>;
+        if (isClockState(RUGBY_STATE_TIME_UP) && !_timeUpAlertFired) {
+            events.add({ "type" => "timeUp" } as Dictionary);
+        }
         if (isClockState(RUGBY_STATE_RUNNING) && !_halfWarningAlertFired && countdownSeconds <= RUGBY_HALF_WARNING_THRESHOLD_SECONDS) {
             events.add({ "type" => "halfWarning" } as Dictionary);
         }
@@ -614,14 +685,10 @@ class RugbyGameModel {
         }
         var halfIndex = currentHalf() as Number;
         var elapsedMs = activeElapsedMs(nowMs) as Number;
-        System.println("RUGBY|RugbyGameModel|applyAutomaticCountdownExpiry halfIndex=" + halfIndex.format("%d") + " halfCount=" + (_setup["halfCount"] == null ? "null" : _setup["halfCount"].format("%d")) + " elapsedMs=" + elapsedMs.format("%d") + " finalPeriod=" + (isFinalPeriod() ? "true" : "false"));
-        if (isFinalPeriod()) {
-            endMatch(nowMs);
-            _autoMatchEndPendingSave = true;
-            System.println("RUGBY|RugbyGameModel|applyAutomaticCountdownExpiry queuedAutoMatchSave");
-        } else {
-            endHalf(nowMs);
-        }
+        _setup["activeElapsedMs"] = elapsedMs;
+        _setup["halfStartedAtMs"] = nowMs;
+        _clockState = RUGBY_STATE_TIME_UP;
+        System.println("RUGBY|RugbyGameModel|applyAutomaticCountdownExpiry timeUp halfIndex=" + halfIndex.format("%d") + " halfCount=" + (_setup["halfCount"] == null ? "null" : _setup["halfCount"].format("%d")) + " elapsedMs=" + elapsedMs.format("%d") + " finalPeriod=" + (isFinalPeriod() ? "true" : "false"));
     }
 
     function preserveYellowCardsForPeriodEnd(elapsedMs as Number) as Void {
@@ -677,7 +744,7 @@ class RugbyGameModel {
         return false;
     }
 
-    function addEvent(teamId as String, action as String, nowMs as Number) as Void {
+    function addEvent(teamId as String, action as String, nowMs as Number, metadata as Dictionary?) as Dictionary {
         var matchSeconds = currentMatchElapsedSeconds(nowMs) as Number;
         var entry = {
             "id" => _nextEventId,
@@ -686,9 +753,85 @@ class RugbyGameModel {
             "matchElapsedSeconds" => matchSeconds,
             "createdAtSnapshotId" => _snapshotId
         } as Dictionary;
+        if (metadata != null) {
+            var keys = metadata.keys() as Array;
+            for (var i = 0; i < keys.size(); i += 1) {
+                var key = keys[i];
+                entry[key] = metadata[key];
+            }
+        }
         _nextEventId += 1;
         _eventLog.add(entry);
         System.println("RUGBY|RugbyGameModel|addEvent id=" + entry["id"].format("%d") + " teamId=" + teamId + " action=" + action + " matchElapsedSeconds=" + matchSeconds.format("%d") + " eventCount=" + _eventLog.size().format("%d"));
+        return entry;
+    }
+
+    function latestUndoableEvent() as Dictionary? {
+        if (_eventLog.size() == 0) {
+            return null;
+        }
+        var event = _eventLog[_eventLog.size() - 1] as Dictionary;
+        return isUndoableEvent(event) ? event : null;
+    }
+
+    function canUndoLastEvent() as Boolean {
+        return latestUndoableEvent() != null;
+    }
+
+    function isUndoableEvent(event as Dictionary) as Boolean {
+        var action = event["action"];
+        return valueEquals(action, RUGBY_SCORE_TRY)
+            || valueEquals(action, RUGBY_EVENT_CONVERSION_MADE)
+            || valueEquals(action, RUGBY_SCORE_PENALTY_GOAL)
+            || valueEquals(action, RUGBY_SCORE_DROP_GOAL)
+            || valueEquals(action, RUGBY_EVENT_YELLOW_CARD)
+            || valueEquals(action, RUGBY_EVENT_RED_CARD);
+    }
+
+    function undoLastEvent() as Boolean {
+        var event = latestUndoableEvent() as Dictionary?;
+        if (event == null) {
+            return false;
+        }
+        var action = event["action"];
+        if (valueEquals(action, RUGBY_EVENT_YELLOW_CARD) || valueEquals(action, RUGBY_EVENT_RED_CARD)) {
+            removeSanctionById(event["sanctionId"]);
+        } else {
+            var points = event["points"] == null ? 0 : event["points"];
+            var countDelta = event["countDelta"] == null ? 1 : event["countDelta"];
+            applyScore(event["teamId"], event["scoreType"], -points, -countDelta);
+            if (valueEquals(action, RUGBY_SCORE_TRY) && _conversionTimer != null && _conversionTimer["active"] && _conversionTimer["sourceEventId"] == event["id"]) {
+                clearConversionTimer();
+            }
+        }
+        removeLastEvent();
+        return true;
+    }
+
+    function removeLastEvent() as Void {
+        var updated = [] as Array<Dictionary>;
+        for (var i = 0; i < _eventLog.size() - 1; i += 1) {
+            updated.add(_eventLog[i]);
+        }
+        _eventLog = updated;
+    }
+
+    function removeSanctionById(sanctionId as Number?) as Boolean {
+        if (sanctionId == null) {
+            return false;
+        }
+        var updated = [] as Array<Dictionary>;
+        var removed = false;
+        for (var i = 0; i < _sanctions.size(); i += 1) {
+            var sanction = _sanctions[i] as Dictionary;
+            if (sanction["id"] == sanctionId) {
+                removed = true;
+            } else {
+                updated.add(sanction);
+            }
+        }
+        _sanctions = updated;
+        return removed;
     }
 
     function clearEventLog(reason as String) as Void {

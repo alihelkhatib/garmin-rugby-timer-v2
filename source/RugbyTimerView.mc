@@ -96,11 +96,12 @@ class RugbyTimerView extends WatchUi.View {
         }
         _autoMatchSummaryShown = true;
         System.println("RUGBY|RugbyTimerView|handleAutoMatchEnd showSummary");
-        WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(_model), WatchUi.SLIDE_UP);
+        var view = new RugbyMatchSummaryView(_model);
+        WatchUi.pushView(view, new RugbyMatchSummaryDelegate(_model, view), WatchUi.SLIDE_UP);
     }
 
     function updateRefreshTimer(snap as Dictionary) as Void {
-        var shouldRun = (valueEquals(snap["clockState"], RUGBY_STATE_RUNNING) || valueEquals(snap["clockState"], RUGBY_STATE_HALF_ENDED)) as Boolean;
+        var shouldRun = (valueEquals(snap["clockState"], RUGBY_STATE_RUNNING) || valueEquals(snap["clockState"], RUGBY_STATE_HALF_ENDED) || valueEquals(snap["clockState"], RUGBY_STATE_TIME_UP)) as Boolean;
         if (shouldRun && !_refreshActive) {
             if (_refreshTimer == null) {
                 _refreshTimer = new Timer.Timer();
@@ -202,8 +203,16 @@ class RugbyTimerView extends WatchUi.View {
         bindTeamCard("HomeCardValue", snap["sanctions"] as Array<Dictionary>, RUGBY_TEAM_HOME);
         bindTeamCard("AwayCardValue", snap["sanctions"] as Array<Dictionary>, RUGBY_TEAM_AWAY);
         bindConversion(snap["conversionTimer"] as Dictionary?);
-        setTextDrawable("Countdown", formatClock(snap["mainCountdownSeconds"]), true, Graphics.COLOR_WHITE);
+        bindMainCountdown(snap);
         setStatus(snap);
+    }
+
+    function bindMainCountdown(snap as Dictionary) as Void {
+        if (snap["isTimeUp"] == true) {
+            setTextDrawable("Countdown", "-" + formatClock(snap["overtimeSeconds"]), true, Graphics.COLOR_RED);
+            return;
+        }
+        setTextDrawable("Countdown", formatClock(snap["mainCountdownSeconds"]), true, Graphics.COLOR_WHITE);
     }
 
     function bindElapsedTimer(snap as Dictionary) as Void {
@@ -284,7 +293,13 @@ class RugbyTimerView extends WatchUi.View {
 
     function setStatus(snap as Dictionary) as Void {
         if (snap["pendingConfirmAction"] != null) {
-            setTextDrawable("StatusMessage", "CONFIRM", true, Graphics.COLOR_YELLOW);
+            if (valueEquals(snap["pendingConfirmAction"], RUGBY_PENDING_UNDO_LAST_EVENT)) {
+                setTextDrawable("StatusMessage", "UNDO?", true, Graphics.COLOR_YELLOW);
+            } else {
+                setTextDrawable("StatusMessage", "CONFIRM", true, Graphics.COLOR_YELLOW);
+            }
+        } else if (snap["isTimeUp"] == true) {
+            setTextDrawable("StatusMessage", "TIME", true, Graphics.COLOR_YELLOW);
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_PAUSED)) {
             setTextDrawable("StatusMessage", "PAUSED", true, Graphics.COLOR_YELLOW);
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_HALF_ENDED)) {
@@ -328,6 +343,8 @@ class RugbyTimerView extends WatchUi.View {
                 var event = events[0] as Dictionary;
                 if (valueEquals(event["type"], "halfWarning")) {
                     _haptics.fireHalfWarning();
+                } else if (valueEquals(event["type"], "timeUp")) {
+                    _haptics.fireTimeUp();
                 } else if (valueEquals(event["type"], "conversion")) {
                     _haptics.fireConversionWarning();
                 } else if (valueEquals(event["type"], "yellow")) {

@@ -49,6 +49,10 @@ class RugbyHaptics {
         return _firePattern("fireHalfWarning", [ new Attention.VibeProfile(100, 350) ]);
     }
 
+    function fireTimeUp() as Boolean {
+        return _firePattern("fireTimeUp", [ new Attention.VibeProfile(100, 250), new Attention.VibeProfile(0, 120), new Attention.VibeProfile(100, 500) ]);
+    }
+
     function fireMatchStart() as Boolean {
         return _firePattern("fireMatchStart", [ new Attention.VibeProfile(100, 300) ]);
     }

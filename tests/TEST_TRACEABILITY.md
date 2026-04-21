@@ -57,3 +57,14 @@ Validation status:
 - Compile and unit-test compile passed for `fenix7` on 2026-04-13.
 - Simulator test artifact ran with `monkeydo build\garmin-rugby-timer-fenix7-test.prg fenix7 /t`; interactive quickstart validation remains pending for a manual simulator/device session.
 - Half-time timer correction compile, unit-test compile, and simulator test artifact passed for `fenix7` on 2026-04-14.
+
+## 010-referee-field-controls
+
+- US1 Undo Last Event: `source/RugbyGameModel.mc`, `source/RugbyTimerDelegate.mc`, `resources/menus/match_options.xml`, `resources/strings/strings.xml`, and `tests/Test_RugbyGameModel.mc` cover latest-only score/card undo, confirmation cancel/no-op behavior, conversion rollback edge cases, and summary event removal.
+- US2 Referee-Confirmed Time Expiry: `source/RugbyGameModel.mc`, `source/RugbyTimerView.mc`, `source/RugbyHaptics.mc`, and `tests/Test_RugbyGameModel.mc` cover time-up overtime state, one-time haptic event emission, Back-button confirmation, Select/Start pause/resume preservation, and card/conversion behavior around regulation expiry.
+- US3 Scrollable Recent-First Match Summary: `source/RugbyMatchSummaryView.mc`, `source/RugbyTimerDelegate.mc`, `tests/match_summary_regression_test.mc`, `tests/match_summary_endflow_test.mc`, and `tests/match_summary_empty_state_test.mc` cover newest-first summary ordering, summary access from match states, empty state, and state-preserving summary exit.
+
+Validation status:
+
+- `monkeyc -f monkey.jungle -d fenix7 -o build\garmin-rugby-timer-fenix7-test.prg -t -y build\codex-garmin-rugby-timer-key.der -w`: PASS on 2026-04-21.
+- `monkeydo build\garmin-rugby-timer-fenix7-test.prg fenix7 /t`: BLOCKED, unable to connect to simulator.

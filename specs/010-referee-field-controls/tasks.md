@@ -17,10 +17,10 @@
 
 **Purpose**: Prepare shared resources and traceability before behavior changes.
 
-- [ ] T001 Update feature traceability entries for referee field controls in `tests/TEST_TRACEABILITY.md`
-- [ ] T002 Add shared menu/status strings for undo, confirm undo, time-up, overtime, and end-half labels in `resources/strings/strings.xml`
-- [ ] T003 Update Back-button match menu resource entries for undo, end-half, summary, end-match, and reset actions in `resources/menus/match_options.xml`
-- [ ] T004 [P] Document expected simulator validation targets for this feature in `specs/010-referee-field-controls/quickstart.md`
+- [x] T001 Update feature traceability entries for referee field controls in `tests/TEST_TRACEABILITY.md`
+- [x] T002 Add shared menu/status strings for undo, confirm undo, time-up, overtime, and end-half labels in `resources/strings/strings.xml`
+- [x] T003 Update Back-button match menu resource entries for undo, end-half, summary, end-match, and reset actions in `resources/menus/match_options.xml`
+- [x] T004 [P] Document expected simulator validation targets for this feature in `specs/010-referee-field-controls/quickstart.md`
 
 ---
 
@@ -30,11 +30,11 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T005 Add shared model constants for `timeUp`, pending undo, pending end-half, and undoable score/card actions in `source/RugbyGameModel.mc`
-- [ ] T006 Add snapshot fields for `overtimeSeconds`, `canUndoLastEvent`, `latestUndoableEvent`, and `isTimeUp` in `source/RugbyGameModel.mc`
-- [ ] T007 Update match-state eligibility helpers for active, time-up, summary, score, card, and match-option states in `source/RugbyTimerDelegate.mc`
-- [ ] T008 Add menu action dispatch cases for undo and end-half identifiers in `source/RugbyTimerDelegate.mc`
-- [ ] T009 [P] Add time-up and undo labels to the UI interaction traceability notes in `specs/010-referee-field-controls/contracts/ui-interaction-contract.md`
+- [x] T005 Add shared model constants for `timeUp`, pending undo, pending end-half, and undoable score/card actions in `source/RugbyGameModel.mc`
+- [x] T006 Add snapshot fields for `overtimeSeconds`, `canUndoLastEvent`, `latestUndoableEvent`, and `isTimeUp` in `source/RugbyGameModel.mc`
+- [x] T007 Update match-state eligibility helpers for active, time-up, summary, score, card, and match-option states in `source/RugbyTimerDelegate.mc`
+- [x] T008 Add menu action dispatch cases for undo and end-half identifiers in `source/RugbyTimerDelegate.mc`
+- [x] T009 [P] Add time-up and undo labels to the UI interaction traceability notes in `specs/010-referee-field-controls/contracts/ui-interaction-contract.md`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in priority order.
 
@@ -50,22 +50,22 @@
 
 > Write these tests first and verify they fail before implementation.
 
-- [ ] T010 [US1] Add model tests for undoing latest try, conversion, penalty goal, and drop goal in `tests/Test_RugbyGameModel.mc`
-- [ ] T011 [US1] Add model tests for undoing latest yellow and red card sanctions in `tests/Test_RugbyGameModel.mc`
-- [ ] T012 [US1] Add model tests for undo cancel/no-event/latest-only behavior in `tests/Test_RugbyGameModel.mc`
-- [ ] T013 [US1] Add model tests for undoing a try with an active conversion opportunity and undoing a made conversion without removing the try in `tests/Test_RugbyGameModel.mc`
+- [x] T010 [US1] Add model tests for undoing latest try, conversion, penalty goal, and drop goal in `tests/Test_RugbyGameModel.mc`
+- [x] T011 [US1] Add model tests for undoing latest yellow and red card sanctions in `tests/Test_RugbyGameModel.mc`
+- [x] T012 [US1] Add model tests for undo cancel/no-event/latest-only behavior in `tests/Test_RugbyGameModel.mc`
+- [x] T013 [US1] Add model tests for undoing a try with an active conversion opportunity and undoing a made conversion without removing the try in `tests/Test_RugbyGameModel.mc`
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Enrich score event creation with score delta, counter field, and conversion-timer linkage metadata in `source/RugbyGameModel.mc`
-- [ ] T015 [US1] Enrich yellow/red card event creation with sanction id metadata in `source/RugbyGameModel.mc`
-- [ ] T016 [US1] Implement latest-event eligibility helpers and `requestUndoLastEvent()` in `source/RugbyGameModel.mc`
-- [ ] T017 [US1] Implement confirmed latest-event rollback for score, conversion, try-created conversion timer, yellow card, and red card in `source/RugbyGameModel.mc`
-- [ ] T018 [US1] Integrate pending undo confirmation into `confirmPending()`, `cancelPendingAction()`, and snapshot state in `source/RugbyGameModel.mc`
-- [ ] T019 [US1] Add `requestUndoLastEvent()` routing and confirmation handling in `source/RugbyTimerDelegate.mc`
-- [ ] T020 [US1] Show or suppress the undo menu action based on model snapshot eligibility in `source/RugbyTimerDelegate.mc`
-- [ ] T021 [US1] Ensure undo confirmation status text is readable and distinct from other confirmations in `source/RugbyTimerView.mc`
-- [ ] T022 [US1] Verify existing score/card/conversion tests still pass after undo metadata changes in `tests/Test_RugbyGameModel.mc`
+- [x] T014 [US1] Enrich score event creation with score delta, counter field, and conversion-timer linkage metadata in `source/RugbyGameModel.mc`
+- [x] T015 [US1] Enrich yellow/red card event creation with sanction id metadata in `source/RugbyGameModel.mc`
+- [x] T016 [US1] Implement latest-event eligibility helpers and `requestUndoLastEvent()` in `source/RugbyGameModel.mc`
+- [x] T017 [US1] Implement confirmed latest-event rollback for score, conversion, try-created conversion timer, yellow card, and red card in `source/RugbyGameModel.mc`
+- [x] T018 [US1] Integrate pending undo confirmation into `confirmPending()`, `cancelPendingAction()`, and snapshot state in `source/RugbyGameModel.mc`
+- [x] T019 [US1] Add `requestUndoLastEvent()` routing and confirmation handling in `source/RugbyTimerDelegate.mc`
+- [x] T020 [US1] Show or suppress the undo menu action based on model snapshot eligibility in `source/RugbyTimerDelegate.mc`
+- [x] T021 [US1] Ensure undo confirmation status text is readable and distinct from other confirmations in `source/RugbyTimerView.mc`
+- [x] T022 [US1] Verify existing score/card/conversion tests still pass after undo metadata changes in `tests/Test_RugbyGameModel.mc`
 
 **Checkpoint**: User Story 1 is complete when latest-only undo passes for all score/card event types and existing score/card/conversion behavior is preserved.
 
@@ -81,23 +81,23 @@
 
 > Write these tests first and verify they fail before implementation.
 
-- [ ] T023 [US2] Replace non-final auto-expiry tests with time-up overtime expectations in `tests/Test_RugbyGameModel.mc`
-- [ ] T024 [US2] Replace final-period auto-end tests with time-up pending-confirmation expectations in `tests/Test_RugbyGameModel.mc`
-- [ ] T025 [US2] Add tests that Select/Start pause/resume behavior remains unchanged during time-up overtime in `tests/Test_RugbyGameModel.mc`
-- [ ] T026 [US2] Add tests that score/card/conversion timers remain available and timestamp consistently during time-up overtime in `tests/Test_RugbyGameModel.mc`
-- [ ] T027 [US2] Add haptic test for one-time time-up alert behavior in `tests/Test_RugbyGameModel.mc`
+- [x] T023 [US2] Replace non-final auto-expiry tests with time-up overtime expectations in `tests/Test_RugbyGameModel.mc`
+- [x] T024 [US2] Replace final-period auto-end tests with time-up pending-confirmation expectations in `tests/Test_RugbyGameModel.mc`
+- [x] T025 [US2] Add tests that Select/Start pause/resume behavior remains unchanged during time-up overtime in `tests/Test_RugbyGameModel.mc`
+- [x] T026 [US2] Add tests that score/card/conversion timers remain available and timestamp consistently during time-up overtime in `tests/Test_RugbyGameModel.mc`
+- [x] T027 [US2] Add haptic test for one-time time-up alert behavior in `tests/Test_RugbyGameModel.mc`
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Replace automatic countdown expiry mutation with explicit `timeUp` state transition in `source/RugbyGameModel.mc`
-- [ ] T029 [US2] Add overtime elapsed calculation and countdown clamping for time-up snapshots in `source/RugbyGameModel.mc`
-- [ ] T030 [US2] Add Back-button menu end-half/end-match pending confirmation behavior for time-up states in `source/RugbyGameModel.mc`
-- [ ] T031 [US2] Preserve pause/resume active elapsed behavior for time-up overtime without letting Select/Start confirm period end in `source/RugbyTimerDelegate.mc`
-- [ ] T032 [US2] Allow score and card menus during time-up where existing active-match rules allow them in `source/RugbyTimerDelegate.mc`
-- [ ] T033 [US2] Bind `TIME` and overtime display/status without hiding score, card, or conversion context in `source/RugbyTimerView.mc`
-- [ ] T034 [US2] Add or reuse a one-time time-up haptic pattern in `source/RugbyHaptics.mc`
-- [ ] T035 [US2] Remove auto-match-end save trigger assumptions and ensure activity save occurs only after confirmed match end in `source/RugbyTimerView.mc`
-- [ ] T036 [US2] Verify yellow-card carry-forward and conversion timer behavior around time-up in `tests/Test_RugbyGameModel.mc`
+- [x] T028 [US2] Replace automatic countdown expiry mutation with explicit `timeUp` state transition in `source/RugbyGameModel.mc`
+- [x] T029 [US2] Add overtime elapsed calculation and countdown clamping for time-up snapshots in `source/RugbyGameModel.mc`
+- [x] T030 [US2] Add Back-button menu end-half/end-match pending confirmation behavior for time-up states in `source/RugbyGameModel.mc`
+- [x] T031 [US2] Preserve pause/resume active elapsed behavior for time-up overtime without letting Select/Start confirm period end in `source/RugbyTimerDelegate.mc`
+- [x] T032 [US2] Allow score and card menus during time-up where existing active-match rules allow them in `source/RugbyTimerDelegate.mc`
+- [x] T033 [US2] Bind `TIME` and overtime display/status without hiding score, card, or conversion context in `source/RugbyTimerView.mc`
+- [x] T034 [US2] Add or reuse a one-time time-up haptic pattern in `source/RugbyHaptics.mc`
+- [x] T035 [US2] Remove auto-match-end save trigger assumptions and ensure activity save occurs only after confirmed match end in `source/RugbyTimerView.mc`
+- [x] T036 [US2] Verify yellow-card carry-forward and conversion timer behavior around time-up in `tests/Test_RugbyGameModel.mc`
 
 **Checkpoint**: User Story 2 is complete when regulation expiry never ends a period automatically, overtime remains visible, Back-button confirmation ends periods/matches, and Select/Start still pauses/resumes.
 
@@ -113,20 +113,20 @@
 
 > Write these tests first and verify they fail before implementation.
 
-- [ ] T037 [US3] Add summary ordering tests for newest-first event display in `tests/match_summary_regression_test.mc`
-- [ ] T038 [US3] Add summary scroll-window tests for zero, one, one-screen, and twenty-event lists in `tests/match_summary_regression_test.mc`
-- [ ] T039 [P] [US3] Add summary access state tests for active, paused, half-ended, time-up, match-ended, pre-match, and reset states in `tests/match_summary_endflow_test.mc`
-- [ ] T040 [P] [US3] Add summary empty-state regression test in `tests/match_summary_empty_state_test.mc`
+- [x] T037 [US3] Add summary ordering tests for newest-first event display in `tests/match_summary_regression_test.mc`
+- [x] T038 [US3] Add summary scroll-window tests for zero, one, one-screen, and twenty-event lists in `tests/match_summary_regression_test.mc`
+- [x] T039 [P] [US3] Add summary access state tests for active, paused, half-ended, time-up, match-ended, pre-match, and reset states in `tests/match_summary_endflow_test.mc`
+- [x] T040 [P] [US3] Add summary empty-state regression test in `tests/match_summary_empty_state_test.mc`
 
 ### Implementation for User Story 3
 
-- [ ] T041 [US3] Add summary scroll offset, visible row calculation, and Up/Down navigation handling in `source/RugbyMatchSummaryView.mc`
-- [ ] T042 [US3] Render summary rows newest-first while preserving underlying chronological event data in `source/RugbyMatchSummaryView.mc`
-- [ ] T043 [US3] Render zero-event empty state through existing summary resources in `source/RugbyMatchSummaryView.mc`
-- [ ] T044 [US3] Update summary delegate Back/Select behavior to return to prior match context without exiting active matches unexpectedly in `source/RugbyTimerDelegate.mc`
-- [ ] T045 [US3] Ensure Back-button match menu exposes summary in active, paused, half-ended, time-up, and match-ended states only in `source/RugbyTimerDelegate.mc`
-- [ ] T046 [US3] Align summary static labels and layout resources with scrollable summary behavior in `resources/layouts/match_summary_layout.xml`
-- [ ] T047 [US3] Ensure undone events are absent from summary snapshots and display after US1 rollback in `source/RugbyMatchSummaryView.mc`
+- [x] T041 [US3] Add summary scroll offset, visible row calculation, and Up/Down navigation handling in `source/RugbyMatchSummaryView.mc`
+- [x] T042 [US3] Render summary rows newest-first while preserving underlying chronological event data in `source/RugbyMatchSummaryView.mc`
+- [x] T043 [US3] Render zero-event empty state through existing summary resources in `source/RugbyMatchSummaryView.mc`
+- [x] T044 [US3] Update summary delegate Back/Select behavior to return to prior match context without exiting active matches unexpectedly in `source/RugbyTimerDelegate.mc`
+- [x] T045 [US3] Ensure Back-button match menu exposes summary in active, paused, half-ended, time-up, and match-ended states only in `source/RugbyTimerDelegate.mc`
+- [x] T046 [US3] Align summary static labels and layout resources with scrollable summary behavior in `resources/layouts/match_summary_layout.xml`
+- [x] T047 [US3] Ensure undone events are absent from summary snapshots and display after US1 rollback in `source/RugbyMatchSummaryView.mc`
 
 **Checkpoint**: User Story 3 is complete when all events are reachable by physical-button scrolling, newest event is initially visible, and summary access preserves match state.
 
@@ -140,10 +140,10 @@
 - [ ] T049 Run the simulator smoke flow from `specs/010-referee-field-controls/quickstart.md`
 - [ ] T050 Validate small and large watch readability for time-up, undo confirmation, and summary scrolling using `resources/layouts/layout.xml` and `resources/layouts/match_summary_layout.xml`
 - [ ] T051 Validate activity save/discard behavior after confirmed time-up match end and reset in `source/RugbyActivityRecorder.mc`
-- [ ] T052 Validate no new persistent storage, network access, telemetry, or dependencies were introduced in `source/` and `resources/`
-- [ ] T053 Compare compiled artifact size with existing `garmin-rugby-timer-v2.iq` or latest build output and document any unexpected growth in `specs/010-referee-field-controls/quickstart.md`
-- [ ] T054 Update user-facing control documentation for undo, time-up overtime, and scrollable summary in `README.md`
-- [ ] T055 Update developer validation notes for this feature in `docs/DEVELOPER.md`
+- [x] T052 Validate no new persistent storage, network access, telemetry, or dependencies were introduced in `source/` and `resources/`
+- [x] T053 Compare compiled artifact size with existing `garmin-rugby-timer-v2.iq` or latest build output and document any unexpected growth in `specs/010-referee-field-controls/quickstart.md`
+- [x] T054 Update user-facing control documentation for undo, time-up overtime, and scrollable summary in `README.md`
+- [x] T055 Update developer validation notes for this feature in `docs/DEVELOPER.md`
 
 ---
 

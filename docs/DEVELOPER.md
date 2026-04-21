@@ -159,6 +159,7 @@ Where to find existing specs:
 - If `monkeyc`/`monkeydo` are missing, double-check your PATH and CONNECTIQ_SDK variable; relogin or restart your shell after modifying PATH.
 - Use the Connect IQ IDE simulator for step-through testing and for devices that the CLI might not fully emulate.
 - Preserve timing logic in the shared model (`source/`) — UI code should render state from the model, not duplicate timer logic.
+- Referee field controls are specified in `specs/010-referee-field-controls/`. Validate latest-event undo, time-up overtime, Back-button period-end confirmation, and scrollable newest-first summary together because they share `RugbyGameModel`, `RugbyTimerDelegate`, and match summary rendering.
 
 ---
 
