@@ -1,192 +1,183 @@
 # Tasks: Rugby Referee Timer
 
 **Input**: Design documents from `/specs/001-rugby-referee-timer/`
-**Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
-
-**Tests**: Required by project constitution and plan for synchronized timers, variant rules, scoring, sanctions, haptics, activity recording, and regression-sensitive behavior.
-
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+**Prerequisites**: `plan.md` (required), `spec.md` (required for user stories), `research.md`, `data-model.md`, `contracts/`, `quickstart.md`
+**Tests**: Include simulator and unit-test tasks for timer synchronization, haptics, activity recording, and regression-sensitive behavior because the constitution requires explicit coverage for those areas.
 
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
-- Include exact file paths in descriptions
-
-## Path Conventions
-
-- **Garmin Connect IQ app**: `source/`, `resources/`, `manifest.xml`, `monkey.jungle`, and `tests/` where supported
-- **Feature docs**: `specs/001-rugby-referee-timer/`
-
----
+- **[Story]**: User story label, e.g. `[US1]`
+- Include exact file paths in every task description
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-**Purpose**: Establish the Connect IQ watch app skeleton and repository hygiene.
+**Purpose**: Align the Connect IQ project and documentation with the clarified rugby-timer feature before implementation begins.
 
-- [X] T001 Create Connect IQ source/resource/test directories in `source/`, `resources/layouts/`, `resources/strings/`, `resources/drawables/`, and `tests/`
-- [X] T002 Create Garmin app manifest with Fit permission and API/device target placeholders in `manifest.xml`
-- [X] T003 Create Connect IQ build configuration for the app in `monkey.jungle`
-- [X] T004 [P] Create baseline strings resource file for app/team labels and timer labels in `resources/strings/strings.xml`
-- [X] T005 [P] Create baseline layout/resource placeholders for the main watch view in `resources/layouts/layout.xml`
-- [X] T006 [P] Create or update repository ignore patterns for Connect IQ build artifacts in `.gitignore`
-
-**Checkpoint**: Project structure is ready for model, view, and test files.
+- [X] T001 [P] Update `manifest.xml` to require Connect IQ API 4.1.6 minimum and keep the `Fit`, `Positioning`, `Sensor`, and `SensorLogging` permissions aligned with rugby recording and GPS support
+- [X] T002 [P] Refresh shared resource labels and layout bindings in `resources/strings/strings.xml`, `resources/layouts/layout.xml`, `resources/layouts/match_summary_layout.xml`, and `resources/menus/match_options.xml` for the revised summary, exit, and conversion-overlay wording
+- [ ] T003 [P] Update `tests/README.md` and `tests/TEST_TRACEABILITY.md` with the final feature coverage matrix for timer sync, haptics, recording, and exit flows
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-**Purpose**: Shared models and infrastructure that MUST be complete before user story implementation.
+**Purpose**: Shared state, recorder hooks, haptics, and flow plumbing that all user stories depend on.
 
-**CRITICAL**: No user story work can begin until this phase is complete.
+- [X] T004 [P] Extend `source/RugbyGameModel.mc` with shared snapshot helpers and state fields for conversion-overlay countdown visibility, match-summary visibility, one-time half-warning events, and motion-data hooks
+- [X] T005 [P] Extend `source/RugbyActivityRecorder.mc` to carry rugby-equivalent fallback labeling, GPS motion data, distance/current speed/average speed capture, and non-blocking export state
+- [X] T006 [P] Extend `source/RugbyHaptics.mc` with dedicated helpers for match start, pause, pause reminder, conversion warning, yellow-card warning, and 2-minute half-warning patterns
+- [X] T007 [P] Update `source/RugbyTimerDelegate.mc` and `source/RugbyTimerView.mc` control flow so summary transitions, exit routing, and new haptic snapshot events can be wired without duplicating logic
+- [X] T008 [P] Update `source/RugbyConversionView.mc` and its layout dependencies in `resources/layouts/layout.xml` so the overlay can reserve a small countdown area at the top
 
-- [X] T007 [P] Create failing variant preset tests for 15s, 7s, 10s, U19, and custom overrides in `tests/Test_RugbyVariantConfig.mc`
-- [X] T008 [P] Create failing match clock tests for start, pause, resume, end-half, and snapshot derivation in `tests/Test_RugbyGameModel.mc`
-- [X] T009 [P] Create failing scoring tests for try, conversion, penalty goal, drop goal counters, and lightweight correction actions in `tests/Test_RugbyGameModel.mc`
-- [X] T010 [P] Create failing sanction/conversion timer tests for yellow countdowns, red indicators, conversion replacement, and 60-second alerts in `tests/Test_RugbyGameModel.mc`
-- [X] T011 [P] Create failing activity recorder tests for rugby sport target, match sub-sport target, and fallback state in `tests/Test_RugbyActivityRecorder.mc`
-- [X] T012 Implement rugby variant preset and override data in `source/RugbyVariantConfig.mc`
-- [X] T013 Implement shared match, team, conversion, and discipline state model in `source/RugbyGameModel.mc`
-- [X] T014 Implement haptic alert threshold helper for 60-second warnings in `source/RugbyHaptics.mc`
-- [X] T015 Implement activity recording session wrapper for rugby recording and fallback state in `source/RugbyActivityRecorder.mc`
-- [X] T016 Create app shell and lifecycle wiring in `source/RugbyTimerApp.mc`
-- [X] T017 Create input delegate shell that routes watch actions to the model in `source/RugbyTimerDelegate.mc`
-- [X] T018 Create render shell that draws from one model snapshot in `source/RugbyTimerView.mc`
-
-**Checkpoint**: Shared timing, variant, scoring, sanction, haptic, activity, app, delegate, and view foundations exist.
+**Checkpoint**: Foundation ready - user story implementation can now begin in priority order.
 
 ---
 
-## Phase 3: User Story 1 - Run Match Clock (Priority: P1) MVP
+## Phase 3: User Story 1 - Run Match Clock (Priority: P1)
 
-**Goal**: Referee can run match time with dominant countdown, secondary count-up active match timer display, half indicator, and synchronized pause/resume behavior.
+**Goal**: Keep the main countdown, count-up timer, and half indicator synchronized from one shared match state.
 
-**Independent Test**: Start a selected variant match, pause/resume it, end a half, and verify countdown, secondary timer, and half indicator remain readable and synchronized.
+**Independent Test**: Start a match, pause and resume it, and force half-end/match-end transitions while verifying all visible timers move together without visible drift.
 
 ### Tests for User Story 1
 
-- [X] T019 [P] [US1] Add match clock acceptance tests for start/pause/resume/end-half confirmation behavior in `tests/Test_RugbyGameModel.mc`
-- [X] T020 [P] [US1] Add render snapshot contract checks for countdown, count-up active match timer, and half indicator visibility in `tests/Test_RugbyGameModel.mc`
+- [ ] T009 [P] [US1] Add or extend tests in `tests/Test_RugbyGameModel.mc` for start, pause, resume, half-end, and match-end transitions from one shared snapshot
 
 ### Implementation for User Story 1
 
-- [X] T021 [US1] Implement match clock start, pause, resume, end-half confirmation, and match-ended transitions in `source/RugbyGameModel.mc`
-- [X] T022 [US1] Implement countdown and count-up active match derived snapshot fields in `source/RugbyGameModel.mc`
-- [X] T023 [US1] Wire start, pause, resume, and end-half input actions in `source/RugbyTimerDelegate.mc`
-- [X] T024 [US1] Render dominant countdown, secondary count-up active match timer, and half indicator from one snapshot in `source/RugbyTimerView.mc`
-- [X] T025 [US1] Add US1 manual validation steps to `specs/001-rugby-referee-timer/quickstart.md`
+- [ ] T010 [US1] Refine the timing state and snapshot calculations in `source/RugbyGameModel.mc` so the main countdown, count-up timer, and half indicator remain synchronized
+- [ ] T011 [US1] Update `source/RugbyTimerView.mc` and `resources/layouts/layout.xml` so the main timer hierarchy and half indicator remain readable during active play and paused states
 
-**Checkpoint**: User Story 1 is independently functional and testable as the MVP.
+**Checkpoint**: User Story 1 should be fully functional and testable independently.
 
 ---
 
 ## Phase 4: User Story 2 - Manage Scores and Conversion Timer (Priority: P2)
 
-**Goal**: Referee can record common rugby scoring and automatically manage the conversion timer after tries.
+**Goal**: Record scoring actions and show the conversion overlay with a smaller countdown at the top.
 
-**Independent Test**: Record try, conversion, penalty goal, and drop goal for each team and verify score, scoring counters, and conversion timer behavior.
+**Independent Test**: Record tries, conversions, penalties, and drop goals for both teams, then verify the conversion timer starts or replaces correctly and the conversion overlay keeps the countdown visible at the top.
 
 ### Tests for User Story 2
 
-- [X] T026 [P] [US2] Add scoring acceptance tests for try, conversion, penalty goal, drop goal, and correction actions in `tests/Test_RugbyGameModel.mc`
-- [X] T027 [P] [US2] Add conversion timer replacement and 60-second haptic threshold tests in `tests/Test_RugbyGameModel.mc`
+- [X] T012 [P] [US2] Add or extend tests in `tests/Test_RugbyGameModel.mc` and `tests/test_eventlog.mc` for try/conversion/penalty/drop-goal scoring, conversion replacement, and the smaller top countdown on the conversion overlay
 
 ### Implementation for User Story 2
 
-- [X] T028 [US2] Implement score, scoring counter updates, and lightweight correction actions in `source/RugbyGameModel.mc`
-- [X] T029 [US2] Implement conversion timer start, replacement, expiry, and pause/resume derivation in `source/RugbyGameModel.mc`
-- [X] T030 [US2] Wire scoring, correction, and conversion actions in `source/RugbyTimerDelegate.mc`
-- [X] T031 [US2] Render fixed Home/Away labels, score, scoring counters, correction state, and conversion timer in `source/RugbyTimerView.mc`
-- [X] T032 [US2] Integrate conversion timer haptic trigger through `source/RugbyHaptics.mc`
-- [X] T033 [US2] Add US2 manual validation steps to `specs/001-rugby-referee-timer/quickstart.md`
+- [X] T013 [US2] Update scoring and conversion logic in `source/RugbyGameModel.mc` so try starts or replaces the conversion timer and score counters remain consistent
+- [X] T014 [US2] Update `source/RugbyScoringMenus.mc`, `source/RugbyTeamSelectionDelegate.mc`, `source/RugbyTeamActionDelegate.mc`, and `source/RugbyConversionView.mc` so the conversion overlay shows the smaller top countdown and returns correctly after made or missed conversions
+- [ ] T015 [P] [US2] Adjust `resources/menus/score_team.xml`, `resources/menus/score_home.xml`, `resources/menus/score_away.xml`, and `resources/layouts/layout.xml` if the conversion flow needs label or position tweaks
 
-**Checkpoint**: User Stories 1 and 2 work independently and together.
+**Checkpoint**: User Story 2 should be independently usable without affecting timer control.
 
 ---
 
-## Phase 5: User Story 3 - Manage Discipline Timers (Priority: P3)
+## Phase 5: User Story 5 - Confirm Match Start And Leave Safely (Priority: P2)
 
-**Goal**: Referee can track yellow-card countdowns and persistent red-card indicators without losing match clock visibility.
+**Goal**: Provide tactile match-start confirmation and a clear way to leave the app from pre-match or terminal states.
 
-**Independent Test**: Start yellow and red sanctions for either team and verify yellow countdowns, red indicators, non-color cues, synchronization, and haptic alerts.
+**Independent Test**: Start a match on a haptic-capable device and verify one start vibration, then leave the app from pre-match or terminal screens using the documented exit path.
+
+### Tests for User Story 5
+
+- [X] T016 [P] [US5] Add or extend tests in `tests/Test_RugbyGameModel.mc` and `tests/match_summary_endflow_test.mc` for match-start vibration, pre-match exit routing, and terminal-screen exit handling
+
+### Implementation for User Story 5
+
+- [X] T017 [US5] Update `source/RugbyTimerDelegate.mc`, `source/RugbyTimerView.mc`, and `resources/menus/match_options.xml` so pre-match and terminal states expose a clear exit path without breaking active-match controls
+- [X] T018 [US5] Wire the match-start tactile confirmation in `source/RugbyTimerDelegate.mc` and `source/RugbyHaptics.mc` so the start action produces a single supported-device vibration
+
+**Checkpoint**: Match start confirmation and app exit behavior should now be independently testable.
+
+---
+
+## Phase 6: User Story 6 - Record Rugby Activity, Distance, And Speed (Priority: P2)
+
+**Goal**: Save the match as a rugby activity with GPS motion data, distance, current speed, and average speed when supported.
+
+**Independent Test**: Save a GPS-enabled match and verify the recording is labeled as rugby or the documented fallback and includes distance, current speed, average speed, and route data; verify the match still saves if GPS is denied.
+
+### Tests for User Story 6
+
+- [X] T019 [P] [US6] Add or extend tests in `tests/Test_RugbyActivityRecorder.mc`, `tests/impl_activity_export.mc`, and `tests/impl_export_error_handling.mc` for rugby labeling, GPS fallback behavior, motion data capture, and non-blocking save retries
+
+### Implementation for User Story 6
+
+- [X] T020 [US6] Update `source/RugbyActivityRecorder.mc` to capture motion data, preserve rugby-equivalent fallback labeling, and keep stop/save non-blocking when event export is unavailable
+- [X] T021 [US6] Update `source/RugbyGameModel.mc` and `source/RugbyTimerView.mc` so match-end snapshots and summary flow expose the event log and motion-data-friendly state needed by the recorder
+- [X] T022 [P] [US6] Refresh `manifest.xml` and recording-facing copy in `resources/strings/strings.xml` if permission or fallback language needs to be explicit for GPS-enabled recordings
+
+**Checkpoint**: Rugby activity recording should now be independently verifiable with motion data and fallback behavior.
+
+---
+
+## Phase 7: User Story 3 - Manage Discipline Timers (Priority: P3)
+
+**Goal**: Keep yellow and red sanctions visible and synchronized, including the 2-minute half-warning behavior.
+
+**Independent Test**: Issue yellow and red cards, run the clock through a half transition, and verify alerts fire once while card state remains visible and synchronized.
 
 ### Tests for User Story 3
 
-- [X] T034 [P] [US3] Add yellow-card countdown and pause/resume tests in `tests/Test_RugbyGameModel.mc`
-- [X] T035 [P] [US3] Add red-card persistent indicator and clear/end-match tests in `tests/Test_RugbyGameModel.mc`
-- [X] T036 [P] [US3] Add yellow-card 60-second haptic threshold tests in `tests/Test_RugbyGameModel.mc`
+- [X] T023 [P] [US3] Add or extend tests in `tests/Test_RugbyGameModel.mc` and `tests/Test_RugbyTimerView.mc` for yellow/red card pause behavior, one-time 60-second alerts, and the 2-minute half-warning threshold
 
 ### Implementation for User Story 3
 
-- [X] T037 [US3] Implement yellow-card sanction countdown state and expiry behavior in `source/RugbyGameModel.mc`
-- [X] T038 [US3] Implement red-card persistent sanction indicator state and clear behavior in `source/RugbyGameModel.mc`
-- [X] T039 [US3] Wire yellow-card, red-card, and clear sanction input actions in `source/RugbyTimerDelegate.mc`
-- [X] T040 [US3] Render active yellow-card countdowns and red-card indicators with text/icon/position cues in `source/RugbyTimerView.mc`
-- [X] T041 [US3] Integrate yellow-card haptic alert delivery through `source/RugbyHaptics.mc`
-- [X] T042 [US3] Add US3 manual validation steps to `specs/001-rugby-referee-timer/quickstart.md`
+- [X] T024 [US3] Update sanction expiry and preservation logic in `source/RugbyGameModel.mc` so yellow cards pause across halves, red cards remain persistent, and the half-warning event is emitted once
+- [X] T025 [US3] Update `source/RugbyTimerView.mc` and `source/RugbyHaptics.mc` so active sanctions remain visible, yellow-card alerts coalesce, and 2-minute warnings do not repeat
+- [ ] T026 [P] [US3] Adjust `resources/layouts/layout.xml` and `resources/menus/card_team.xml` if the sanction display or alert labels need layout refinements
 
-**Checkpoint**: User Stories 1, 2, and 3 work independently and together.
+**Checkpoint**: Discipline state should remain independently testable without changing core scoring behavior.
 
 ---
 
-## Phase 6: User Story 4 - Choose and Adjust Rugby Variant (Priority: P4)
+## Phase 8: User Story 7 - Half-Remaining Warning Haptic (Priority: P3)
 
-**Goal**: Referee can choose 15s, 7s, 10s, U19, or custom timing and adjust half, sin-bin, and conversion lengths.
+**Goal**: Vibrate once when 2 minutes remain in a half, without repeating or disrupting timer updates.
 
-**Independent Test**: Select each built-in preset, adjust timing values, and verify later match, yellow-card, and conversion timers use the selected values.
+**Independent Test**: Run a half until 2 minutes remain and verify a single haptic warning fires, then confirm it does not repeat on subsequent updates.
+
+### Tests for User Story 7
+
+- [X] T027 [P] [US7] Add or extend tests in `tests/Test_RugbyGameModel.mc` and `tests/perf_check_fenix6.mc` for the 2-minute half-warning threshold and single-fire behavior
+
+### Implementation for User Story 7
+
+- [X] T028 [US7] Update `source/RugbyGameModel.mc` and `source/RugbyHaptics.mc` so the 2-minute remaining event is emitted once per half and marked fired after vibration
+- [X] T029 [US7] Update `source/RugbyTimerView.mc` so the warning timing respects the shared snapshot and does not interfere with pause reminders or refresh timing
+
+**Checkpoint**: The half-warning haptic should now be independently verifiable and non-repeating.
+
+---
+
+## Phase 9: User Story 4 - Choose and Adjust Rugby Variant (Priority: P4)
+
+**Goal**: Select built-in rugby variants and adjust timing overrides without duplicating code paths.
+
+**Independent Test**: Select each built-in variant, then adjust half, sin-bin, and conversion values and verify the later timers use the updated settings.
 
 ### Tests for User Story 4
 
-- [X] T043 [P] [US4] Add preset coverage tests for 15s, 7s, 10s, U19, and custom in `tests/Test_RugbyVariantConfig.mc`
-- [X] T044 [P] [US4] Add timing override tests for half length, sin-bin length, and conversion length in `tests/Test_RugbyVariantConfig.mc`
-- [X] T045 [P] [US4] Add preference persistence tests for selected variant and timing overrides in `tests/Test_RugbyVariantConfig.mc`
+- [ ] T030 [P] [US4] Add or extend tests in `tests/Test_RugbyVariantConfig.mc` for built-in presets, half-length adjustments, and sin-bin/conversion override persistence
 
 ### Implementation for User Story 4
 
-- [X] T046 [US4] Implement variant selection and override application in `source/RugbyVariantConfig.mc`
-- [X] T047 [US4] Implement lightweight preference load/save for selected variant and timing overrides in `source/RugbyVariantConfig.mc`
-- [X] T048 [US4] Wire variant setup and timing adjustment input actions in `source/RugbyTimerDelegate.mc`
-- [X] T049 [US4] Render lightweight variant setup and timing adjustment UI in `source/RugbyTimerView.mc`
-- [X] T050 [US4] Connect variant setup values to match, yellow-card, and conversion timers in `source/RugbyGameModel.mc`
-- [X] T051 [US4] Add US4 manual validation steps to `specs/001-rugby-referee-timer/quickstart.md`
+- [ ] T031 [US4] Update `source/RugbyVariantConfig.mc` and `source/RugbyGameModel.mc` so preset loading, local overrides, and idle-only half adjustments stay aligned with the spec
+- [ ] T032 [US4] Update `source/RugbyTimerDelegate.mc` and `resources/menus/variant_menu.xml` so the variant picker is only available before the first match start and applies the selected preset cleanly
 
-**Checkpoint**: All user stories are independently functional and integrated.
+**Checkpoint**: Variant selection and adjustment should remain independent from the other match flows.
 
 ---
 
-## Phase 7: Activity Recording Integration
+## Phase 10: Polish & Cross-Cutting Concerns
 
-**Purpose**: Integrate rugby FIT activity recording across the completed match flow.
+**Purpose**: Validate the integrated feature set, watch-scale layout, and regression-sensitive behavior before implementation is considered complete.
 
-- [X] T052 Add activity recording lifecycle tests for start, stop, save, unsupported, and fallback states in `tests/Test_RugbyActivityRecorder.mc`
-- [X] T053 Implement `ActivityRecording.createSession()` start/stop/save integration in `source/RugbyActivityRecorder.mc`
-- [X] T054 Wire match start and match end to activity recording lifecycle in `source/RugbyTimerApp.mc`
-- [X] T055 Document target-device rugby/fallback validation expectations in `specs/001-rugby-referee-timer/quickstart.md`
-
-**Checkpoint**: Match recording behavior is planned and validated without scattering FIT session ownership.
-
----
-
-## Phase 8: Polish & Cross-Cutting Concerns
-
-**Purpose**: Validate constitution gates, regression-sensitive behavior, and documentation before implementation completion.
-
-- [ ] T056 Run regression checks for timer, scoring, sanctions, variants, UI snapshot state, haptics, storage, and activity recording; record results in `specs/001-rugby-referee-timer/quickstart.md`
-- [ ] T057 Validate synchronized timer rendering has no visible drift across main countdown, count-up active match timer, yellow cards, conversion timer, red indicators, and haptics; record results in `specs/001-rugby-referee-timer/quickstart.md`
-- [ ] T058 Validate dark color-blind-friendly layout on representative small and large round Garmin watch screens; record results in `specs/001-rugby-referee-timer/quickstart.md`
-- [ ] T059 Validate Connect IQ API 4.1.6 rugby activity recording or documented fallback/exclusion per target; record results in `specs/001-rugby-referee-timer/quickstart.md`
-- [X] T060 Update `AGENTS.md` with any new implementation commands or final source layout adjustments discovered during implementation
-- [X] T061 Refactor match screen structure into Connect IQ XML layouts and keep `RugbyTimerView` limited to state binding in `resources/layouts/layout.xml`, `source/RugbyLayoutSupport.mc`, and `source/RugbyTimerView.mc`
-- [X] T062 Add scoring team/type dialog and conversion action screen behavior in `source/RugbyScoringMenus.mc`, `source/RugbyConversionView.mc`, `source/RugbyTimerDelegate.mc`, and `resources/layouts/layout.xml`, and XML menus under `resources/menus/`
-- [X] T063 Restrict idle half-length +/- controls to the not-started screen and add XML-backed discipline/sanction menus for active match DOWN input in `source/RugbyTimerDelegate.mc`, `source/RugbyCardMenus.mc`, and `resources/menus/`
-- [ ] T064 Ensure active-match card issuance pauses the match before creating yellow/red sanction state and renders yellow cards as `Y#  M:SS` under the affected team score in `source/RugbyGameModel.mc`, `source/RugbyTimerView.mc`, and related tests
-- [ ] T065 Implement half-time screen UI (`resources/layouts/halftime.xml`) and wire into `source/RugbyTimerView.mc`, `source/RugbyTimerDelegate.mc`, and `source/RugbyGameModel.mc`
-- [ ] T066 Add unit & UI tests for half-time default durations and increment/decrement behavior in `tests/Test_RugbyGameModel.mc` and `tests/Test_RugbyTimerView.mc`
-- [ ] T067 Implement post-match summary screen UI and auto-save integration in `source/RugbyTimerView.mc`, `source/RugbyTimerApp.mc`, and `resources/layouts/postmatch.xml`
-- [ ] T068 Add integration tests for post-match auto-save and summary display in `tests/Test_RugbyActivityRecorder.mc` and `tests/Test_RugbyGameModel.mc`
-- [ ] T069 Implement match-wide card sequence counters in `source/RugbyGameModel.mc`, render Y#/R# sequences in `source/RugbyTimerView.mc`, and add tests in `tests/Test_RugbyGameModel.mc`
-- [ ] T070 Update `specs/001-rugby-referee-timer/quickstart.md` with validation steps for half-time, post-match summary, and card sequencing
+- [ ] T033 Run regression checks in `tests/Test_RugbyGameModel.mc`, `tests/Test_RugbyActivityRecorder.mc`, `tests/Test_RugbyVariantConfig.mc`, `tests/test_eventlog.mc`, `tests/match_summary_empty_state_test.mc`, `tests/match_summary_endflow_test.mc`, and `tests/match_summary_regression_test.mc` to confirm prior behaviors still pass
+- [ ] T034 Validate representative simulator and device profiles using `tests/perf_check_fenix6.mc`, `tests/perf_check_forerunner.mc`, and the scenarios in `specs/001-rugby-referee-timer/quickstart.md` on small and large round watch profiles
+- [ ] T035 Audit `resources/layouts/layout.xml`, `resources/layouts/match_summary_layout.xml`, `resources/menus/card_away.xml`, `resources/menus/card_home.xml`, `resources/menus/card_team.xml`, `resources/menus/match_options.xml`, `resources/menus/match_summary.xml`, `resources/menus/score_away.xml`, `resources/menus/score_home.xml`, `resources/menus/score_team.xml`, and `resources/menus/variant_menu.xml` for watch-scale readability, conversion-overlay countdown placement, and exit-path clarity
+- [X] T036 Update `tests/README.md` and `tests/TEST_TRACEABILITY.md` with the final story-to-test mapping and validation matrix
 
 ---
 
@@ -194,76 +185,65 @@
 
 ### Phase Dependencies
 
-- **Setup (Phase 1)**: No dependencies; must create project structure first.
-- **Foundational (Phase 2)**: Depends on Setup; blocks all user stories.
-- **User Story 1 (Phase 3)**: Depends on Foundational; MVP scope.
-- **User Story 2 (Phase 4)**: Depends on Foundational and can be developed after US1 for easiest UI integration.
-- **User Story 3 (Phase 5)**: Depends on Foundational and can be developed after US1 for easiest UI integration.
-- **User Story 4 (Phase 6)**: Depends on Foundational and should land after timer/scoring semantics are stable.
-- **Activity Recording Integration (Phase 7)**: Depends on match lifecycle from US1 and target API decisions from Foundational.
-- **Polish (Phase 8)**: Depends on all desired story phases.
+- Phase 1 has no dependencies and can start immediately.
+- Phase 2 depends on Phase 1 and blocks every user story.
+- User story phases depend on Phase 2.
+- Phase 10 depends on the desired user stories being complete.
 
 ### User Story Dependencies
 
-- **User Story 1 (P1)**: Start after Foundational; no dependency on other stories.
-- **User Story 2 (P2)**: Start after Foundational; integrates with US1 display state.
-- **User Story 3 (P3)**: Start after Foundational; integrates with US1 display state.
-- **User Story 4 (P4)**: Start after Foundational; affects timer durations used by US1, US2, and US3.
+- User Story 1 (P1) is the MVP and can be implemented immediately after Phase 2.
+- User Stories 2, 5, and 6 can proceed after Phase 2 and are independent enough to run in parallel if staffed.
+- User Stories 3 and 7 can proceed after Phase 2 and share haptic/model plumbing.
+- User Story 4 is lowest priority and can be deferred until the shared variant infrastructure is stable.
 
 ### Within Each User Story
 
-- Tests/checks first, then model changes, then delegate/input wiring, then view rendering, then quickstart updates.
-- Tasks touching `source/RugbyGameModel.mc` must run sequentially within a story.
-- Tasks touching `source/RugbyTimerView.mc` must run sequentially after model snapshot fields exist.
-- Quickstart documentation tasks should follow implementation tasks for the same story.
+- Tests should be written or updated before implementation tasks where included.
+- Shared model changes should land before view and delegate wiring.
+- Resource/layout updates should follow the state behavior they display.
+- Each user story should end in a self-contained checkpoint that can be validated independently.
 
-### Parallel Opportunities
+## Parallel Opportunities
 
-- Setup resource tasks T004-T006 can run in parallel after T001.
-- Foundational tests T007-T011 can run in parallel before implementation.
-- Story-specific tests within each user story can run in parallel when they touch distinct test concerns.
-- US2 and US3 may be implemented in parallel after US1 if changes to shared files are coordinated sequentially.
-
----
-
-## Parallel Example: User Story 2
-
-```text
-# Launch US2 test tasks together:
-Task: "T026 [P] [US2] Add scoring acceptance tests for try, conversion, penalty goal, drop goal, and correction actions in tests/Test_RugbyGameModel.mc"
-Task: "T027 [P] [US2] Add conversion timer replacement and 60-second haptic threshold tests in tests/Test_RugbyGameModel.mc"
-
-# Then implement sequentially because both model and view paths are shared:
-Task: "T028 [US2] Implement score, scoring counter updates, and lightweight correction actions in source/RugbyGameModel.mc"
-Task: "T029 [US2] Implement conversion timer start, replacement, expiry, and pause/resume derivation in source/RugbyGameModel.mc"
-Task: "T030 [US2] Wire scoring, correction, and conversion actions in source/RugbyTimerDelegate.mc"
-Task: "T031 [US2] Render fixed Home/Away labels, score, scoring counters, correction state, and conversion timer in source/RugbyTimerView.mc"
-```
-
----
+- Setup: T001, T002, and T003 can run in parallel because they touch different files.
+- Foundation: T004, T005, T006, T007, and T008 can be split across separate implementation lanes.
+- US1: T009 can run while T010 and T011 are being planned, then T010 and T011 can split by model versus view work.
+- US2: T013 and T015 can be split by model versus resource updates once T012 is in place.
+- US3: T024 and T026 can be split by model versus resource work once T023 is in place.
+- US5: T017 and T018 can be split between exit-routing and haptic wiring.
+- US6: T020 and T022 can be split between recorder logic and manifest/documentation updates.
+- US7: T028 and T029 can be split between model/haptics and view timing.
+- US4: T031 and T032 can be split between variant configuration and menu wiring.
 
 ## Implementation Strategy
 
-### MVP First (User Story 1 Only)
+### MVP First
 
 1. Complete Phase 1: Setup.
-2. Complete Phase 2: Foundational.
+2. Complete Phase 2: Foundational prerequisites.
 3. Complete Phase 3: User Story 1.
-4. Stop and validate match clock start/pause/resume/end-half with synchronized display state.
+4. Stop and validate the timer core before moving on.
 
 ### Incremental Delivery
 
-1. Add US1 match clock MVP.
-2. Add US2 scoring and conversion timer.
-3. Add US3 sanctions and haptics.
-4. Add US4 variant setup and overrides.
-5. Add activity recording integration.
-6. Run polish and regression validation.
+1. Deliver User Story 1 as the baseline match timer.
+2. Add User Story 2 for scoring and conversion behavior.
+3. Add User Story 5 for start confirmation and safe exit paths.
+4. Add User Story 6 for activity recording and motion data.
+5. Add User Story 3 for discipline timing.
+6. Add User Story 7 for the half-warning haptic.
+7. Finish with User Story 4 for variant adjustments and presets.
 
-### Notes
+### Parallel Team Strategy
 
-- [P] tasks = different files or separable checks with no dependency on incomplete tasks.
-- [Story] label maps task to a specific user story for traceability.
-- Each user story should be independently completable and testable.
-- Mark each completed task as `[X]` in this file during implementation.
-- Avoid broad refactors; preserve existing functioning behavior and isolate changes to the smallest practical file set.
+1. One developer can own the shared model and recorder changes while another handles layouts and delegates.
+2. After Phase 2, User Stories 2, 5, and 6 can move in parallel because they touch mostly separate surfaces.
+3. Discipline and half-warning work can proceed in parallel once the shared haptic/model hooks are ready.
+
+## Notes
+
+- `[P]` tasks can run in parallel when file ownership does not overlap.
+- User story labels map directly to the feature spec for traceability.
+- The feature should remain usable after each phase checkpoint, not only at the end.
+- Keep regression-sensitive timer, scoring, recording, and layout behavior covered throughout implementation.

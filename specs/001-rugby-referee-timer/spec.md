@@ -112,16 +112,16 @@ As a rugby referee, I can select a rugby variant and adjust key timing values so
 
 ### User Story 5 - Confirm Match Start And Leave Safely (Priority: P2)
 
-As a rugby referee, I can get a tactile confirmation when the match starts and I can leave the app through a clear exit path when I am not actively managing a match so I am not trapped on the watch.
+As a rugby referee, I can get a tactile confirmation when the match starts and I can leave the app when I am not actively managing a match so I am not trapped on the watch.
 
 **Why this priority**: Match start confirmation prevents silent launches, and a clear exit path is necessary for basic watch usability.
 
-**Independent Test**: Start a match on a haptic-capable device and verify one start vibration, then verify the referee can leave the app from the pre-match or terminal state through the documented exit flow.
+**Independent Test**: Start a match on a haptic-capable device and verify one start vibration, then verify the referee can leave the app from the pre-match or terminal state.
 
 **Acceptance Scenarios**:
 
 1. **Given** the referee is on the pre-match screen, **When** the referee starts the match, **Then** the watch provides one tactile confirmation of match start.
-2. **Given** the referee is on the pre-match screen, **When** the referee chooses to leave the app, **Then** the app provides a clear exit path without altering match state.
+2. **Given** the referee is on the pre-match screen, **When** the referee chooses to leave the app, **Then** the app exits without altering match state.
 3. **Given** the match has ended or has been explicitly reset, **When** the referee chooses to leave the app, **Then** the app exits cleanly without trapping the referee in a terminal screen.
 
 ---
@@ -226,7 +226,7 @@ rendering, storage, and activity-recording behavior so regression isolation can 
 - **FR-042**: Yellow card sequence numbers MUST be assigned as a single match-wide counter regardless of team, expiry, or clear; the first card issued is Y1, the second Y2, and so on. Red card sequence numbers MUST follow the same pattern starting at R1 and incrementing match-wide.
 - **FR-044**: The app MUST provide a single tactile confirmation when the referee starts a match from the pre-match screen on haptic-capable devices.
 - **FR-045**: The app MUST provide a single tactile warning when 2 minutes remain in the current half on haptic-capable devices.
-- **FR-046**: The app MUST provide a clear exit path from the pre-match screen and from terminal match screens so the referee can leave the app without being trapped in an active session.
+- **FR-046**: The app MUST allow the referee to leave from the pre-match screen and from terminal match screens without altering match state or trapping the referee in an active session.
 
 ### Key Entities *(include if feature involves data)*
 
