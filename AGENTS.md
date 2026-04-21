@@ -1,6 +1,6 @@
 ﻿# rugby-timer-v2 Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-18
+Auto-generated from all feature plans. Last updated: 2026-04-21
 
 ## Active Technologies
 - Monkey C / Garmin Connect IQ API 4.1.6 minimum + Garmin Connect IQ Toybox modules already used by the app: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording` (003-idle-timer-controls)
@@ -12,6 +12,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-18
 - No new storage; current runtime state only (007-auto-period-transition)
 - Monkey C / Garmin Connect IQ SDK 4.1.6 minimum + `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, `ActivityRecording` (001-rugby-referee-timer)
 - Connect IQ app storage only for lightweight preferences and unsupported-recording fallback; no match-history database (001-rugby-referee-timer)
+- Monkey C / Garmin Connect IQ API 4.1.6 minimum, validated with local Connect IQ SDK 9.1.0 build commands when available + Existing Garmin Connect IQ Toybox modules: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording` (010-referee-field-controls)
+- Current match runtime state only; no new persistent storage or match-history database (010-referee-field-controls)
 
 - Monkey C / Garmin Connect IQ API 4.1.6 minimum for `Activity.SPORT_RUGBY` + Garmin Connect IQ Toybox APIs: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording` (001-rugby-referee-timer)
 
@@ -41,9 +43,9 @@ tests/                   # Monkey C tests where supported
 - Avoid network dependencies, heavy analytics, and generated clutter for v1.
 
 ## Recent Changes
+- 010-referee-field-controls: Added Monkey C / Garmin Connect IQ API 4.1.6 minimum, validated with local Connect IQ SDK 9.1.0 build commands when available + Existing Garmin Connect IQ Toybox modules: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording`
 - 001-rugby-referee-timer: Added Monkey C / Garmin Connect IQ SDK 4.1.6 minimum + `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, `ActivityRecording`
 - 007-auto-period-transition: Added Monkey C / Garmin Connect IQ SDK 4.1.6 minimum, matching the current app baseline + Garmin Connect IQ Toybox modules already used by the app: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording`
-- 007-auto-period-transition: Added Monkey C / Garmin Connect IQ API 4.1.6 minimum, validated with local Connect IQ SDK 9.1.0 build commands + Garmin Connect IQ Toybox modules already used by the app: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording`
 
 
 <!-- MANUAL ADDITIONS START -->
