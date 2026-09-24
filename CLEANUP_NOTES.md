@@ -73,7 +73,7 @@
 
 ### Remaining limitations
 
-- Detailed event export into a saved FIT activity is unavailable through the portable ActivityRecording API; the in-app event summary is authoritative.
+- At that stage, detailed event export had not been implemented through ActivityRecording; this limitation is superseded by the 2026-09-24 FIT contributor implementation below.
 - A restored conversion preserves its last checkpointed remaining time instead of guessing downtime.
 - Physical-watch haptics, sleep/wake behavior, FIT inspection, battery impact, and full-length drift remain release-gate checks.
 
@@ -101,3 +101,10 @@
 - Added deterministic model coverage for the terminal confirmation state; the executable suite now contains 69 passing tests.
 - Shortened the confirmation prompt to `SELECT: STOP` after simulator review found the longer wording clipped on a round display. The menu item retains the full `Stop & exit` wording.
 - Fēnix 6 simulator validation confirmed the terminal process exit and a clean pre-match relaunch with no completed-match recovery.
+
+## 2026-09-24 — Heart-rate and rugby FIT event export
+
+- Added Garmin heart-rate sensor enable/disable around each ActivityRecording session. Available HR samples are recorded by Garmin into the saved FIT activity and remain absent from the live match UI.
+- Added lap-scoped FIT developer fields for a readable rugby event label, match time, period, home score, and away score. Each score/card creates one event lap; correcting an exported event creates one additional `Undo ...` lap. Restored historical events are primed so a resumed FIT segment does not repeat them.
+- Garmin Connect does not have native rugby score/card event semantics. Event visibility therefore depends on Connect IQ developer-field support in the chosen Garmin Connect client or FIT viewer; the in-app summary remains authoritative.
+- Warning/type-check/build-stat application and test builds pass for `fenix6`, `fenix7`, and `instinct2`. The executable simulator suite passes 75 tests, including a real ActivityRecording session that creates developer fields, writes an event lap, and saves successfully; physical-watch verification of optical HR samples and Garmin Connect event-field rendering remains required.

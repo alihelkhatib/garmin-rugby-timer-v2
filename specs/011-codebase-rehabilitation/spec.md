@@ -38,6 +38,8 @@ A referee can record and correct scores, conversions, yellow cards, and red card
 3. **Given** rapid repeated or conflicting input, **When** the application processes the actions, **Then** destructive operations require deliberate confirmation and duplicate navigation or timer creation does not occur.
 4. **Given** a match activity is recording, **When** the referee moves on the field, **Then** Garmin GPS samples, route, and elapsed distance are captured in the FIT activity for Garmin Connect without adding mileage text to the match UI.
 5. **Given** GPS is acquiring or unavailable, **When** the match starts or continues, **Then** match timing, scoring, and navigation remain usable.
+6. **Given** a match activity is recording, **When** the watch provides heart-rate samples, **Then** Garmin records heart rate in the saved FIT activity without requiring an in-app heart-rate display.
+7. **Given** a score, conversion, card, or correction is recorded, **When** FIT developer fields are supported, **Then** the event is exported as a labeled activity-lap entry with match time, period, and current score; otherwise the match recording continues without interruption.
 
 ---
 
@@ -118,6 +120,8 @@ A developer can understand the architecture, build supported targets, run meanin
 - **FR-024**: The activity recorder MUST enable continuous positioning, include Garmin-derived route and distance data in the FIT activity for Garmin Connect, avoid adding mileage to the match UI, and degrade safely while GPS is acquiring or unavailable.
 - **FR-025**: Exiting during an active match MUST save the current FIT segment and recovery checkpoint; a restored match MUST begin a new recording segment when resumed.
 - **FR-026**: The active-match options MUST distinguish recoverable `Exit & save` from confirmed terminal `Stop & exit`; the terminal action MUST end the match, save the FIT activity, clear recovery, and close the application exactly once.
+- **FR-027**: The activity recorder MUST enable the Garmin heart-rate sensor while a FIT session is recording, disable it when recording ends, and allow match operation to continue if the sensor is unavailable.
+- **FR-028**: The activity recorder MUST export supported rugby events and corrections as best-effort FIT developer fields attached to activity laps, including a readable event label, match time, period, and home/away score, without claiming native Garmin Connect rugby-event semantics.
 
 ### Key Entities
 
@@ -128,6 +132,7 @@ A developer can understand the architecture, build supported targets, run meanin
 - **Conversion Attempt**: Owning team, duration, state, and authoritative wall-time anchor.
 - **Activity Recording**: Lifecycle and result of the best-effort saved activity associated with a match.
 - **Activity Metrics**: Internal GPS acquisition state and Garmin-calculated elapsed distance used by recording and recovery, not by the match UI.
+- **FIT Event Contribution**: Best-effort developer fields written on event-generated laps for post-activity inspection in compatible Garmin Connect views and FIT tools.
 - **Render Snapshot**: Immutable-at-use projection of the match state for one UI update.
 
 ## Success Criteria *(mandatory)*
@@ -146,6 +151,7 @@ A developer can understand the architecture, build supported targets, run meanin
 - **SC-010**: Back exits normally before kickoff and after match completion, while an active match can be exited through one labelled menu item after its recovery checkpoint is written.
 - **SC-011**: Simulator validation shows an acquiring/unavailable GPS state without failure, and physical-device validation confirms a saved FIT route and distance within normal Garmin GPS tolerance.
 - **SC-012**: Selecting and confirming Stop & exit terminates the simulator application and a subsequent launch starts without restoring the completed match.
+- **SC-013**: Automated tests cover event-label mapping, one-time event/correction export, and recovery priming; supported targets build with Sensor and FitContributor permissions, while physical-device validation confirms heart-rate samples and Garmin Connect/FIT visibility.
 
 ## Assumptions
 
@@ -160,7 +166,7 @@ A developer can understand the architecture, build supported targets, run meanin
 
 ## Security & Privacy Considerations
 
-- Match state and event history contain team-relative sporting events but no names or account identifiers. When recording is active, the saved Garmin FIT activity contains the GPS route and distance requested by the user.
+- Match state and event history contain team-relative sporting events but no names or account identifiers. When recording is active, the saved Garmin FIT activity contains the GPS route, distance, heart-rate samples, and exported rugby event details requested by the user.
 - The application collects no telemetry or analytics and makes no network calls.
 - Runtime match data and cumulative distance are retained only as required for the active session and configured activity save; reset/discard removes application-owned recovery data.
 - Saved activity retention and deletion follow the user's Garmin device and Garmin Connect controls.

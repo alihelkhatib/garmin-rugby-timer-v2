@@ -23,7 +23,7 @@ Cards pause a running match. Yellow-card time advances only with active match ti
 - `RugbyPersistence` and `RugbyVariantConfig` store a versioned match checkpoint and preferences. A running match restores paused so relaunch never invents unobserved playing time.
 - `RugbyTimerDelegate` and menu delegates translate input into model operations.
 - Views bind resource layouts and own only visible refresh/reminder timers. Timers stop when a view hides.
-- `RugbyActivityRecorder` wraps Garmin GPS acquisition and the supported start/stop/save/discard lifecycle. Garmin supplies the route and elapsed distance to the saved FIT activity for Garmin Connect; mileage is intentionally not added to the match UI. Event export is explicitly best effort, so the in-app summary remains authoritative for rugby events.
+- `RugbyActivityRecorder` wraps Garmin GPS and heart-rate acquisition plus the supported start/stop/save/discard lifecycle. Garmin supplies the route, elapsed distance, and heart-rate samples to the saved FIT activity; mileage and heart rate are intentionally not added to the match UI. Scores, conversions, cards, and corrections are also written as best-effort FIT developer fields on event-generated laps.
 
 ```text
 input -> model mutation -> persistence
@@ -60,11 +60,11 @@ See [docs/DEVELOPER.md](docs/DEVELOPER.md) for setup and architecture details, [
 
 ## Privacy and limitations
 
-The app has no network access, analytics, or telemetry. While a match is recording, Garmin records the GPS route and distance into the FIT activity. The app stores variant preferences, a team-relative active-match checkpoint, and cumulative distance needed for recovery. Reset removes the checkpoint; Garmin controls saved activity retention.
+The app has no network access, analytics, or telemetry. While a match is recording, Garmin records the GPS route, distance, and available heart-rate samples into the FIT activity. The app also adds team-relative rugby event labels, match time, period, and score as FIT developer fields. It stores variant preferences, an active-match checkpoint, and cumulative distance needed for recovery. Reset removes the checkpoint; Garmin controls saved activity retention.
 
 Known limits:
 
-- ActivityRecording does not provide a portable API for retroactively attaching the detailed in-app event log, so saved FIT activities may not contain individual rugby events.
+- Garmin Connect has no native rugby score/card event type. The app represents events as activity laps with Connect IQ developer fields; visibility varies by Garmin Connect/FIT viewer, and the in-app summary remains authoritative.
 - Exiting and later resuming an active match creates separate FIT activities because a Garmin recording session cannot survive process termination.
 - A process interruption restores a running match paused. Conversion countdown recovery preserves the last checkpointed remaining time rather than guessing time elapsed while the app was not executing.
 - Physical-device haptic, battery, activity-file, and long-duration validation remains part of the release checklist even when simulator tests pass.

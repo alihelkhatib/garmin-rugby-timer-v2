@@ -141,6 +141,9 @@
 - [x] T058 Preserve cumulative mileage across recovery segments and test recorder, recovery, exit, undo, and navigation state behavior in `tests/`
 - [x] T059 Re-run the full build/test/simulator matrix and document GPS/FIT physical-device validation requirements in `CLEANUP_NOTES.md` and `docs/testing.md`
 - [x] T060 Add and validate a confirmed terminal Stop & exit action that saves the FIT activity, clears recovery, and closes the application in `source/RugbyGameModel.mc`, `source/RugbyTimerDelegate.mc`, and `resources/menus/match_options.xml`
+- [x] T061 [US2] Add executable tests for heart-rate lifecycle state, readable FIT event mapping, one-time event/correction export, and restored-event priming in `tests/Test_RugbyActivityRecorder.mc` and `tests/Test_RugbyMatchController.mc`
+- [x] T062 [US2] Enable Garmin heart-rate capture and best-effort rugby event lap/developer-field export in `source/RugbyActivityRecorder.mc`, `source/RugbyMatchController.mc`, `source/RugbyTimerApp.mc`, `resources/fitfields.xml`, `resources/strings/strings.xml`, and `manifest.xml`
+- [x] T063 [US4] Re-run the complete test/build matrix and document Garmin Connect developer-field limitations plus physical-device heart-rate/event verification in `README.md`, `docs/testing.md`, and `CLEANUP_NOTES.md`
 
 ---
 
@@ -173,5 +176,5 @@
 
 ## Format Validation
 
-All 52 tasks use the required checkbox, sequential ID, optional parallel marker, story label where applicable, concrete action, and exact file path or named build artifact.
+All 63 tasks use the required checkbox, sequential ID, optional parallel marker, story label where applicable, concrete action, and exact file path or named build artifact.
 

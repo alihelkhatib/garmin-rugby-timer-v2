@@ -10,6 +10,6 @@
 | Conversion timer | `Test_RugbyGameModel`, `Test_RugbyPersistence` | Overlay and haptic behavior |
 | Yellow/red cards | `Test_RugbyGameModel` | Multiple-card layout and haptics |
 | Input gates, recoverable/terminal exit states, and confirmations | `Test_RugbyGameModel`, `Test_RugbyIdleTimerControls` | Physical-button, Exit & save, and Stop & exit checks |
-| Activity recording, GPS, and mileage | `Test_RugbyActivityRecorder`, `Test_RugbyMatchController` | Physical FIT route/distance and save/discard |
+| Activity recording, GPS, mileage, heart rate, and rugby FIT events | `Test_RugbyActivityRecorder`, `Test_RugbyMatchController` | Physical FIT route/distance/HR, event lap fields, and save/discard |
 | Interrupted-match recovery | `Test_RugbyPersistence` | Exit/relaunch restores paused |
 | Layout/resource compatibility | Compiler resource validation, `Test_RugbyLayoutSupport` | Fēnix 6 and Instinct 2 visual checks; Fēnix 7 build validation |

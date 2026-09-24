@@ -24,7 +24,7 @@ Never commit the key. Common key filenames are ignored by `.gitignore`.
 | Timestamp deltas and clock text | `source/RugbyTime.mc` |
 | Automatic transition side effects and checkpoints | `source/RugbyMatchController.mc` |
 | Storage and recovery | `source/RugbyPersistence.mc`, `source/RugbyVariantConfig.mc` |
-| GPS, elapsed distance, ActivityRecording lifecycle | `source/RugbyActivityRecorder.mc` |
+| GPS, heart rate, elapsed distance, FIT event fields, ActivityRecording lifecycle | `source/RugbyActivityRecorder.mc` |
 | Main input mapping and menus | `source/RugbyTimerDelegate.mc`, team delegates |
 | Resource binding and visible refresh timers | `source/RugbyTimerView.mc`, `source/RugbyConversionView.mc` |
 | Layout selection | `source/RugbyLayoutSupport.mc`, `resources/layouts/layout.xml` |
@@ -40,7 +40,7 @@ The main clock accumulates active playing milliseconds. Yellow cards use that ac
 
 Recovery snapshots fold a running interval into accumulated time and store the state as paused. This is deliberate: it preserves match data without guessing how much rugby was played while the application was unavailable.
 
-The recorder enables continuous `Toybox.Position` updates so Garmin's ActivityRecording subsystem captures the GPS track and elapsed distance in the FIT activity. Those metrics are intentionally not rendered in the match UI. Recovery retains internal distance metadata; resuming after an app exit starts a new FIT segment because live Garmin sessions are process-bound.
+The recorder enables continuous `Toybox.Position` updates and `Toybox.Sensor.SENSOR_HEARTRATE` while recording so Garmin's ActivityRecording subsystem captures the GPS track, elapsed distance, and heart-rate samples in the FIT activity. Those metrics are intentionally not rendered in the match UI. It also creates lap-scoped `Toybox.FitContributor` fields for the rugby event label, match time, period, and score; each event or later correction adds one lap after populating those fields. Garmin Connect does not expose a native rugby event model, so developer-field rendering is best effort and the in-app event log remains authoritative. Recovery retains internal distance metadata; resuming after an app exit starts a new FIT segment because live Garmin sessions are process-bound, and restored historical events are primed so they are not duplicated in the new segment.
 
 ## Resources and devices
 
@@ -60,5 +60,6 @@ Behavior changes require a spec in `specs/`, followed by a plan and dependency-o
 - Check recovery schema compatibility and reset deletion.
 - Check recorder terminal calls for idempotence.
 - Check GPS acquisition, distance continuity, and Positioning permission behavior.
+- Check heart-rate sensor cleanup, one-time FIT event/correction export, and Sensor/FitContributor permissions.
 - Compile all manifest products and run the unit-test PRG.
 - Do not add unconditional logging, placeholder tests, generated output, secrets, network dependencies, or unvalidated product IDs.
