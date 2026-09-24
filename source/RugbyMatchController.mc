@@ -28,6 +28,9 @@ class RugbyMatchController {
     }
 
     function persist(nowMs as Number) as Void {
+        if (_recorder has :syncEventLog) {
+            _recorder.syncEventLog(_model.eventLog(), _model.snapshot(nowMs));
+        }
         _model.savePreferences();
         RugbyPersistence.saveMatchWithRecorder(_model, nowMs, _recorder);
     }

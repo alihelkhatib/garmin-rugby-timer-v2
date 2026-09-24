@@ -14,6 +14,7 @@ class RugbyTimerApp extends Application.AppBase {
         _model = new RugbyGameModel(RugbyVariantConfig.loadPreferences());
         _recorder = new RugbyActivityRecorder();
         RugbyPersistence.restoreMatchWithRecorder(_model, System.getTimer(), _recorder);
+        _recorder.primeEventLog(_model.eventLog());
         _controller = new RugbyMatchController(_model, _recorder);
     }
 
@@ -32,6 +33,7 @@ class RugbyTimerApp extends Application.AppBase {
         }
         if (_recorder != null) {
             _recorder.disableGps();
+            _recorder.disableHeartRate();
         }
     }
 /* Return the primary view and its behavior delegate for the watch UI. */

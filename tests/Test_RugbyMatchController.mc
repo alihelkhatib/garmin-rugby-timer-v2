@@ -3,15 +3,34 @@ import Toybox.Lang;
 
 class ControllerTestRecorder {
     var saveCalls as Number;
+    var syncCalls as Number;
 
     function initialize() {
         saveCalls = 0;
+        syncCalls = 0;
+    }
+
+    function syncEventLog(events, snapshot) as Void {
+        syncCalls += 1;
     }
 
     function stopAndSaveWithEvents(events) as Boolean {
         saveCalls += 1;
         return true;
     }
+}
+
+(:test)
+function testControllerPersistsAndSynchronizesFitEvents(logger) {
+    var model = newTestModel();
+    var recorder = new ControllerTestRecorder();
+    var controller = new RugbyMatchController(model, recorder);
+    model.startMatch(0);
+    model.recordPenaltyGoalAt(RUGBY_TEAM_HOME, 1000);
+
+    controller.persist(1000);
+    Test.assertEqual(1, recorder.syncCalls);
+    return true;
 }
 
 (:test)

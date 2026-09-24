@@ -1,0 +1,9 @@
+<resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+  <fitContributions>
+    <fitField id="0" displayInChart="false" displayInActivityLaps="true" sortOrder="0" dataLabel="@Strings.FitEvent_Label" unitLabel="@Strings.FitNo_Unit" />
+    <fitField id="1" displayInChart="false" displayInActivityLaps="true" sortOrder="1" precision="0" dataLabel="@Strings.FitMatchTime_Label" unitLabel="@Strings.FitSeconds_Unit" />
+    <fitField id="2" displayInChart="false" displayInActivityLaps="true" sortOrder="2" precision="0" dataLabel="@Strings.FitPeriod_Label" unitLabel="@Strings.FitNo_Unit" />
+    <fitField id="3" displayInChart="false" displayInActivityLaps="true" sortOrder="3" precision="0" dataLabel="@Strings.FitHomeScore_Label" unitLabel="@Strings.FitPoints_Unit" />
+    <fitField id="4" displayInChart="false" displayInActivityLaps="true" sortOrder="4" precision="0" dataLabel="@Strings.FitAwayScore_Label" unitLabel="@Strings.FitPoints_Unit" />
+  </fitContributions>
+</resources>

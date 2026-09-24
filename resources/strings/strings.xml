@@ -1,6 +1,14 @@
 <strings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
   <string id="AppName">Rugby Timer</string>
   <string id="Activity_Name">Rugby</string>
+  <string id="FitEvent_Label">Rugby Event</string>
+  <string id="FitMatchTime_Label">Match Time</string>
+  <string id="FitPeriod_Label">Period</string>
+  <string id="FitHomeScore_Label">Home Score</string>
+  <string id="FitAwayScore_Label">Away Score</string>
+  <string id="FitSeconds_Unit">seconds</string>
+  <string id="FitPoints_Unit">points</string>
+  <string id="FitNo_Unit"> </string>
   <string id="Team_Home_Short">HOME</string>
   <string id="Team_Away_Short">AWAY</string>
   <string id="Team_Home">Home</string>
