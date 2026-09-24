@@ -6,6 +6,7 @@ Rugby Timer V2 is an offline Garmin Connect IQ watch app for referees. It keeps 
 
 - Before kickoff: Up adds one minute and Down subtracts one minute, bounded by zero and the selected variant's normal period length.
 - Before kickoff: Menu opens the variant picker for 15s, 7s, 10s, or U19.
+- Before kickoff: the status line shows `GPS WAIT`, `GPS READY`, or `GPS OFF`; wait for `GPS READY` before an outdoor match when a Garmin Connect route/map is required.
 - Select/Start: starts, pauses, or resumes the current period; it also confirms a clearly labelled pending End or Reset action.
 - During an active match: Up opens scoring and Down opens cards. A try starts the conversion countdown.
 - Back: exits normally before kickoff and after completion. During an active match it opens End period, End match, Stop & exit, Undo last event, Match summary, Reset match, and Exit & save.
@@ -14,6 +15,7 @@ Rugby Timer V2 is an offline Garmin Connect IQ watch app for referees. It keeps 
 - Conversion view: Up/Menu records a made conversion; Down or Back records a miss.
 
 Cards pause a running match. Yellow-card time advances only with active match time and pauses during stoppages and between periods. Conversion time follows monotonic wall time, including while the match clock is paused. Reaching zero while running advances to half-time or ends the final period automatically.
+Each yellow card gives a distinct double-pulse warning at 60 seconds remaining and a stronger triple-pulse alert at expiry. Because issuing a card pauses a running match, resume the match clock for its active-time countdown to continue.
 
 ## Architecture
 
@@ -39,7 +41,7 @@ The manifest intentionally lists only the profiles currently validated by the lo
 - Fēnix 7 — larger modern round
 - Instinct 2 — compact monochrome display with a circular upper-right inset and device-specific layout/icon
 
-The code targets Connect IQ API 3.4.0 or newer and is currently validated with SDK 8.3.0. The activity recorder uses rugby-specific sport metadata when the runtime exposes it and falls back to generic sport metadata otherwise. Additional devices should be added only after build, simulator layout, memory, and input validation.
+The code targets Connect IQ API 3.4.0 or newer and is currently validated with SDK 8.3.0. Modern runtimes use Garmin's native rugby sport metadata. Older runtimes such as Fēnix 6 use supported `soccer` + `match` compatibility metadata with the activity name `Rugby Match`; this mirrors the reliable field-sport recording path used by FC Timer and avoids submitting a sport enum the firmware does not know. Garmin Connect will consequently classify Fēnix 6 recordings as Soccer rather than native Rugby. Additional devices should be added only after build, simulator layout, memory, and input validation.
 
 ## Build and test
 
@@ -65,6 +67,7 @@ The app has no network access, analytics, or telemetry. While a match is recordi
 Known limits:
 
 - Garmin Connect has no native rugby score/card event type. The app represents events as activity laps with Connect IQ developer fields; visibility varies by Garmin Connect/FIT viewer, and the in-app summary remains authoritative.
+- Garmin Connect synchronization happens after Garmin saves the FIT file and is controlled by the watch/mobile sync pipeline. Disconnect USB and run a Garmin Connect Mobile sync after saving; the app itself cannot upload while acting as a USB drive.
 - Exiting and later resuming an active match creates separate FIT activities because a Garmin recording session cannot survive process termination.
 - A process interruption restores a running match paused. Conversion countdown recovery preserves the last checkpointed remaining time rather than guessing time elapsed while the app was not executing.
 - Physical-device haptic, battery, activity-file, and long-duration validation remains part of the release checklist even when simulator tests pass.
