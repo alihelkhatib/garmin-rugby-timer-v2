@@ -11,7 +11,7 @@
     <label id="HomeCardValue" text="" x="26%" y="42%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
     <label id="AwayCardValue" text="" x="74%" y="42%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
     <label id="Countdown" text="" x="center" y="49%" font="Graphics.FONT_NUMBER_HOT" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
-    <label id="StatusMessage" text="" x="center" y="88%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
+    <label id="StatusMessage" text="" x="center" y="76%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
   </layout>
 
   <layout id="MainLayoutLargeRound" background="Graphics.COLOR_BLACK">
@@ -26,7 +26,7 @@
     <label id="HomeCardValue" text="" x="27%" y="42%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
     <label id="AwayCardValue" text="" x="73%" y="42%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
     <label id="Countdown" text="" x="center" y="49%" font="Graphics.FONT_NUMBER_HOT" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
-    <label id="StatusMessage" text="" x="center" y="88%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
+    <label id="StatusMessage" text="" x="center" y="76%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
   </layout>
 
   <layout id="MainLayoutRect" background="Graphics.COLOR_BLACK">
@@ -41,13 +41,37 @@
     <label id="HomeCardValue" text="" x="24%" y="44%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
     <label id="AwayCardValue" text="" x="76%" y="44%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
     <label id="Countdown" text="" x="center" y="49%" font="Graphics.FONT_NUMBER_HOT" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
-    <label id="StatusMessage" text="" x="center" y="88%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
+    <label id="StatusMessage" text="" x="center" y="82%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
   </layout>
+
+  <!-- Instinct 2's upper-right circular inset requires a dedicated safe area. -->
+  <layout id="MainLayoutInstinct" background="Graphics.COLOR_BLACK">
+    <label id="ElapsedTimer" text="" x="28%" y="3%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_LT_GRAY" />
+    <label id="HalfText" text="" x="28%" y="14%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
+    <label id="HomeLabel" text="" x="7%" y="28%" font="Graphics.FONT_SYSTEM_XTINY" justification="Graphics.TEXT_JUSTIFY_LEFT" color="Graphics.COLOR_BLUE" />
+    <label id="HomeScore" text="" x="43%" y="24%" font="Graphics.FONT_LARGE" justification="Graphics.TEXT_JUSTIFY_LEFT" color="Graphics.COLOR_WHITE" />
+    <label id="HomeTries" text="" x="58%" y="29%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_LEFT" color="Graphics.COLOR_WHITE" />
+    <label id="AwayLabel" text="" x="7%" y="43%" font="Graphics.FONT_SYSTEM_XTINY" justification="Graphics.TEXT_JUSTIFY_LEFT" color="Graphics.COLOR_ORANGE" />
+    <label id="AwayScore" text="" x="43%" y="39%" font="Graphics.FONT_LARGE" justification="Graphics.TEXT_JUSTIFY_LEFT" color="Graphics.COLOR_WHITE" />
+    <label id="AwayTries" text="" x="58%" y="44%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_LEFT" color="Graphics.COLOR_WHITE" />
+    <label id="Countdown" text="" x="center" y="56%" font="Graphics.FONT_NUMBER_HOT" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
+    <label id="HomeCardValue" text="" x="24%" y="80%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
+    <label id="AwayCardValue" text="" x="76%" y="80%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
+    <label id="StatusMessage" text="" x="center" y="87%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" visible="false" />
+  </layout>
+
   <layout id="ConversionLayout" background="Graphics.COLOR_BLACK">
     <label id="ConversionTitle" text="" x="center" y="18%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" />
     <label id="ConversionTeam" text="" x="center" y="28%" font="Graphics.FONT_SYSTEM_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
     <label id="ConversionTimer" text="" x="center" y="34%" font="Graphics.FONT_NUMBER_HOT" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
     <label id="ConversionMadeHint" text="" x="center" y="68%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
     <label id="ConversionMissHint" text="" x="center" y="78%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_LT_GRAY" />
+  </layout>
+  <layout id="ConversionLayoutInstinct" background="Graphics.COLOR_BLACK">
+    <label id="ConversionTitle" text="" x="28%" y="7%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_YELLOW" />
+    <label id="ConversionTeam" text="" x="28%" y="20%" font="Graphics.FONT_SYSTEM_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
+    <label id="ConversionTimer" text="" x="center" y="43%" font="Graphics.FONT_NUMBER_HOT" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
+    <label id="ConversionMadeHint" text="" x="center" y="72%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
+    <label id="ConversionMissHint" text="" x="center" y="84%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_LT_GRAY" />
   </layout>
 </layouts>

@@ -12,3 +12,5 @@ Thumbs.db
 .vscode/
 .idea/
 ref/
+developer_key.der
+developer_key.pem

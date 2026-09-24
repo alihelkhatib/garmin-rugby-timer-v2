@@ -27,6 +27,9 @@ function testActivityRecorderInitialSnapshot(logger) {
     Test.assertEqual("Activity.SPORT_RUGBY", snap["sport"]);
     Test.assertEqual("Activity.SUB_SPORT_MATCH", snap["subSport"]);
     Test.assertEqual("skipped", snap["eventExportState"]);
+    Test.assertEqual(RUGBY_GPS_STATE_INACTIVE, snap["gpsState"]);
+    Test.assertEqual(0.0, snap["distanceMeters"]);
+    return true;
 }
 
 (:test)
@@ -34,7 +37,8 @@ function testActivityRecorderFallbackState(logger) {
     var recorder = new RugbyActivityRecorder();
     // When not started, state() should be NOT_STARTED and fallbackReason() should be null
     Test.assertEqual(RUGBY_RECORDER_STATE_NOT_STARTED, recorder.state());
-    Test.assertEqual(null, recorder.fallbackReason());
+    Test.assert(recorder.fallbackReason() == null);
+    return true;
 }
 
 (:test)
@@ -47,13 +51,29 @@ function testActivityRecorderEventExportFallbackState(logger) {
     Test.assertEqual(false, recorder.stopAndSaveWithEvents(events));
     var snap = recorder.snapshot();
     Test.assertEqual(RUGBY_RECORDER_EVENT_EXPORT_UNSUPPORTED, snap["eventExportState"]);
+    return true;
 }
 
 (:test)
-function testActivityRecorderDiscardResetsState(logger) {
+function testActivityRecorderDiscardIsTerminal(logger) {
     var recorder = new RugbyActivityRecorder();
     Test.assertEqual(true, recorder.discard());
     var snap = recorder.snapshot();
-    Test.assertEqual(RUGBY_RECORDER_STATE_NOT_STARTED, snap["state"]);
+    Test.assertEqual(RUGBY_RECORDER_STATE_DISCARDED, snap["state"]);
     Test.assertEqual("skipped", snap["eventExportState"]);
+    return true;
+}
+
+(:test)
+function testActivityRecorderRestoresCumulativeDistance(logger) {
+    var recorder = new RugbyActivityRecorder();
+    recorder.restoreDistanceMeters(3218.688);
+    var snap = recorder.snapshot();
+    Test.assertEqual(3218.688, snap["distanceMeters"]);
+
+    recorder.reset();
+    snap = recorder.snapshot();
+    Test.assertEqual(RUGBY_RECORDER_STATE_NOT_STARTED, snap["state"]);
+    Test.assertEqual(0.0, snap["distanceMeters"]);
+    return true;
 }

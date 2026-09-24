@@ -45,6 +45,7 @@ function testBuiltInVariantDefaults(logger) {
     // U19 half length
     Test.assertEqual(35 * 60, u19["halfLengthSeconds"]);
     Test.assertEqual(35 * 60, u19["normalHalfLengthSeconds"]);
+    return true;
 }
 
 (:test)
@@ -60,6 +61,7 @@ function testVariantOverrides(logger) {
     Test.assertEqual(40 * 60, setup["normalHalfLengthSeconds"]);
     Test.assertEqual(8 * 60, setup["sinBinLengthSeconds"]);
     Test.assertEqual(60, setup["conversionLengthSeconds"]);
+    return true;
 }
 
 (:test)
@@ -75,6 +77,7 @@ function testVariantNormalHalfBounds(logger) {
 
     var u19 = RugbyVariantConfig.adjustHalfMinutes(RugbyVariantConfig.defaultSetup(RUGBY_VARIANT_U19), 1);
     Test.assertEqual(35 * 60, u19["halfLengthSeconds"]);
+    return true;
 }
 
 (:test)
@@ -87,6 +90,7 @@ function testVariantIdleLowerBound(logger) {
     Test.assertEqual(RUGBY_VARIANT_CUSTOM, setup["variantId"]);
     Test.assertEqual(0, setup["halfLengthSeconds"]);
     Test.assertEqual(7 * 60, setup["normalHalfLengthSeconds"]);
+    return true;
 }
 
 (:test)
@@ -95,6 +99,7 @@ function testFixedTeamLabels(logger) {
     // Default labels should be present and unchanged
     Test.assertEqual("Home", setup["homeLabel"]);
     Test.assertEqual("Away", setup["awayLabel"]);
+    return true;
 }
 
 

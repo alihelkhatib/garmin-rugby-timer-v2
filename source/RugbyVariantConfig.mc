@@ -4,7 +4,6 @@
  * Key state: none (stateless static helpers)
  * Interactions: RugbyGameModel, UI variant selection; tests/Test_RugbyVariantConfig.mc
  * Example usage: RugbyVariantConfig.defaultSetup(RUGBY_DEFAULT_VARIANT)
- * TODOs/notes: Persistence is intentionally disabled (savePreferences) until app-level store is wired
  */
 
 import Toybox.Application;
@@ -16,6 +15,7 @@ const RUGBY_VARIANT_TENS = "tens";
 const RUGBY_VARIANT_U19 = "u19";
 const RUGBY_VARIANT_CUSTOM = "custom";
 const RUGBY_DEFAULT_VARIANT = RUGBY_VARIANT_FIFTEENS;
+const RUGBY_VARIANT_STORAGE_KEY = "rugby.variant.v1";
 
 class RugbyVariantConfig {
 
@@ -131,11 +131,28 @@ class RugbyVariantConfig {
     }
 
     static function savePreferences(setup as Dictionary) as Void {
-        // Preference persistence is intentionally disabled until the app property
-        // store is wired with the correct Connect IQ API shape for this project.
+        try {
+            Application.Storage.setValue(RUGBY_VARIANT_STORAGE_KEY, cloneSetup(setup));
+        } catch (storageError) {
+        }
     }
 
     static function loadPreferences() as Dictionary {
+        try {
+            var saved = Application.Storage.getValue(RUGBY_VARIANT_STORAGE_KEY) as Dictionary?;
+            if (saved != null && saved["variantId"] != null && saved["halfLengthSeconds"] != null) {
+                var preset = defaultSetup("" + saved["variantId"]);
+                preset["halfLengthSeconds"] = clamp(saved["halfLengthSeconds"], 0, preset["normalHalfLengthSeconds"]);
+                preset["sinBinLengthSeconds"] = clamp(saved["sinBinLengthSeconds"], 60, 1200);
+                preset["conversionLengthSeconds"] = clamp(saved["conversionLengthSeconds"], 15, 300);
+                if (saved["variantId"].equals(RUGBY_VARIANT_CUSTOM)) {
+                    preset["variantId"] = RUGBY_VARIANT_CUSTOM;
+                    preset["variantName"] = "Custom";
+                }
+                return preset;
+            }
+        } catch (storageError) {
+        }
         return defaultSetup(RUGBY_DEFAULT_VARIANT);
     }
 

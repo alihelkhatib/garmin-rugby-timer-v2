@@ -20,6 +20,7 @@ Preconditions / setup:
 
 using Toybox.Test;
 using Toybox.WatchUi;
+using Toybox.System;
 
 class IdleTimerControlsTestRecorder {
     var _started;
@@ -75,6 +76,7 @@ function testIdleUpIncrementsTimerAndBlocksScoreDialog(logger) {
     var after = model.snapshot(0);
     Test.assertEqual(40 * 60, after["mainCountdownSeconds"]);
     Test.assertEqual(false, delegate.canOpenScoreDialogForState(after["clockState"]));
+    return true;
 }
 
 (:test)
@@ -88,6 +90,7 @@ function testIdleDownDecrementsTimerAndBlocksMenus(logger) {
     Test.assertEqual(true, delegate.isIdleTimerAdjustmentState(snap["clockState"]));
     Test.assertEqual(false, delegate.canOpenScoreDialogForState(snap["clockState"]));
     Test.assertEqual(false, delegate.canOpenCardDialogForState(snap["clockState"]));
+    return true;
 }
 
 (:test)
@@ -99,6 +102,7 @@ function testIdlePhysicalUpKeyIncrementsTimer(logger) {
     Test.assertEqual(true, delegate.handleKey(WatchUi.KEY_UP));
     var snap = model.snapshot(0);
     Test.assertEqual(39 * 60, snap["mainCountdownSeconds"]);
+    return true;
 }
 
 (:test)
@@ -109,6 +113,7 @@ function testIdlePhysicalDownKeyDecrementsTimer(logger) {
     Test.assertEqual(true, delegate.handleKey(WatchUi.KEY_DOWN));
     var snap = model.snapshot(0);
     Test.assertEqual(39 * 60, snap["mainCountdownSeconds"]);
+    return true;
 }
 
 (:test)
@@ -118,10 +123,11 @@ function testIdlePhysicalStartKeyBeginsMatch(logger) {
 
     model.adjustIdleMainTimer(-5);
     Test.assertEqual(true, delegate.handleKey(WatchUi.KEY_ENTER));
-    var snap = model.snapshot(60000);
+    var snap = model.snapshot(System.getTimer() + 60000);
 
     Test.assertEqual(RUGBY_STATE_RUNNING, snap["clockState"]);
     Test.assertEqual((35 * 60) - 60, snap["mainCountdownSeconds"]);
+    return true;
 }
 
 (:test)
@@ -138,6 +144,7 @@ function testRuntimeClockStateStringsUseValueComparison(logger) {
     Test.assertEqual(true, delegate.canOpenScoreDialogForState(runningPrefix + "ning"));
     Test.assertEqual(true, delegate.canOpenCardDialogForState(pausedPrefix + "used"));
     Test.assertEqual(true, delegate.canOpenScoreDialogForState(halfPrefix + "Ended"));
+    return true;
 }
 
 (:test)
@@ -153,6 +160,7 @@ function testMatchEndedBlocksScoreDialog(logger) {
     Test.assertEqual(false, delegate.isIdleTimerAdjustmentState(snap["clockState"]));
     Test.assertEqual(false, delegate.canOpenScoreDialogForState(snap["clockState"]));
     Test.assertEqual(true, delegate.canOpenMatchOptionsForState(snap["clockState"]));
+    return true;
 }
 
 (:test)
@@ -165,6 +173,7 @@ function testActiveMatchScoreDialogStates(logger) {
     Test.assertEqual(true, delegate.canOpenScoreDialogForState(RUGBY_STATE_HALF_ENDED));
     Test.assertEqual(false, delegate.canOpenScoreDialogForState(RUGBY_STATE_NOT_STARTED));
     Test.assertEqual(false, delegate.canOpenScoreDialogForState(RUGBY_STATE_MATCH_ENDED));
+    return true;
 }
 
 (:test)
@@ -177,6 +186,7 @@ function testActiveMatchCardDialogStates(logger) {
     Test.assertEqual(true, delegate.canOpenCardDialogForState(RUGBY_STATE_HALF_ENDED));
     Test.assertEqual(false, delegate.canOpenCardDialogForState(RUGBY_STATE_NOT_STARTED));
     Test.assertEqual(false, delegate.canOpenCardDialogForState(RUGBY_STATE_MATCH_ENDED));
+    return true;
 }
 
 (:test)
@@ -198,6 +208,7 @@ function testVariantSelectionOnlyAvailableBeforeMatch(logger) {
     model.endMatch(3000);
     snap = model.snapshot(3000);
     Test.assertEqual(false, delegate.canOpenVariantMenuForState(snap["clockState"]));
+    return true;
 }
 
 (:test)
@@ -210,8 +221,9 @@ function testSetVariantAppliesBuiltInDefaultsBeforeMatch(logger) {
     var snap = model.snapshot(0);
 
     Test.assertEqual(RUGBY_VARIANT_SEVENS, snap["variantId"]);
-    Test.assertEqual("7s", snap["variantName"]);
+    Test.assertEqual("7's", snap["variantName"]);
     Test.assertEqual(7 * 60, snap["mainCountdownSeconds"]);
+    return true;
 }
 
 (:test)
@@ -225,7 +237,8 @@ function testSetVariantIgnoredAfterMatchStart(logger) {
     var snap = model.snapshot(1000);
 
     Test.assertEqual(RUGBY_VARIANT_SEVENS, snap["variantId"]);
-    Test.assertEqual("7s", snap["variantName"]);
+    Test.assertEqual("7's", snap["variantName"]);
+    return true;
 }
 
 (:test)
@@ -238,6 +251,18 @@ function testBackOptionsAvailableForActiveAndEndedMatch(logger) {
     Test.assertEqual(true, delegate.canOpenMatchOptionsForState(RUGBY_STATE_PAUSED));
     Test.assertEqual(true, delegate.canOpenMatchOptionsForState(RUGBY_STATE_HALF_ENDED));
     Test.assertEqual(true, delegate.canOpenMatchOptionsForState(RUGBY_STATE_MATCH_ENDED));
+    return true;
+}
+
+(:test)
+function testNormalBackExitOnlyBeforeAndAfterMatch(logger) {
+    var delegate = newIdleTimerControlsDelegate(newIdleTimerControlsModel());
+    Test.assertEqual(true, delegate.allowsSystemExitForState(RUGBY_STATE_NOT_STARTED));
+    Test.assertEqual(false, delegate.allowsSystemExitForState(RUGBY_STATE_RUNNING));
+    Test.assertEqual(false, delegate.allowsSystemExitForState(RUGBY_STATE_PAUSED));
+    Test.assertEqual(false, delegate.allowsSystemExitForState(RUGBY_STATE_HALF_ENDED));
+    Test.assertEqual(true, delegate.allowsSystemExitForState(RUGBY_STATE_MATCH_ENDED));
+    return true;
 }
 
 (:test)
@@ -256,4 +281,5 @@ function testConfirmResetMatchClearsStateAndDiscardsRecorder(logger) {
     Test.assertEqual(0, snap["home"]["score"]);
     Test.assertEqual(0, model.eventLog().size());
     Test.assertEqual(true, recorder._discarded);
+    return true;
 }

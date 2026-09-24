@@ -1,19 +1,70 @@
-# Garmin Rugby Timer v2
+# Garmin Rugby Timer V2
 
-Developer guide: see docs/DEVELOPER.md
+Rugby Timer V2 is an offline Garmin Connect IQ watch app for referees. It keeps the match countdown, elapsed playing time, scores, tries, conversions, yellow-card timers, red-card indicators, period transitions, haptics, activity recording, and match event summary synchronized from one match model.
 
-## Controls
+## Match controls
 
-- Before kickoff, press Up/Menu to add 1 minute to the main timer, capped at the selected variant's normal half length.
-- Before kickoff, press Down to subtract 1 minute from the main timer, capped at 00:00.
-- Before kickoff, press Menu to choose a built-in rugby variant: 15s, 7s, 10s, or U19.
-- Before kickoff, press Select/Start to begin the match from the visible main timer.
-- The score menu is available only while a match is running, paused, or half-ended.
-- The score menu stays blocked before kickoff and after match end.
-- Recording a try opens the conversion overlay and starts the conversion countdown automatically, including while the main match clock is paused.
-- Press Select/Start during a running match to pause; the app vibrates immediately and reminds every 10 seconds while it remains paused.
-- Issuing a yellow or red card records the card and pauses the match.
-- When the main countdown reaches 00:00, the current half ends automatically; if it is the final half, the match moves to match-ended state automatically.
-- Between halves, the elapsed timer shows a half-time count-up from 00:00 until the next half starts.
-- Unexpired yellow-card timers pause at half end and resume in the next half with their remaining time preserved.
-- Press Back during an active or completed match to choose End match or Reset match. End saves and shows the current match event summary; Reset discards the current activity and returns to the pre-match state.
+- Before kickoff: Up adds one minute and Down subtracts one minute, bounded by zero and the selected variant's normal period length.
+- Before kickoff: Menu opens the variant picker for 15s, 7s, 10s, or U19.
+- Select/Start: starts, pauses, or resumes the current period; it also confirms a clearly labelled pending End or Reset action.
+- During an active match: Up opens scoring and Down opens cards. A try starts the conversion countdown.
+- Back: exits normally before kickoff and after completion. During an active match it opens End period, End match, Stop & exit, Undo last event, Match summary, Reset match, and Exit & save.
+- Stop & exit requires confirmation, ends the match, saves its FIT activity, clears recovery, and closes the app.
+- Exit & save writes the current FIT segment and a recovery checkpoint before closing. Relaunch restores the match paused or between periods; resuming starts a new FIT segment.
+- Conversion view: Up/Menu records a made conversion; Down or Back records a miss.
+
+Cards pause a running match. Yellow-card time advances only with active match time and pauses during stoppages and between periods. Conversion time follows monotonic wall time, including while the match clock is paused. Reaching zero while running advances to half-time or ends the final period automatically.
+
+## Architecture
+
+- `RugbyGameModel` is the authoritative state machine. `advance(nowMs)` applies time-driven transitions; `snapshot(nowMs)` is a read-only UI projection.
+- `RugbyTime` owns elapsed-time guards and clock formatting.
+- `RugbyMatchController` coordinates periodic advancement, one-shot automatic activity save, persistence, and summary requests.
+- `RugbyPersistence` and `RugbyVariantConfig` store a versioned match checkpoint and preferences. A running match restores paused so relaunch never invents unobserved playing time.
+- `RugbyTimerDelegate` and menu delegates translate input into model operations.
+- Views bind resource layouts and own only visible refresh/reminder timers. Timers stop when a view hides.
+- `RugbyActivityRecorder` wraps Garmin GPS acquisition and the supported start/stop/save/discard lifecycle. Garmin supplies the route and elapsed distance to the saved FIT activity for Garmin Connect; mileage is intentionally not added to the match UI. Event export is explicitly best effort, so the in-app summary remains authoritative for rugby events.
+
+```text
+input -> model mutation -> persistence
+timer callback -> controller tick -> model advance -> snapshot -> render
+                                      |-> one-shot save / summary request
+```
+
+## Supported and validated profiles
+
+The manifest intentionally lists only the profiles currently validated by the local build matrix:
+
+- Fēnix 6 — compact round, API compatibility baseline
+- Fēnix 7 — larger modern round
+- Instinct 2 — compact monochrome display with a circular upper-right inset and device-specific layout/icon
+
+The code targets Connect IQ API 3.4.0 or newer and is currently validated with SDK 8.3.0. The activity recorder uses rugby-specific sport metadata when the runtime exposes it and falls back to generic sport metadata otherwise. Additional devices should be added only after build, simulator layout, memory, and input validation.
+
+## Build and test
+
+Generate or select a Garmin RSA 4096-bit DER developer key outside the repository, then run:
+
+```powershell
+.\scripts\validate.ps1 -DeveloperKey C:\path\developer_key.der -SkipTests
+```
+
+Compile the unit-test application and run it in an open Connect IQ simulator:
+
+```powershell
+monkeyc -f tests/monkey.jungle -d fenix6 -o build/rugby-tests-fenix6.prg -y C:\path\developer_key.der -t -l 0
+monkeydo build/rugby-tests-fenix6.prg fenix6 /t
+```
+
+See [docs/DEVELOPER.md](docs/DEVELOPER.md) for setup and architecture details, [docs/testing.md](docs/testing.md) for the complete validation flow, and [docs/RELEASING.md](docs/RELEASING.md) for release gates.
+
+## Privacy and limitations
+
+The app has no network access, analytics, or telemetry. While a match is recording, Garmin records the GPS route and distance into the FIT activity. The app stores variant preferences, a team-relative active-match checkpoint, and cumulative distance needed for recovery. Reset removes the checkpoint; Garmin controls saved activity retention.
+
+Known limits:
+
+- ActivityRecording does not provide a portable API for retroactively attaching the detailed in-app event log, so saved FIT activities may not contain individual rugby events.
+- Exiting and later resuming an active match creates separate FIT activities because a Garmin recording session cannot survive process termination.
+- A process interruption restores a running match paused. Conversion countdown recovery preserves the last checkpointed remaining time rather than guessing time elapsed while the app was not executing.
+- Physical-device haptic, battery, activity-file, and long-duration validation remains part of the release checklist even when simulator tests pass.

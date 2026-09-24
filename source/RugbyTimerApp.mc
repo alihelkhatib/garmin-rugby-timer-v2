@@ -3,89 +3,46 @@ import Toybox.System;
 import Toybox.WatchUi;
 import Toybox.Lang;
 
-// Minimal fallback delegate used if the primary delegate fails to initialize.
-class FallbackDelegate extends WatchUi.BehaviorDelegate {
-    function initialize() {
-        BehaviorDelegate.initialize();
-    }
-
-    function onSelect() as Boolean {
-        System.println("RUGBY|FallbackDelegate|onSelect");
-        return false;
-    }
-
-    function onBack() as Boolean {
-        System.println("RUGBY|FallbackDelegate|onBack");
-        return false;
-    }
-
-    function onMenu() as Boolean {
-        System.println("RUGBY|FallbackDelegate|onMenu");
-        return false;
-    }
-
-    function onNextPage() as Boolean {
-        System.println("RUGBY|FallbackDelegate|onNextPage");
-        return false;
-    }
-
-    function onPreviousPage() as Boolean {
-        System.println("RUGBY|FallbackDelegate|onPreviousPage");
-        return false;
-    }
-
-    function onKey(evt as WatchUi.KeyEvent) as Boolean {
-        try {
-            var k = evt.getKey() as Number;
-            System.println("RUGBY|FallbackDelegate|onKey key=" + k.format("%d"));
-        } catch (ex) {
-            System.println("RUGBY|FallbackDelegate|onKey ex=" + ex.toString());
-        }
-        return false;
-    }
-}
-
 class RugbyTimerApp extends Application.AppBase {
     var _model;
     var _recorder;
+    var _controller;
 /* Create the shared RugbyGameModel and RugbyActivityRecorder for the app lifecycle. */
 
     function initialize() {
         AppBase.initialize();
         _model = new RugbyGameModel(RugbyVariantConfig.loadPreferences());
         _recorder = new RugbyActivityRecorder();
+        RugbyPersistence.restoreMatchWithRecorder(_model, System.getTimer(), _recorder);
+        _controller = new RugbyMatchController(_model, _recorder);
     }
 
     function onStart(state) {
+        _recorder.enableGps();
     }
-/* Save model preferences before app stops (preferences persistence is a no-op until store is wired). */
+/* Save preferences and a recovery checkpoint before app shutdown. */
 
     function onStop(state) {
         if (_model != null) {
             _model.savePreferences();
+            if (_recorder != null && _recorder.state().equals(RUGBY_RECORDER_STATE_RECORDING)) {
+                _recorder.stopAndSaveWithEvents(_model.eventLog());
+            }
+            RugbyPersistence.saveMatchWithRecorder(_model, System.getTimer(), _recorder);
+        }
+        if (_recorder != null) {
+            _recorder.disableGps();
         }
     }
 /* Return the primary view and its behavior delegate for the watch UI. */
 
     function getInitialView() {
-        var view;
-        var delegate;
-        try {
-            view = new RugbyTimerView(_model);
-            view.setRecorder(_recorder);
-        } catch (ex) {
-            System.println("RUGBY|RugbyTimerApp|getInitialView view init failed: " + ex.toString());
-            view = new WatchUi.View();
-        }
+        var view = new RugbyTimerView(_model);
+        view.setRecorder(_recorder);
+        view.setController(_controller);
+        var delegate = new RugbyTimerDelegate(_model, _recorder);
+        delegate.setController(_controller);
 
-        try {
-            delegate = new RugbyTimerDelegate(_model, _recorder);
-        } catch (ex) {
-            System.println("RUGBY|RugbyTimerApp|getInitialView delegate init failed: " + ex.toString());
-            delegate = new FallbackDelegate();
-        }
-
-        System.println("RUGBY|RugbyTimerApp|getInitialView modelPresent=" + (_model != null ? "yes" : "no") + " recorderPresent=" + (_recorder != null ? "yes" : "no") + " delegatePresent=" + (delegate == null ? "no" : "yes"));
         return [ view, delegate ];
     }
 

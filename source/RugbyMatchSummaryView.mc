@@ -20,80 +20,82 @@ class RugbyMatchSummaryView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(dc.getWidth() / 2, 8, Graphics.FONT_SMALL, "MATCH EVENTS", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(dc.getWidth() / 2, 8, Graphics.FONT_SMALL, WatchUi.loadResource(Rez.Strings.MatchSummary_Title), Graphics.TEXT_JUSTIFY_CENTER);
 
         var events = _model.eventLog() as Array<Dictionary>;
         if (events.size() == 0) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_XTINY, "NO EVENTS", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_XTINY, WatchUi.loadResource(Rez.Strings.MatchSummary_Empty), Graphics.TEXT_JUSTIFY_CENTER);
             return;
         }
 
         var y = 34 as Number;
-        var maxRows = 6 as Number;
-        for (var i = 0; i < events.size() && i < maxRows; i += 1) {
+        var rowHeight = 20 as Number;
+        var maxRows = ((dc.getHeight() - y - 20) / rowHeight) as Number;
+        if (maxRows < 1) {
+            maxRows = 1;
+        }
+        if (maxRows > 8) {
+            maxRows = 8;
+        }
+        var firstRow = events.size() > maxRows ? events.size() - maxRows : 0;
+        for (var i = firstRow; i < events.size(); i += 1) {
             var event = events[i] as Dictionary;
             var text = formatEvent(event) as String;
-            dc.setColor(teamColor(event["teamId"]), Graphics.COLOR_BLACK);
+            dc.setColor(teamColor(event["teamId"], dc), Graphics.COLOR_BLACK);
             dc.drawText(12, y, Graphics.FONT_XTINY, text, Graphics.TEXT_JUSTIFY_LEFT);
-            y += 22;
+            y += rowHeight;
         }
 
         if (events.size() > maxRows) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-            dc.drawText(dc.getWidth() / 2, dc.getHeight() - 24, Graphics.FONT_XTINY, "+" + (events.size() - maxRows).format("%d") + " MORE", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() - 24, Graphics.FONT_XTINY, "+" + (events.size() - maxRows).format("%d") + " EARLIER", Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
 
     function formatEvent(event as Dictionary) as String {
-        return formatClock(event["matchElapsedSeconds"]) + " " + teamText(event["teamId"]) + " " + actionText(event["action"]);
+        var text = formatClock(event["matchElapsedSeconds"]) + " " + teamText(event["teamId"]) + " " + actionText(event["action"]);
+        if (valueEquals(event["status"], "corrected")) {
+            text += " " + WatchUi.loadResource(Rez.Strings.Event_Corrected);
+        }
+        return text;
     }
 
     function teamText(teamId) as String {
         return valueEquals(teamId, RUGBY_TEAM_HOME) ? "H" : "A";
     }
 
-    function teamColor(teamId) as Number {
+    function teamColor(teamId, dc as Graphics.Dc) as Number {
+        if (dc.getWidth() == dc.getHeight() && dc.getWidth() <= 180) {
+            return Graphics.COLOR_WHITE;
+        }
         return valueEquals(teamId, RUGBY_TEAM_HOME) ? Graphics.COLOR_BLUE : Graphics.COLOR_ORANGE;
     }
 
     function actionText(action) as String {
         if (valueEquals(action, RUGBY_SCORE_TRY)) {
-            return "TRY";
+            return WatchUi.loadResource(Rez.Strings.Event_Try);
         }
         if (valueEquals(action, RUGBY_EVENT_CONVERSION_MADE)) {
-            return "CONV";
+            return WatchUi.loadResource(Rez.Strings.Event_ConversionMade);
         }
         if (valueEquals(action, RUGBY_SCORE_PENALTY_GOAL)) {
-            return "PEN";
+            return WatchUi.loadResource(Rez.Strings.Event_PenaltyGoal);
         }
         if (valueEquals(action, RUGBY_SCORE_DROP_GOAL)) {
-            return "DROP";
+            return WatchUi.loadResource(Rez.Strings.Event_DropGoal);
         }
         if (valueEquals(action, "yellowCard")) {
-            return "YELLOW";
+            return WatchUi.loadResource(Rez.Strings.Event_YellowCard);
         }
         if (valueEquals(action, "redCard")) {
-            return "RED";
+            return WatchUi.loadResource(Rez.Strings.Event_RedCard);
         }
         return "" + action;
     }
 
     function formatClock(totalSeconds) as String {
-        if (totalSeconds == null) {
-            return "--:--";
-        }
-        var seconds = totalSeconds as Number;
-        if (seconds < 0) {
-            seconds = 0;
-        }
-        var minutes = (seconds / 60) as Number;
-        var remainder = (seconds % 60) as Number;
-        var text = minutes.format("%d") + ":";
-        if (remainder < 10) {
-            text += "0";
-        }
-        return text + remainder.format("%d");
+        return RugbyTime.formatClock(totalSeconds);
     }
 
     function valueEquals(value, expected) as Boolean {

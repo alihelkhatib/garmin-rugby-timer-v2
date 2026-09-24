@@ -1,295 +1,225 @@
-/*
- * File: RugbyActivityRecorder.mc
- * Purpose: Wrap the Connect IQ ActivityRecording API to create/start/stop/save a rugby activity session.
- * Public API: RugbyActivityRecorder class with start(), stopAndSave(), state(), fallbackReason(), snapshot()
- * Key state: _session, _state, _fallbackReason
- * Interactions: Toybox.ActivityRecording, Activity constants; tests/Test_RugbyActivityRecorder.mc
- * Example usage: var r=new RugbyActivityRecorder(); r.start(); ... r.stopAndSave();
- * TODOs/notes: Surface richer errors to caller; ensure compatibility across SDK versions
- */
-
 import Toybox.Activity;
 import Toybox.ActivityRecording;
 import Toybox.Lang;
-import Toybox.System;
-import Toybox.Timer;
+import Toybox.Position;
 
 const RUGBY_RECORDER_STATE_NOT_STARTED = "notStarted";
 const RUGBY_RECORDER_STATE_RECORDING = "recording";
-const RUGBY_RECORDER_STATE_STOPPED = "stopped";
 const RUGBY_RECORDER_STATE_SAVED = "saved";
+const RUGBY_RECORDER_STATE_DISCARDED = "discarded";
 const RUGBY_RECORDER_STATE_UNSUPPORTED = "unsupported";
 const RUGBY_RECORDER_EVENT_EXPORT_UNSUPPORTED = "eventExportUnsupported";
-const RUGBY_RECORDER_MAX_EXPORT_RETRIES = 3;
-const RUGBY_RECORDER_EXPORT_BACKOFFS = [2000, 5000, 10000];
+const RUGBY_GPS_STATE_INACTIVE = "inactive";
+const RUGBY_GPS_STATE_ACQUIRING = "acquiring";
+const RUGBY_GPS_STATE_READY = "ready";
+const RUGBY_GPS_STATE_UNAVAILABLE = "unavailable";
 
 class RugbyActivityRecorder {
-
     var _session;
-    var _state;
-    var _fallbackReason;
-    var _eventExportState;
-    var _exportRetryTimer;
-    var _exportRetryCount;
-    var _pendingEventLog;
-/* Initialize recorder state; no session active by default. */
+    var _state as String;
+    var _fallbackReason as String?;
+    var _eventExportState as String;
+    var _gpsState as String;
+    var _gpsEnabled as Boolean;
+    var _segmentDistanceMeters;
+    var _priorDistanceMeters;
 
     function initialize() {
         _session = null;
         _state = RUGBY_RECORDER_STATE_NOT_STARTED;
         _fallbackReason = null;
         _eventExportState = "skipped";
+        _gpsState = RUGBY_GPS_STATE_INACTIVE;
+        _gpsEnabled = false;
+        _segmentDistanceMeters = 0.0;
+        _priorDistanceMeters = 0.0;
     }
-/* Try to create and start an ActivityRecording session. Returns false if unsupported or on error. */
 
-    function start() {
+    function enableGps() as Boolean {
+        if (_gpsEnabled) {
+            return true;
+        }
+        try {
+            Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
+            _gpsEnabled = true;
+            _gpsState = RUGBY_GPS_STATE_ACQUIRING;
+            return true;
+        } catch (gpsError) {
+            _gpsEnabled = false;
+            _gpsState = RUGBY_GPS_STATE_UNAVAILABLE;
+            return false;
+        }
+    }
+
+    function disableGps() as Void {
+        if (_gpsEnabled) {
+            try {
+                Position.enableLocationEvents(Position.LOCATION_DISABLE, null);
+            } catch (gpsError) {
+            }
+        }
+        _gpsEnabled = false;
+        if (!_gpsState.equals(RUGBY_GPS_STATE_UNAVAILABLE)) {
+            _gpsState = RUGBY_GPS_STATE_INACTIVE;
+        }
+    }
+
+    function onPosition(info as Position.Info) as Void {
+        _gpsState = info != null && info.position != null
+            ? RUGBY_GPS_STATE_READY
+            : RUGBY_GPS_STATE_ACQUIRING;
+    }
+
+    function start() as Boolean {
+        if (_state.equals(RUGBY_RECORDER_STATE_RECORDING)) {
+            return true;
+        }
+        if (_state.equals(RUGBY_RECORDER_STATE_SAVED) || _state.equals(RUGBY_RECORDER_STATE_DISCARDED)) {
+            return false;
+        }
         if (!(ActivityRecording has :createSession)) {
-            _state = RUGBY_RECORDER_STATE_UNSUPPORTED;
-            _fallbackReason = "ActivityRecording unavailable";
+            markUnsupported("Activity recording unavailable");
             return false;
         }
 
-        // Determine sport mapping with graceful fallback when device lacks SPORT_RUGBY
-        var sport = Activity has :SPORT_RUGBY ? Activity.SPORT_RUGBY : (Activity has :SPORT_OTHER ? Activity.SPORT_OTHER : 0);
-        var subSport = Activity has :SUB_SPORT_MATCH ? Activity.SUB_SPORT_MATCH : null;
+        var sport = Activity has :SPORT_RUGBY ? Activity.SPORT_RUGBY : Activity.SPORT_GENERIC;
+        var options = {
+            :sport => sport,
+            :name => "Rugby Match"
+        } as Dictionary;
+        if (Activity has :SUB_SPORT_MATCH) {
+            options[:subSport] = Activity.SUB_SPORT_MATCH;
+        }
 
         try {
-            _session = ActivityRecording.createSession({
-                :sport => sport,
-                :subSport => subSport,
-                :name => "Rugby Match"
-            });
+            enableGps();
+            _session = ActivityRecording.createSession(options);
             _session.start();
             _state = RUGBY_RECORDER_STATE_RECORDING;
             _fallbackReason = null;
-            _eventExportState = "skipped";
             return true;
         } catch (ex) {
             _session = null;
-            _state = RUGBY_RECORDER_STATE_UNSUPPORTED;
-            _fallbackReason = "Recording failed";
+            markUnsupported("Activity recording failed to start");
             return false;
         }
     }
-/* Stop and save the current session if present; sets fallbackReason on failure. */
 
-    function stopAndSave() {
+    function stopAndSave() as Boolean {
         return stopAndSaveWithEvents(null);
     }
 
-    function stopAndSaveWithEvents(eventLog) {
+    function stopAndSaveWithEvents(eventLog) as Boolean {
         var eventCount = eventLog == null ? 0 : eventLog.size();
-        // Default export state; update if we successfully attach/export events
         _eventExportState = eventCount > 0 ? RUGBY_RECORDER_EVENT_EXPORT_UNSUPPORTED : "skipped";
-        System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents eventCount=" + eventCount.format("%d") + " exportState=" + _eventExportState);
 
-        if (_session == null) {
+        if (_state.equals(RUGBY_RECORDER_STATE_SAVED)) {
+            return true;
+        }
+        if (!_state.equals(RUGBY_RECORDER_STATE_RECORDING) || _session == null) {
             return false;
         }
 
-        var attached = false;
-        if (eventCount > 0) {
-            try {
-                // Best-effort: try multiple session APIs to attach events
-                if (_session has :appendRecords) {
-                    var recs = [];
-                    var i = 0;
-                    while (i < eventCount) {
-                        var e = eventLog[i];
-                        var ts = e["timestamp"];
-                        var t = e["type"];
-                        var a = e["actor"];
-                        var v = e["value"];
-                        var d = e["details"];
-                        var s = t + "|" + (ts == null ? "" : ts.format("%d")) + "|" + (a == null ? "" : a) + "|" + (v == null ? "" : v.format("%d")) + "|" + (d == null ? "" : d);
-                        recs.add(s);
-                        i = i + 1;
-                    }
-                    _session.appendRecords(recs);
-                    attached = true;
-                } else if (_session has :addEvent) {
-                    var i2 = 0;
-                    while (i2 < eventCount) {
-                        var e2 = eventLog[i2];
-                        _session.addEvent(e2["type"], e2["timestamp"], e2["actor"], e2["value"], e2["details"]);
-                        i2 = i2 + 1;
-                    }
-                    attached = true;
-                } else if (_session has :addComment) {
-                    var j = 0;
-                    while (j < eventCount) {
-                        var ej = eventLog[j];
-                        var s2 = ej["type"] + "|" + (ej["timestamp"] == null ? "" : ej["timestamp"].format("%d")) + "|" + (ej["actor"] == null ? "" : ej["actor"]) + "|" + (ej["value"] == null ? "" : ej["value"].format("%d")) + "|" + (ej["details"] == null ? "" : ej["details"]);
-                        _session.addComment(s2);
-                        j = j + 1;
-                    }
-                    attached = true;
-                } else if (_session has :addMarker) {
-                    var k = 0;
-                    while (k < eventCount) {
-                        var ek = eventLog[k];
-                        var s3 = ek["type"] + "|" + (ek["timestamp"] == null ? "" : ek["timestamp"].format("%d")) + "|" + (ek["actor"] == null ? "" : ek["actor"]) + "|" + (ek["value"] == null ? "" : ek["value"].format("%d")) + "|" + (ek["details"] == null ? "" : ek["details"]);
-                        _session.addMarker(s3);
-                        k = k + 1;
-                    }
-                    attached = true;
-                }
-            } catch (ex2) {
-                System.println("RUGBY|RugbyActivityRecorder|attachEvents failed ex=" + ex2.toString());
-            }
-        }
-
-        if (attached) {
-            _eventExportState = "exported";
-        } else if (eventCount > 0) {
-            _eventExportState = RUGBY_RECORDER_EVENT_EXPORT_UNSUPPORTED;
-        } else {
-            _eventExportState = "skipped";
-        }
-
-        // Attempt to stop/save with non-blocking retries; do not block match end
         try {
+            refreshDistance();
             _session.stop();
-            _state = RUGBY_RECORDER_STATE_STOPPED;
             _session.save();
-            _state = RUGBY_RECORDER_STATE_SAVED;
             _session = null;
-            System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents saved exportState=" + _eventExportState + " attempts=1");
-            emitActivityExportDiagnostic({"status" => "exported", "attempts" => 1, "exportState" => _eventExportState});
+            _state = RUGBY_RECORDER_STATE_SAVED;
+            _fallbackReason = null;
+            disableGps();
             return true;
         } catch (ex) {
-            System.println("RUGBY|RugbyActivityRecorder|stopAndSaveWithEvents initial attempt failed ex=" + ex.toString());
-            // Schedule non-blocking retries using Timer with configured backoffs
-            _startExportRetries(eventLog);
-            emitActivityExportDiagnostic({"status" => "initial_failed", "error" => ex.toString(), "exportState" => _eventExportState});
-            // Do not block match end; retries will occur asynchronously.
+            _fallbackReason = "Activity recording failed to save";
             return false;
         }
     }
 
-    function discard() {
-        System.println("RUGBY|RugbyActivityRecorder|discard state=" + _state);
+    function discard() as Boolean {
+        if (_state.equals(RUGBY_RECORDER_STATE_DISCARDED)) {
+            return true;
+        }
         if (_session != null) {
             try {
                 _session.stop();
-            } catch (ex) {
-                System.println("RUGBY|RugbyActivityRecorder|discard stop failed ex=" + ex.toString());
+            } catch (stopError) {
+                // A session may already be stopped; discard is still the terminal operation.
+            }
+            try {
+                _session.discard();
+            } catch (discardError) {
+                _session = null;
+                markUnsupported("Activity recording failed to discard");
+                return false;
             }
         }
+        _session = null;
+        _state = RUGBY_RECORDER_STATE_DISCARDED;
+        _fallbackReason = null;
+        _eventExportState = "skipped";
+        _segmentDistanceMeters = 0.0;
+        _priorDistanceMeters = 0.0;
+        disableGps();
+        return true;
+    }
+
+    function reset() as Void {
         _session = null;
         _state = RUGBY_RECORDER_STATE_NOT_STARTED;
         _fallbackReason = null;
         _eventExportState = "skipped";
-        return true;
+        _segmentDistanceMeters = 0.0;
+        _priorDistanceMeters = 0.0;
     }
 
-    function state() {
+    function restoreDistanceMeters(distanceMeters) as Void {
+        if (distanceMeters != null && distanceMeters >= 0) {
+            _priorDistanceMeters = distanceMeters;
+            _segmentDistanceMeters = 0.0;
+        }
+    }
+
+    function refreshDistance() as Void {
+        if (!_state.equals(RUGBY_RECORDER_STATE_RECORDING)) {
+            return;
+        }
+        try {
+            var info = Activity.getActivityInfo();
+            if (info != null && info.elapsedDistance != null && info.elapsedDistance >= 0) {
+                _segmentDistanceMeters = info.elapsedDistance;
+            }
+        } catch (distanceError) {
+        }
+    }
+
+    function totalDistanceMeters() {
+        refreshDistance();
+        return _priorDistanceMeters + _segmentDistanceMeters;
+    }
+
+    function state() as String {
         return _state;
     }
 
-    function fallbackReason() {
+    function fallbackReason() as String? {
         return _fallbackReason;
     }
-function emitActivityExportDiagnostic(payload) {
-        try {
-            var diag = Json.toString(payload);
-            System.println("RUGBY_DIAG|activity_export|" + diag);
-        } catch (e) {
-            System.println("RUGBY|RugbyActivityRecorder|emitActivityExportDiagnostic failed ex=" + e.toString());
-        }
-    }
 
-    function _startExportRetries(eventLog) {
-        _pendingEventLog = eventLog;
-        _exportRetryCount = 0;
-        if (RUGBY_RECORDER_MAX_EXPORT_RETRIES > 0) {
-            var delay = RUGBY_RECORDER_EXPORT_BACKOFFS[0];
-            if (_exportRetryTimer == null) {
-                _exportRetryTimer = new Timer.Timer();
-            }
-            _exportRetryTimer.start(method(:_onExportRetryTimer), delay, false);
-            System.println("RUGBY|RugbyActivityRecorder|scheduled export retry #1 in " + delay.format("%d") + "ms");
-        } else {
-            _fallbackReason = "Recording failed and no retries configured";
-            emitActivityExportDiagnostic({"status" => "failed", "attempts" => 0, "exportState" => _eventExportState});
-        }
-    }
-
-    function _onExportRetryTimer() {
-        _exportRetryCount = _exportRetryCount + 1;
-        var attemptNumber = _exportRetryCount + 1; // initial attempt + retries
-        try {
-            if (_pendingEventLog != null && _session != null) {
-                var evCount = _pendingEventLog.size();
-                if (_session has :appendRecords) {
-                    var recs = [];
-                    var idx = 0;
-                    while (idx < evCount) {
-                        var ev = _pendingEventLog[idx];
-                        var s = ev["type"] + "|" + (ev["timestamp"] == null ? "" : ev["timestamp"].format("%d")) + "|" + (ev["actor"] == null ? "" : ev["actor"]) + "|" + (ev["value"] == null ? "" : ev["value"].format("%d")) + "|" + (ev["details"] == null ? "" : ev["details"]);
-                        recs.add(s);
-                        idx = idx + 1;
-                    }
-                    _session.appendRecords(recs);
-                } else if (_session has :addEvent) {
-                    var idx2 = 0;
-                    while (idx2 < evCount) {
-                        var ev2 = _pendingEventLog[idx2];
-                        _session.addEvent(ev2["type"], ev2["timestamp"], ev2["actor"], ev2["value"], ev2["details"]);
-                        idx2 = idx2 + 1;
-                    }
-                }
-            }
-            _session.stop();
-            _state = RUGBY_RECORDER_STATE_STOPPED;
-            _session.save();
-            _state = RUGBY_RECORDER_STATE_SAVED;
-            _session = null;
-            System.println("RUGBY|RugbyActivityRecorder|exportRetry saved exportState=" + _eventExportState + " attempts=" + attemptNumber.format("%d"));
-            emitActivityExportDiagnostic({"status" => "exported", "attempts" => attemptNumber, "exportState" => _eventExportState});
-            // cleanup
-            _pendingEventLog = null;
-            if (_exportRetryTimer != null) {
-                _exportRetryTimer.stop();
-                _exportRetryTimer = null;
-            }
-            _exportRetryCount = 0;
-            return;
-        } catch (ex2) {
-            System.println("RUGBY|RugbyActivityRecorder|exportRetry attempt " + attemptNumber.format("%d") + " failed ex=" + ex2.toString());
-            emitActivityExportDiagnostic({"status" => "retry_failed", "attempts" => attemptNumber, "error" => ex2.toString()});
-            if (_exportRetryCount < RUGBY_RECORDER_MAX_EXPORT_RETRIES) {
-                var nextDelay = RUGBY_RECORDER_EXPORT_BACKOFFS[_exportRetryCount];
-                if (_exportRetryTimer == null) {
-                    _exportRetryTimer = new Timer.Timer();
-                }
-                _exportRetryTimer.start(method(:_onExportRetryTimer), nextDelay, false);
-                System.println("RUGBY|RugbyActivityRecorder|scheduled next export retry #" + (_exportRetryCount+1).format("%d") + " in " + nextDelay.format("%d") + "ms");
-            } else {
-                System.println("RUGBY|RugbyActivityRecorder|exportRetry exhausted attempts=" + attemptNumber.format("%d"));
-                emitActivityExportDiagnostic({"status" => "failed", "attempts" => attemptNumber});
-                _fallbackReason = "Recording failed after retries";
-                _pendingEventLog = null;
-                if (_exportRetryTimer != null) {
-                    _exportRetryTimer.stop();
-                    _exportRetryTimer = null;
-                }
-                _exportRetryCount = 0;
-            }
-        }
-    }
-
-/* Return small serializable snapshot useful for debugging or persistence. */
-
-    function snapshot() {
+    function snapshot() as Dictionary {
+        var distance = totalDistanceMeters();
         return {
             "state" => _state,
             "sport" => "Activity.SPORT_RUGBY",
             "subSport" => "Activity.SUB_SPORT_MATCH",
             "fallbackReason" => _fallbackReason,
-            "eventExportState" => _eventExportState
-        };
+            "eventExportState" => _eventExportState,
+            "gpsState" => _gpsState,
+            "distanceMeters" => distance
+        } as Dictionary;
+    }
+
+    function markUnsupported(reason as String) as Void {
+        _state = RUGBY_RECORDER_STATE_UNSUPPORTED;
+        _fallbackReason = reason;
     }
 }
-
-

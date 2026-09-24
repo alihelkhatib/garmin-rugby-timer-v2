@@ -5,7 +5,6 @@
  * Key state: _model, _haptics, _layoutReady, _drawableCache
  * Interactions: RugbyLayoutSupport, RugbyHaptics, Rez.Layouts, RugbyGameModel
  * Example usage: new RugbyTimerView(model) shown by RugbyTimerApp.getInitialView()
- * TODOs/notes: Keep drawing code minimal; consider moving formatting helpers to shared util
  */
 
 import Toybox.Graphics;
@@ -27,6 +26,8 @@ class RugbyTimerView extends WatchUi.View {
     var _pauseReminderActive as Boolean;
     var _recorder;
     var _autoMatchSummaryShown as Boolean;
+    var _controller as RugbyMatchController?;
+    var _isInstinctLayout as Boolean;
 /* Prepare view state and create a RugbyHaptics helper instance. */
 
     function initialize(model as RugbyGameModel) {
@@ -41,17 +42,22 @@ class RugbyTimerView extends WatchUi.View {
         _pauseReminderActive = false;
         _recorder = null;
         _autoMatchSummaryShown = false;
-        System.println("RUGBY|RugbyTimerView|initialize modelPresent=" + (_model != null ? "yes" : "no"));
+        _controller = null;
+        _isInstinctLayout = false;
     }
 
     function setRecorder(recorder) as Void {
         _recorder = recorder;
     }
+
+    function setController(controller as RugbyMatchController) as Void {
+        _controller = controller;
+    }
 /* Apply layout and cache drawable references for fast drawing. */
 
     function onLayout(dc as Graphics.Dc) as Void {
-        System.println("RUGBY|RugbyTimerView|onLayout width=" + dc.getWidth().format("%d") + " height=" + dc.getHeight().format("%d"));
-        RugbyLayoutSupport.applyLayout(self, dc, dc.getWidth(), dc.getHeight());
+        var layoutId = RugbyLayoutSupport.applyLayout(self, dc, dc.getWidth(), dc.getHeight());
+        _isInstinctLayout = layoutId.equals("MainLayoutInstinct");
         cacheDrawables();
         _layoutReady = true;
     }
@@ -62,11 +68,13 @@ class RugbyTimerView extends WatchUi.View {
             onLayout(dc);
         }
         var now = System.getTimer() as Number;
-        var snap = _model.snapshot(now) as Dictionary;
-        System.println("RUGBY|RugbyTimerView|onUpdate nowMs=" + now.format("%d")
-            + " snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d"))
-            + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"])
-            + " pending=" + (snap["pendingConfirmAction"] == null ? "null" : snap["pendingConfirmAction"]));
+        var snap;
+        if (_controller != null) {
+            snap = _controller.tick(now);
+        } else {
+            _model.advance(now);
+            snap = _model.snapshot(now);
+        }
         updateRefreshTimer(snap);
         updatePauseReminderTimer(snap);
         handleAutoMatchEnd(snap);
@@ -81,21 +89,17 @@ class RugbyTimerView extends WatchUi.View {
             _autoMatchSummaryShown = false;
             return;
         }
-        if (_autoMatchSummaryShown || !snap["autoMatchEndPendingSave"]) {
+        if (_autoMatchSummaryShown) {
             return;
         }
-        if (!_model.consumeAutoMatchEndPendingSave()) {
-            return;
-        }
-        if (_recorder != null) {
-            if (_recorder has :stopAndSaveWithEvents) {
-                _recorder.stopAndSaveWithEvents(_model.eventLog());
-            } else if (_recorder has :stopAndSave) {
-                _recorder.stopAndSave();
+        if (_controller != null) {
+            if (!_controller.consumeSummaryRequest()) {
+                return;
             }
+        } else if (!_model.consumeAutoMatchEndPendingSave()) {
+            return;
         }
         _autoMatchSummaryShown = true;
-        System.println("RUGBY|RugbyTimerView|handleAutoMatchEnd showSummary");
         WatchUi.pushView(new RugbyMatchSummaryView(_model), new RugbyMatchSummaryDelegate(), WatchUi.SLIDE_UP);
     }
 
@@ -105,20 +109,16 @@ class RugbyTimerView extends WatchUi.View {
             if (_refreshTimer == null) {
                 _refreshTimer = new Timer.Timer();
             }
-            System.println("RUGBY|RugbyTimerView|updateRefreshTimer start snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")));
             _refreshTimer.start(method(:onRefreshTimer), 1000, true);
             _refreshActive = true;
         } else if (!shouldRun && _refreshActive) {
-            System.println("RUGBY|RugbyTimerView|updateRefreshTimer stop snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
             _refreshTimer.stop();
             _refreshActive = false;
         } else {
-            System.println("RUGBY|RugbyTimerView|updateRefreshTimer unchanged active=" + (_refreshActive ? "true" : "false") + " shouldRun=" + (shouldRun ? "true" : "false"));
         }
     }
 
     function onRefreshTimer() as Void {
-        System.println("RUGBY|RugbyTimerView|onRefreshTimer requestUpdate");
         WatchUi.requestUpdate();
     }
 
@@ -129,15 +129,12 @@ class RugbyTimerView extends WatchUi.View {
                 _pauseReminderTimer = new Timer.Timer();
             }
             var interval = snap["pauseReminderIntervalMs"] == null ? RUGBY_PAUSE_REMINDER_INTERVAL_MS : snap["pauseReminderIntervalMs"];
-            System.println("RUGBY|RugbyTimerView|updatePauseReminderTimer start snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " intervalMs=" + interval.format("%d"));
             _pauseReminderTimer.start(method(:onPauseReminderTimer), interval, true);
             _pauseReminderActive = true;
         } else if (!shouldRun && _pauseReminderActive) {
-            System.println("RUGBY|RugbyTimerView|updatePauseReminderTimer stop snapshotId=" + (snap["snapshotId"] == null ? "null" : snap["snapshotId"].format("%d")) + " clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
             _pauseReminderTimer.stop();
             _pauseReminderActive = false;
         } else {
-            System.println("RUGBY|RugbyTimerView|updatePauseReminderTimer unchanged active=" + (_pauseReminderActive ? "true" : "false") + " shouldRun=" + (shouldRun ? "true" : "false"));
         }
     }
 
@@ -145,10 +142,8 @@ class RugbyTimerView extends WatchUi.View {
         var now = System.getTimer() as Number;
         var snap = _model.snapshot(now) as Dictionary;
         if (valueEquals(snap["clockState"], RUGBY_STATE_PAUSED)) {
-            var haptic = _haptics.firePauseReminder() as Boolean;
-            System.println("RUGBY|RugbyTimerView|onPauseReminderTimer fired nowMs=" + now.format("%d") + " haptic=" + (haptic ? "true" : "false"));
+            _haptics.firePauseReminder();
         } else {
-            System.println("RUGBY|RugbyTimerView|onPauseReminderTimer stopping clockState=" + (snap["clockState"] == null ? "null" : snap["clockState"]));
             if (_pauseReminderTimer != null) {
                 _pauseReminderTimer.stop();
             }
@@ -156,7 +151,18 @@ class RugbyTimerView extends WatchUi.View {
         }
         WatchUi.requestUpdate();
     }
-/* Locate drawables by id; tolerate missing drawables on some device profiles. */
+
+    function onHide() as Void {
+        if (_refreshTimer != null) {
+            _refreshTimer.stop();
+        }
+        if (_pauseReminderTimer != null) {
+            _pauseReminderTimer.stop();
+        }
+        _refreshActive = false;
+        _pauseReminderActive = false;
+    }
+/* Cache the text drawables required by every validated layout. */
 
     function cacheDrawables() as Void {
         _drawableCache = {} as Dictionary;
@@ -176,14 +182,7 @@ class RugbyTimerView extends WatchUi.View {
         ] as Array<String>;
         for (var i = 0; i < ids.size(); i += 1) {
             var id = ids[i] as String;
-            var drawable = null;
-            try {
-                drawable = findDrawableById(id);
-            } catch (ex) {
-                System.println("RUGBY|RugbyTimerView|cacheDrawables missing id=" + id + " ex=" + ex.toString());
-                drawable = null;
-            }
-            _drawableCache[id] = drawable;
+            _drawableCache[id] = findDrawableById(id);
         }
     }
 /* Map snapshot fields into drawable text/colors/visibility. */
@@ -192,11 +191,11 @@ class RugbyTimerView extends WatchUi.View {
         var home = snap["home"] as Dictionary;
         var away = snap["away"] as Dictionary;
         bindElapsedTimer(snap);
-        setTextDrawable("HomeLabel", "HOME", true, Graphics.COLOR_BLUE);
-        setTextDrawable("AwayLabel", "AWAY", true, Graphics.COLOR_ORANGE);
+        setTextDrawable("HomeLabel", WatchUi.loadResource(Rez.Strings.Team_Home_Short), true, _isInstinctLayout ? Graphics.COLOR_WHITE : Graphics.COLOR_BLUE);
+        setTextDrawable("AwayLabel", WatchUi.loadResource(Rez.Strings.Team_Away_Short), true, _isInstinctLayout ? Graphics.COLOR_WHITE : Graphics.COLOR_ORANGE);
         setTextDrawable("HomeScore", valueText(home["score"]), true, Graphics.COLOR_WHITE);
         setTextDrawable("AwayScore", valueText(away["score"]), true, Graphics.COLOR_WHITE);
-        setTextDrawable("HalfText", "Half " + valueText(snap["halfIndex"]), true, Graphics.COLOR_WHITE);
+        setTextDrawable("HalfText", WatchUi.loadResource(Rez.Strings.HalfPrefix) + valueText(snap["halfIndex"]), true, Graphics.COLOR_WHITE);
         setTextDrawable("HomeTries", valueText(home["tryCount"]) + "T", true, Graphics.COLOR_WHITE);
         setTextDrawable("AwayTries", valueText(away["tryCount"]) + "T", true, Graphics.COLOR_WHITE);
         bindTeamCard("HomeCardValue", snap["sanctions"] as Array<Dictionary>, RUGBY_TEAM_HOME);
@@ -220,8 +219,7 @@ class RugbyTimerView extends WatchUi.View {
     function bindTeamCard(id as String, sanctions as Array<Dictionary>, teamId as String) as Void {
         var label = teamYellowCardTimerLabel(sanctions, teamId) as String;
         if (!label.equals("")) {
-            System.println("RUGBY|RugbyTimerView|bindTeamCard id=" + id + " teamId=" + teamId + " yellowTimers=" + label + " redPresent=" + (teamHasRedCard(sanctions, teamId) ? "true" : "false"));
-            setTextDrawable(id, label, true, Graphics.COLOR_YELLOW);
+            setTextDrawable(id, label, true, _isInstinctLayout ? Graphics.COLOR_WHITE : Graphics.COLOR_YELLOW);
             return;
         }
         setTextDrawable(id, "", false, Graphics.COLOR_WHITE);
@@ -261,6 +259,15 @@ class RugbyTimerView extends WatchUi.View {
         if (size < 5) {
             size = 5;
         }
+        if (_isInstinctLayout) {
+            if (teamHasRedCard(sanctions, RUGBY_TEAM_HOME)) {
+                drawRedCardIndicator(dc, (dc.getWidth() * 82 / 100) as Number, (dc.getHeight() * 30 / 100) as Number, size);
+            }
+            if (teamHasRedCard(sanctions, RUGBY_TEAM_AWAY)) {
+                drawRedCardIndicator(dc, (dc.getWidth() * 82 / 100) as Number, (dc.getHeight() * 45 / 100) as Number, size);
+            }
+            return;
+        }
         if (teamHasRedCard(sanctions, RUGBY_TEAM_HOME)) {
             drawRedCardIndicator(dc, (dc.getWidth() * 35 / 100) as Number, (dc.getHeight() * 16 / 100) as Number, size);
         }
@@ -284,13 +291,22 @@ class RugbyTimerView extends WatchUi.View {
 
     function setStatus(snap as Dictionary) as Void {
         if (snap["pendingConfirmAction"] != null) {
-            setTextDrawable("StatusMessage", "CONFIRM", true, Graphics.COLOR_YELLOW);
+            var pending = snap["pendingConfirmAction"];
+            var confirmText = WatchUi.loadResource(Rez.Strings.Confirm_EndHalf) as String;
+            if (valueEquals(pending, "endMatchSave")) {
+                confirmText = WatchUi.loadResource(Rez.Strings.Confirm_EndMatch);
+            } else if (valueEquals(pending, "endMatchExit")) {
+                confirmText = WatchUi.loadResource(Rez.Strings.Confirm_EndMatchExit);
+            } else if (valueEquals(pending, "resetMatch")) {
+                confirmText = WatchUi.loadResource(Rez.Strings.Confirm_Reset);
+            }
+            setTextDrawable("StatusMessage", confirmText, true, Graphics.COLOR_YELLOW);
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_PAUSED)) {
-            setTextDrawable("StatusMessage", "PAUSED", true, Graphics.COLOR_YELLOW);
+            setTextDrawable("StatusMessage", WatchUi.loadResource(Rez.Strings.State_Paused), true, Graphics.COLOR_YELLOW);
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_HALF_ENDED)) {
-            setTextDrawable("StatusMessage", "NEXT HALF", true, RUGBY_COLOR_DIM);
+            setTextDrawable("StatusMessage", WatchUi.loadResource(Rez.Strings.State_NextHalf), true, RUGBY_COLOR_DIM);
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_MATCH_ENDED)) {
-            setTextDrawable("StatusMessage", "MATCH END", true, RUGBY_COLOR_DIM);
+            setTextDrawable("StatusMessage", WatchUi.loadResource(Rez.Strings.State_GameEnded), true, RUGBY_COLOR_DIM);
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_NOT_STARTED)) {
             setTextDrawable("StatusMessage", "" + snap["variantName"], true, RUGBY_COLOR_DIM);
         } else {
@@ -299,25 +315,13 @@ class RugbyTimerView extends WatchUi.View {
     }
 
     function setTextDrawable(id as String, text as String, visible as Boolean, color as Number) as Void {
-        var drawable = _drawableCache[id];
+        var drawable = _drawableCache[id] as WatchUi.Text?;
         if (drawable == null) {
             return;
         }
-        try {
-            drawable.setText(text);
-        } catch (ex) {
-            System.println("RUGBY|RugbyTimerView|setTextDrawable id=" + id + " op=setText ex=" + ex.toString());
-        }
-        try {
-            drawable.setColor(color);
-        } catch (ex2) {
-            System.println("RUGBY|RugbyTimerView|setTextDrawable id=" + id + " op=setColor ex=" + ex2.toString());
-        }
-        try {
-            drawable.setVisible(visible == true);
-        } catch (ex3) {
-            System.println("RUGBY|RugbyTimerView|setTextDrawable id=" + id + " op=setVisible ex=" + ex3.toString());
-        }
+        drawable.setText(text);
+        drawable.setColor(color);
+        drawable.setVisible(visible == true);
     }
 /* Fire coalesced haptics for events and notify model they were fired. */
 
@@ -352,19 +356,6 @@ class RugbyTimerView extends WatchUi.View {
 /* Format a seconds value into MM:SS text, clamp negative values to 0. */
 
     function formatClock(totalSeconds as Number?) as String {
-        if (totalSeconds == null) {
-            return "--:--";
-        }
-        var seconds = totalSeconds as Number;
-        if (seconds < 0) {
-            seconds = 0;
-        }
-        var minutes = (seconds / 60) as Number;
-        var remainder = (seconds % 60) as Number;
-        var text = (minutes.format("%d") + ":") as String;
-        if (remainder < 10) {
-            text = text + "0";
-        }
-        return text + remainder.format("%d");
+        return RugbyTime.formatClock(totalSeconds);
     }
 }

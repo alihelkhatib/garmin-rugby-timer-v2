@@ -1,47 +1,15 @@
 # Test Traceability
 
-## 003-idle-timer-controls
-
-- US1 Adjust Main Timer Before Kickoff: `tests/Test_RugbyIdleTimerControls.mc`, `tests/Test_RugbyGameModel.mc`, and `tests/Test_RugbyVariantConfig.mc` cover idle Up/Menu increment, idle Down decrement, raw physical Up/Menu/Down/Select-Start key routing, 00:00 lower bound, selected variant normal-half upper bound, and match start from the adjusted idle value.
-- US2 Block Score Menu While Idle: `tests/Test_RugbyIdleTimerControls.mc` covers not-started score/card menu blocking and match-ended score-dialog blocking.
-- US3 Preserve In-Match Score Controls: `tests/Test_RugbyIdleTimerControls.mc` covers running, paused, and half-ended score/card dialog availability; `tests/Test_RugbyGameModel.mc` covers try, conversion, penalty goal, and drop goal scoring after an idle timer adjustment.
-- US4 Keep Idle Screen Readable and Match-Ready: `source/RugbyTimerView.mc` removes raw lifecycle status display from the idle screen, and `resources/layouts/layout.xml` recenters the resource-backed countdown label. Simulator or physical-device screenshot validation remains required for final visual acceptance.
-
-Validation status:
-
-- Compile and unit-test compile passed for `fenix7` on 2026-04-13, including the raw physical-key and idle-display regression fix.
-- Simulator execution is pending because `monkeydo` could not connect to the Connect IQ simulator in this environment.
-
-## 005-match-event-management
-
-- US1 Automatic Conversion After Try: `tests/Test_RugbyGameModel.mc` covers paused try conversion countdowns driven by wall-clock time and non-try scores not starting a conversion; `source/RugbyConversionView.mc` owns a one-second overlay refresh timer for visible countdown updates while the main match is paused.
-- US2 Pause Awareness And Card Pause Behavior: `tests/Test_RugbyGameModel.mc` covers pause reminder snapshot state, card-triggered pause for yellow and red cards, same-team multiple-yellow timers, and separate red-card marker state; `source/RugbyTimerDelegate.mc`, `source/RugbyTimerView.mc`, and `source/RugbyHaptics.mc` cover immediate pause haptics, recurring paused reminders, plain yellow timer text, multiple yellow timers, and compact red-card markers.
-- US3 Match Event Log: `tests/Test_RugbyGameModel.mc` covers scoring/card event log entries and reset/new-match clearing; `tests/Test_RugbyActivityRecorder.mc` covers best-effort activity export fallback state.
-- US4 End Or Reset From Back: `tests/Test_RugbyIdleTimerControls.mc` covers Back option availability and reset confirmation clearing model state and discarding the recorder; `source/RugbyMatchSummaryView.mc` renders the current match event log after End match.
-
-Validation status:
-
-- Compile and unit-test compile passed for `fenix7` on 2026-04-13.
-- Simulator execution is pending because `monkeydo` could not connect to the Connect IQ simulator in this environment.
-
-## 006-rugby-variant-menu
-
-- US1 Select Variant Before Match: `tests/Test_RugbyIdleTimerControls.mc` covers pre-match variant menu availability and applying built-in 7s defaults from the delegate/model path.
-- US2 Prevent Mid-Match Variant Changes: `tests/Test_RugbyIdleTimerControls.mc` covers running, paused, and match-ended variant-menu blocking plus set-variant ignored after match start.
-- US3 Preserve Variant Choice During Pre-Match Adjustments: `tests/Test_RugbyIdleTimerControls.mc` covers selecting a built-in variant after an idle timer adjustment and resetting to the selected variant defaults.
-
-Validation status:
-
-- Compile and unit-test compile passed for `fenix7` on 2026-04-13.
-
-## 007-auto-period-transition
-
-- US1 Auto-End Non-Final Period: `tests/Test_RugbyGameModel.mc` covers running non-final countdown expiry, manual end-half regression, and the half-time timer count-up during the between-period state; `source/RugbyGameModel.mc` performs the automatic transition through the existing half-ended state and derives `halfTimeSeconds`, while `source/RugbyTimerView.mc` binds that value as the visible `HT` timer.
-- US2 Auto-End Final Period And Match: `tests/Test_RugbyGameModel.mc` covers final-period countdown expiry, summary state preservation, one-shot auto-save flag consumption, and manual end-match regression; `source/RugbyGameModel.mc` reuses the existing match-ended state and timer shutdown path, and `source/RugbyTimerView.mc` consumes automatic final expiry once to call the existing recorder save and match summary view path.
-- US3 Carry Active Card Timers Into Next Period: `tests/Test_RugbyGameModel.mc` covers single and multiple yellow-card carry-forward, yellow-card pause during half-time timer count-up, simultaneous yellow expiry at a period boundary, paused-at-00:00 behavior, and red-card/conversion timer non-regression; `source/RugbyGameModel.mc` preserves unexpired yellow-card remaining time before period elapsed resets.
-
-Validation status:
-
-- Compile and unit-test compile passed for `fenix7` on 2026-04-13.
-- Simulator test artifact ran with `monkeydo build\garmin-rugby-timer-fenix7-test.prg fenix7 /t`; interactive quickstart validation remains pending for a manual simulator/device session.
-- Half-time timer correction compile, unit-test compile, and simulator test artifact passed for `fenix7` on 2026-04-14.
+| Requirement area | Automated coverage | Device/simulator coverage |
+|---|---|---|
+| Match start/pause/resume/reset | `Test_RugbyGameModel`, `Test_RugbyIdleTimerControls` | Full control smoke flow |
+| Timestamp accuracy/delayed callbacks | `Test_RugbyGameModel`, `Test_RugbyTime` | Full-length drift check |
+| Period and final auto transition | `Test_RugbyGameModel`, `Test_RugbyMatchController` | Summary opens once |
+| Variants and clock adjustments | `Test_RugbyVariantConfig`, `Test_RugbyIdleTimerControls` | Pre-match menu on each profile |
+| Scores, latest-event undo, and event history | `Test_RugbyGameModel` | Menu navigation and summary |
+| Conversion timer | `Test_RugbyGameModel`, `Test_RugbyPersistence` | Overlay and haptic behavior |
+| Yellow/red cards | `Test_RugbyGameModel` | Multiple-card layout and haptics |
+| Input gates, recoverable/terminal exit states, and confirmations | `Test_RugbyGameModel`, `Test_RugbyIdleTimerControls` | Physical-button, Exit & save, and Stop & exit checks |
+| Activity recording, GPS, and mileage | `Test_RugbyActivityRecorder`, `Test_RugbyMatchController` | Physical FIT route/distance and save/discard |
+| Interrupted-match recovery | `Test_RugbyPersistence` | Exit/relaunch restores paused |
+| Layout/resource compatibility | Compiler resource validation, `Test_RugbyLayoutSupport` | Fēnix 6 and Instinct 2 visual checks; Fēnix 7 build validation |

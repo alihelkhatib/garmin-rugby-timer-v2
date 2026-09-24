@@ -1,68 +1,19 @@
-# Source file summaries
-Each source file below has a short description and links to relevant specs and tests.
+# Source map
 
-## RugbyLayoutSupport.mc
-Layout helper that selects the proper Rez layout for the device family/size.
+| File | Responsibility | Primary coverage |
+|---|---|---|
+| `RugbyGameModel.mc` | Authoritative match state, timing, scoring, sanctions, events, recovery payload | `Test_RugbyGameModel.mc`, `Test_RugbyPersistence.mc` |
+| `RugbyTime.mc` | Safe elapsed-time and clock formatting helpers | `Test_RugbyTime.mc` |
+| `RugbyMatchController.mc` | Periodic advancement, persistence, one-shot automatic save/summary | `Test_RugbyMatchController.mc` |
+| `RugbyVariantConfig.mc` | Variant presets, bounds, preference storage | `Test_RugbyVariantConfig.mc` |
+| `RugbyPersistence.mc` | Versioned active-match checkpoint storage | `Test_RugbyPersistence.mc` |
+| `RugbyActivityRecorder.mc` | Supported ActivityRecording lifecycle and failure state | `Test_RugbyActivityRecorder.mc` |
+| `RugbyTimerDelegate.mc` | Main button state gates, confirmations, and menu routing | `Test_RugbyIdleTimerControls.mc` |
+| `RugbyTeamSelectionDelegate.mc`, `RugbyTeamActionDelegate.mc` | Validated team/action menu routing | Model and manual input-flow checks |
+| `RugbyTimerView.mc`, `RugbyConversionView.mc` | Snapshot rendering and visible-only refresh timers | Model helpers and simulator checks |
+| `RugbyMatchSummaryView.mc` | Latest-event match summary | Model event-log tests and simulator checks |
+| `RugbyLayoutSupport.mc` | Resource-layout selection | Build matrix and simulator checks |
+| `RugbyHaptics.mc` | Coalesced match alerts | Model haptic-event tests and physical-device checks |
+| `RugbyTimerApp.mc` | Lifecycle wiring and recovery bootstrap | Build matrix and recovery tests |
 
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: TODO (no direct unit test found)
-
-## RugbyActivityRecorder.mc
-Small wrapper around ActivityRecording to start/stop/save a recorded match.
-
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: tests/Test_RugbyActivityRecorder.mc
-
-## RugbyTimerView.mc
-UI view that renders the main timer and binds model snapshot data into layout drawables.
-
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: TODO (no direct unit test found)
-
-## RugbyCardMenus.mc
-Menu delegates for assigning discipline cards (yellow/red) to teams.
-
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: TODO (no direct unit test found)
-
-## RugbyHaptics.mc
-Coalescing haptics helper to avoid duplicate vibrations per snapshot.
-
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: TODO (no direct unit test found)
-
-## RugbyConversionView.mc
-View and delegate for conversion attempts after a try; presents timer and made/miss actions.
-
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: TODO (no direct unit test found)
-
-## RugbyTimerApp.mc
-Connect IQ app entry point that wires model, recorder and initial view.
-
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: TODO (no direct unit test found)
-
-## RugbyGameModel.mc
-Core match state machine: timers, scoring, sanctions, snapshots and haptic detection.
-
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: tests/Test_RugbyGameModel.mc
-
-## RugbyVariantConfig.mc
-Variant presets and helpers for applying user overrides to match configuration.
-
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: tests/Test_RugbyVariantConfig.mc
-
-## RugbyScoringMenus.mc
-Menu delegates for selecting team and score type; routes to score handling flow.
-
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: TODO (no direct unit test found)
-
-## RugbyTimerDelegate.mc
-Behavior delegate mapping watch input (buttons/menus) to model actions and navigation.
-
-- Spec: specs/001-rugby-referee-timer/spec.md
-- Test: TODO (no direct unit test found)
+All paths above are under `source/`; test paths are under `tests/`. The active behavior specification is `specs/011-codebase-rehabilitation/spec.md`.

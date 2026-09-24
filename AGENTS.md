@@ -1,17 +1,11 @@
-﻿# rugby-timer-v2 Development Guidelines
+# rugby-timer-v2 Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-14
+Auto-generated from all feature plans. Last updated: 2026-09-19
 
 ## Active Technologies
-- Monkey C / Garmin Connect IQ API 4.1.6 minimum + Garmin Connect IQ Toybox modules already used by the app: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording` (003-idle-timer-controls)
-- Existing local setup/preferences behavior only; this feature does not add new persistence (003-idle-timer-controls)
-- Monkey C / Garmin Connect IQ API 4.1.6 minimum, validated with local Connect IQ SDK 9.1.0 build commands + Garmin Connect IQ Toybox modules already used by the app: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording` (005-match-event-management)
-- In-memory current-match event log; no new persistent app storage. Best-effort saved-activity event export uses existing activity-recording capability if supported, with in-app match-end review fallback. (005-match-event-management)
-- Current match runtime state only; no new persistent app storage (007-auto-period-transition)
-- Monkey C / Garmin Connect IQ SDK 4.1.6 minimum, matching the current app baseline + Garmin Connect IQ Toybox modules already used by the app: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording` (007-auto-period-transition)
-- No new storage; current runtime state only (007-auto-period-transition)
-
-- Monkey C / Garmin Connect IQ API 4.1.6 minimum for `Activity.SPORT_RUGBY` + Garmin Connect IQ Toybox APIs: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording` (001-rugby-referee-timer)
+- Monkey C with a Connect IQ API 3.4.0 compatibility floor, validated with local SDK 8.3.0.
+- Built-in Toybox `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, `ActivityRecording`, and `Position`; no third-party libraries.
+- `Application.Storage` for variant preferences and a compact active-match/distance recovery snapshot; no network or external database.
 
 ## Project Structure
 
@@ -39,14 +33,12 @@ tests/                   # Monkey C tests where supported
 - Avoid network dependencies, heavy analytics, and generated clutter for v1.
 
 ## Recent Changes
-- 007-auto-period-transition: Added Monkey C / Garmin Connect IQ SDK 4.1.6 minimum, matching the current app baseline + Garmin Connect IQ Toybox modules already used by the app: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording`
-- 007-auto-period-transition: Added Monkey C / Garmin Connect IQ API 4.1.6 minimum, validated with local Connect IQ SDK 9.1.0 build commands + Garmin Connect IQ Toybox modules already used by the app: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording`
-- 005-match-event-management: Added Monkey C / Garmin Connect IQ API 4.1.6 minimum, validated with local Connect IQ SDK 9.1.0 build commands + Garmin Connect IQ Toybox modules already used by the app: `Application`, `WatchUi`, `Graphics`, `Lang`, `System`, `Timer`, `Attention`, `Activity`, and `ActivityRecording`
+- 011-codebase-rehabilitation: consolidated match timing, recovery, validation, resources, executable tests, and the supported device matrix.
 
 
 <!-- MANUAL ADDITIONS START -->
 ## Implementation Notes
 
-- Connect IQ CLI commands (`monkeyc`, `monkeydo`, `connectiq`) were not available on PATH during the 2026-04-12 implementation pass, so SDK build, simulator, and device validation must be run after the Garmin SDK environment is configured.
-- Current app files are intentionally small: `RugbyGameModel` owns match state/timer derivation, `RugbyVariantConfig` owns presets/preferences, `RugbyTimerView` renders one snapshot, `RugbyTimerDelegate` maps watch actions, `RugbyHaptics` coalesces alerts, and `RugbyActivityRecorder` owns the FIT session.
+- SDK 8.3.0 CLI builds and simulator tests are available on PATH in the validated development environment.
+- Current app files are intentionally focused: `RugbyGameModel` owns match state and timer derivation, `RugbyMatchController` owns periodic evaluation/persistence side effects, `RugbyVariantConfig` owns presets/preferences, views render snapshots, delegates map watch actions, `RugbyHaptics` coalesces alerts, and `RugbyActivityRecorder` owns GPS, elapsed distance, and the FIT session.
 <!-- MANUAL ADDITIONS END -->

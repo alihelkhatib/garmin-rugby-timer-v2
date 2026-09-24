@@ -1,165 +1,64 @@
 # Developer Guide
 
-This guide helps a brand-new contributor get the project building, testing, and running in the Garmin Connect IQ simulator, and explains the project's Speckit workflow for making changes.
-
-## Quick start
-
-1. Install the Garmin Connect IQ SDK (recommended minimum: Connect IQ API 4.1.6).
-2. Add the SDK 'bin' directory to your PATH (see Prerequisites).
-3. From the project root run the build and simulator steps below.
-
----
-
 ## Prerequisites
 
-- OS
-  - macOS (recommended), Linux (Ubuntu 20.04+), or Windows 10/11.
+- Garmin Connect IQ SDK 8.3.0 or newer on `PATH` (`monkeyc`, `monkeydo`, `connectiq`).
+- Java supported by that SDK.
+- A private RSA 4096-bit developer key in DER format stored outside the repository.
+- Simulator device profiles for `fenix6`, `fenix7`, and `instinct2`.
 
-- Connect IQ SDK
-  - Install the Garmin Connect IQ SDK (Connect IQ API >= 4.1.6). Download from: https://developer.garmin.com/connect-iq/overview/
-  - The SDK provides the command-line tools `monkeyc`, `monkeydo` (and older `connectiq`).
+Garmin documents command-line key generation as:
 
-- Java
-  - The Connect IQ toolchain requires a Java runtime. Install a supported JDK/JRE (Java 8/11+ is commonly compatible).
+```text
+openssl genrsa -out developer_key.pem 4096
+openssl pkcs8 -topk8 -inform PEM -outform DER -in developer_key.pem -out developer_key.der -nocrypt
+```
 
-- Environment variables / PATH (example)
-  - macOS / Linux (example):
+Never commit the key. Common key filenames are ignored by `.gitignore`.
 
-    ```bash
-    # adjust the path to match your SDK install location
-    export CONNECTIQ_SDK="/path/to/connectiq/sdk"
-    export PATH="$CONNECTIQ_SDK/bin:$PATH"
-    ```
+## Responsibilities
 
-  - Windows (PowerShell, example):
+| Concern | Owner |
+|---|---|
+| Match state, scoring, sanctions, transitions | `source/RugbyGameModel.mc` |
+| Timestamp deltas and clock text | `source/RugbyTime.mc` |
+| Automatic transition side effects and checkpoints | `source/RugbyMatchController.mc` |
+| Storage and recovery | `source/RugbyPersistence.mc`, `source/RugbyVariantConfig.mc` |
+| GPS, elapsed distance, ActivityRecording lifecycle | `source/RugbyActivityRecorder.mc` |
+| Main input mapping and menus | `source/RugbyTimerDelegate.mc`, team delegates |
+| Resource binding and visible refresh timers | `source/RugbyTimerView.mc`, `source/RugbyConversionView.mc` |
+| Layout selection | `source/RugbyLayoutSupport.mc`, `resources/layouts/layout.xml` |
+| Match-end event display | `source/RugbyMatchSummaryView.mc` |
 
-    ```powershell
-    setx CONNECTIQ_SDK "C:\path\to\connectiq\sdk"
-    $env:Path += ";$env:CONNECTIQ_SDK\bin"
-    ```
+## State and timing model
 
-- Notes
-  - During prior work the Connect IQ CLI commands were not on PATH in CI/dev machines; ensure your dev environment has `monkeyc` and `monkeydo` available. If you can't install the SDK, you can still read and edit code, but builds, simulator runs and tests require the SDK.
+The core states are `notStarted`, `running`, `paused`, `halfEnded` (between periods), and `matchEnded`. Only `RugbyGameModel` changes these states.
 
----
+`advance(nowMs)` is the explicit write boundary for time-driven expiry. `snapshot(nowMs)` derives all visible values from the same timestamp and does not end periods, navigate, save an activity, or vibrate. The controller consumes one-shot auto-match-end state and prevents repeated saves.
 
-## Build steps
+The main clock accumulates active playing milliseconds. Yellow cards use that active time, so cards pause with the match and at half-time. Conversions use a monotonic wall-time anchor and therefore continue during a match pause. UI timers merely request evaluation/redraw; they never decrement authoritative counters.
 
-From the project root:
+Recovery snapshots fold a running interval into accumulated time and store the state as paused. This is deliberate: it preserves match data without guessing how much rugby was played while the application was unavailable.
 
-- Recommended (SDK on PATH):
+The recorder enables continuous `Toybox.Position` updates so Garmin's ActivityRecording subsystem captures the GPS track and elapsed distance in the FIT activity. Those metrics are intentionally not rendered in the match UI. Recovery retains internal distance metadata; resuming after an app exit starts a new FIT segment because live Garmin sessions are process-bound.
 
-  - Build using the CLI directly (example):
+## Resources and devices
 
-    ```bash
-    # basic example - the exact flags you need may vary by SDK version
-    monkeyc -f monkey.jungle -o build/rugby.prg
-    ```
+Static layout, fonts, positions, colors, strings, and menus live in `resources/`. The Instinct 2 launcher override lives in `resources-instinct2/`. Manual drawing is limited to the runtime-sized summary list and red-card marker.
 
-  - Use `monkeydo` to run higher-level tasks if available in your SDK:
+The manifest contains only three validated products. Add a new product only after application and test compilation, simulator layout/input checks, and memory review.
 
-    ```bash
-    # example, replace <product-id> or profile as needed
-    monkeydo build -f monkey.jungle
-    ```
+## Spec Kit workflow
 
-- Fallback (no CLI available locally):
-  - Use the official Connect IQ IDE (Eclipse-based) to import the project and build there.
-  - Or install the Connect IQ SDK on a machine or CI runner and follow the CLI examples above.
+Behavior changes require a spec in `specs/`, followed by a plan and dependency-ordered tasks. Keep `CLEANUP_NOTES.md` current for rehabilitation work. Narrow build fixes may precede design only when they restore already-specified behavior.
 
-- Build outputs
-  - The build produces .prg/.app files suitable for installation on a simulator or device. Check the `build/` or SDK-configured output folder.
+## Code review expectations
 
----
-
-## Running tests
-
-- Tests live in `tests/` and are written using Toybox.Test (Monkey C unit tests).
-
-- Locally (CLI)
-  - If your SDK provides a test runner, invoke it from the project root. Example (SDK-dependent):
-
-    ```bash
-    # example: consult your SDK's `monkeyc --help` for the correct test flags
-    monkeyc -f monkey.jungle -o build/tests -t tests
-    ```
-
-  - Expected output: a PASS/FAIL summary from the Toybox.Test runner, with failing assertions showing the test name and failed assertion.
-
-- Locally (IDE)
-  - Import the project into the Connect IQ IDE and run the test harness if the IDE supports it.
-
-- CI
-  - In CI, provision a runner with the Connect IQ SDK installed (or use a container that includes the SDK). Run the same `monkeyc` test command as in local development. Fail the job if tests output failures.
-
-- If you cannot run the SDK in CI, include tests as a gated step or mark them as optional but require simulator/device validation in PR review.
-
----
-
-## Running the simulator
-
-- With the SDK installed you can launch installs against simulator profiles.
-
-- Examples (SDK-dependent):
-
-  ```bash
-  # build the app
-  monkeyc -f monkey.jungle -o build/rugby.prg
-
-  # install/run in a simulator profile (replace <product-id> as needed)
-  monkeydo install -p <product-id> build/rugby.prg
-  monkeydo run -p <product-id>
-  ```
-
-- Alternative: Use the Connect IQ IDE's device/simulator manager to install and run the .prg on a simulated watch.
-
----
-
-## Speckit workflow (specs, plan, tasks)
-
-This project follows Spec Kit conventions. High-level flow for a new feature or change:
-
-1. Create a new spec folder under `specs/` e.g. `specs/00X-my-feature/`.
-2. Add or update `spec.md` describing the problem, goals, constraints, and acceptance criteria.
-3. Create `plan.md` listing the chosen approach, key files to change, and important trade-offs.
-4. Generate `tasks.md` — an actionable, dependency-ordered checklist of implementation steps. Each task should be executable by another contributor.
-5. Work on a feature branch. Branch naming convention in this repo: `speckit/<short-description>` (or use the project's speckit tooling to create a branch).
-6. Before coding, ensure `spec.md`, `plan.md`, and `tasks.md` are present and reviewed (this saves rework).
-7. Implement changes, update the spec/plan/tasks as details change.
-8. Commit logically-scoped changes with clear messages (see Code Review section). Push branch and open a PR.
-
-Helpful tools (if available): the repository includes Spec Kit integrations that can help scaffold specs and convert tasks to issues. Use them when present.
-
-Where to find existing specs:
-
-- Root `specs/` directory. Example quickstart: `specs/001-rugby-referee-timer/quickstart.md` (start there for context).
-
----
-
-## Code review and PR expectations
-
-- Open a PR from your feature branch and include:
-  - Link to the spec (`specs/…/spec.md`) or the quickstart that motivated the change.
-  - Summary of what changed and why, screenshots or simulator logs if UI/behavior changes.
-  - Test results (unit tests, simulator validation steps, or device test notes).
-
-- Requirements before merge:
-  - Passing automated checks (CI) where applicable.
-  - At least one approving review from a maintainer or peer.
-  - If the change affects device behavior (timing, haptics, FIT output), include simulator and device validation notes in the PR.
-
-- Commit message style
-  - Use clear, imperative messages like `speckit: add developer guide`.
-  - When appropriate include a `Co-authored-by:` trailer for pair contributions.
-
----
-
-## Troubleshooting & tips
-
-- If `monkeyc`/`monkeydo` are missing, double-check your PATH and CONNECTIQ_SDK variable; relogin or restart your shell after modifying PATH.
-- Use the Connect IQ IDE simulator for step-through testing and for devices that the CLI might not fully emulate.
-- Preserve timing logic in the shared model (`source/`) — UI code should render state from the model, not duplicate timer logic.
-
----
-
-If you need help getting your local SDK configured, note the platform and SDK install path when opening an issue or PR and a maintainer will help.
+- Check timestamp behavior with delayed callbacks and boundaries.
+- Check every touched valid and invalid state transition.
+- Check view timer cleanup in `onHide`.
+- Check recovery schema compatibility and reset deletion.
+- Check recorder terminal calls for idempotence.
+- Check GPS acquisition, distance continuity, and Positioning permission behavior.
+- Compile all manifest products and run the unit-test PRG.
+- Do not add unconditional logging, placeholder tests, generated output, secrets, network dependencies, or unvalidated product IDs.

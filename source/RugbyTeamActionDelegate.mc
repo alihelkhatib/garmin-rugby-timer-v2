@@ -8,58 +8,62 @@ class TeamActionTypeDelegate extends WatchUi.Menu2InputDelegate {
     var _teamId;
     var _action; // "score" or "card"
     var _haptics as RugbyHaptics;
+    var _controller as RugbyMatchController?;
 
-    function initialize(model, teamId, action) {
+    function initialize(model, teamId, action, controller as RugbyMatchController?) {
         Menu2InputDelegate.initialize();
         _model = model;
         _teamId = teamId;
         _action = action;
         _haptics = new RugbyHaptics();
+        _controller = controller;
     }
 
     function onSelect(item) {
         var now = System.getTimer();
         var itemId = item.getId();
-        System.println("RUGBY|TeamActionTypeDelegate|onSelect itemId=" + itemId + " action=" + (_action == null ? "null" : _action) + " teamId=" + (_teamId == null ? "null" : _teamId) + " nowMs=" + now.format("%d"));
 
         if (valueEquals(_action, "score")) {
             if (valueEquals(itemId, :score_try) || valueEquals(itemId, "score_try")) {
-                System.println("RUGBY|TeamActionTypeDelegate|score try teamId=" + _teamId);
                 _model.recordTry(_teamId, now);
+                persist(now);
                 WatchUi.popView(WatchUi.SLIDE_DOWN);
                 WatchUi.popView(WatchUi.SLIDE_DOWN);
-                WatchUi.pushView(new RugbyConversionView(_model, _teamId), new RugbyConversionDelegate(_model, _teamId), WatchUi.SLIDE_UP);
-            } else {
+                WatchUi.pushView(new RugbyConversionView(_model, _teamId, _controller), new RugbyConversionDelegate(_model, _teamId, _controller), WatchUi.SLIDE_UP);
+            } else if (valueEquals(itemId, :score_penalty_goal) || valueEquals(itemId, "score_penalty_goal") || valueEquals(itemId, :score_drop_goal) || valueEquals(itemId, "score_drop_goal")) {
                 if (valueEquals(itemId, :score_penalty_goal) || valueEquals(itemId, "score_penalty_goal")) {
-                    System.println("RUGBY|TeamActionTypeDelegate|score penaltyGoal teamId=" + _teamId);
                     _model.recordPenaltyGoalAt(_teamId, now);
                 } else if (valueEquals(itemId, :score_drop_goal) || valueEquals(itemId, "score_drop_goal")) {
-                    System.println("RUGBY|TeamActionTypeDelegate|score dropGoal teamId=" + _teamId);
                     _model.recordDropGoalAt(_teamId, now);
-                } else {
-                    System.println("RUGBY|TeamActionTypeDelegate|score unknown itemId=" + itemId);
                 }
+                persist(now);
                 WatchUi.popView(WatchUi.SLIDE_DOWN);
                 WatchUi.popView(WatchUi.SLIDE_DOWN);
                 WatchUi.requestUpdate();
             }
-        } else {
+        } else if (valueEquals(_action, "card") && (valueEquals(itemId, :card_yellow) || valueEquals(itemId, "card_yellow") || valueEquals(itemId, :card_red) || valueEquals(itemId, "card_red"))) {
             var beforeSnap = _model.snapshot(now) as Dictionary;
             var wasRunning = valueEquals(beforeSnap["clockState"], RUGBY_STATE_RUNNING) as Boolean;
             if (valueEquals(itemId, :card_yellow) || valueEquals(itemId, "card_yellow")) {
-                var yellowId = _model.startYellowCard(_teamId, now) as Number;
-                System.println("RUGBY|TeamActionTypeDelegate|card yellow teamId=" + _teamId + " sanctionId=" + yellowId.format("%d"));
-            } else {
-                var redId = _model.recordRedCard(_teamId, now) as Number;
-                System.println("RUGBY|TeamActionTypeDelegate|card red teamId=" + _teamId + " sanctionId=" + redId.format("%d"));
+                _model.startYellowCard(_teamId, now);
+            } else if (valueEquals(itemId, :card_red) || valueEquals(itemId, "card_red")) {
+                _model.recordRedCard(_teamId, now);
             }
             if (wasRunning) {
-                var haptic = _haptics.firePause() as Boolean;
-                System.println("RUGBY|TeamActionTypeDelegate|cardPauseHaptic teamId=" + _teamId + " haptic=" + (haptic ? "true" : "false"));
+                _haptics.firePause();
             }
+            persist(now);
             WatchUi.popView(WatchUi.SLIDE_DOWN);
             WatchUi.popView(WatchUi.SLIDE_DOWN);
             WatchUi.requestUpdate();
+        }
+    }
+
+    function persist(nowMs as Number) as Void {
+        if (_controller != null) {
+            _controller.persist(nowMs);
+        } else {
+            RugbyPersistence.saveMatch(_model, nowMs);
         }
     }
 
