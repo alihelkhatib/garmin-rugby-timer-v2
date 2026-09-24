@@ -19,6 +19,9 @@
   <string id="CardPrefix_Red">R</string>
   <string id="State_Paused">PAUSED</string>
   <string id="State_ReadyToStart">Ready</string>
+  <string id="Gps_Wait">GPS WAIT</string>
+  <string id="Gps_Ready">GPS READY</string>
+  <string id="Gps_Off">GPS OFF</string>
   <string id="State_GameEnded">GAME ENDED</string>
   <string id="State_NextHalf">NEXT HALF</string>
   <string id="Confirm_EndHalf">SELECT: END HALF</string>

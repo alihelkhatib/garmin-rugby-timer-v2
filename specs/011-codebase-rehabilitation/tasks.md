@@ -144,6 +144,12 @@
 - [x] T061 [US2] Add executable tests for heart-rate lifecycle state, readable FIT event mapping, one-time event/correction export, and restored-event priming in `tests/Test_RugbyActivityRecorder.mc` and `tests/Test_RugbyMatchController.mc`
 - [x] T062 [US2] Enable Garmin heart-rate capture and best-effort rugby event lap/developer-field export in `source/RugbyActivityRecorder.mc`, `source/RugbyMatchController.mc`, `source/RugbyTimerApp.mc`, `resources/fitfields.xml`, `resources/strings/strings.xml`, and `manifest.xml`
 - [x] T063 [US4] Re-run the complete test/build matrix and document Garmin Connect developer-field limitations plus physical-device heart-rate/event verification in `README.md`, `docs/testing.md`, and `CLEANUP_NOTES.md`
+- [x] T064 [US2] Add regression tests for runtime-compatible FIT sport selection and compact pre-match GPS readiness text in `tests/Test_RugbyActivityRecorder.mc` and `tests/Test_RugbyGameModel.mc`
+- [x] T065 [US2] Select runtime-supported sport metadata and expose pre-match GPS readiness without mileage in `source/RugbyActivityRecorder.mc`, `source/RugbyTimerView.mc`, and `resources/strings/strings.xml`
+- [x] T066 [US4] Inspect the physical Fēnix 6 FIT output, rerun the build/test matrix, document the Garmin Connect map prerequisites, rebuild, and redeploy the corrected watch binary
+- [x] T067 [US2] Add regression tests for legacy supported-sport fallback and one-shot yellow-card warning/expiration events and patterns in `tests/Test_RugbyActivityRecorder.mc` and `tests/Test_RugbyGameModel.mc`
+- [x] T068 [US2] Use soccer/match compatibility metadata on pre-4.1.6 runtimes and implement distinct yellow-card warning/expiration vibrations in `source/RugbyActivityRecorder.mc`, `source/RugbyGameModel.mc`, `source/RugbyHaptics.mc`, and `source/RugbyTimerView.mc`
+- [ ] T069 [US4] Compare decoded Rugby Timer and FC Timer FIT structure, validate physical save/sync/GPS behavior, rebuild all targets, and redeploy the compatibility build
 
 ---
 
@@ -176,5 +182,5 @@
 
 ## Format Validation
 
-All 63 tasks use the required checkbox, sequential ID, optional parallel marker, story label where applicable, concrete action, and exact file path or named build artifact.
+All 69 tasks use the required checkbox, sequential ID, optional parallel marker, story label where applicable, concrete action, and exact file path or named build artifact.
 

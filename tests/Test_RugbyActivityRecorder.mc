@@ -17,6 +17,7 @@ Preconditions / setup:
 */
 
 using Toybox.Test;
+import Toybox.Activity;
 import Toybox.Lang;
 
 class RecorderTestField {
@@ -216,5 +217,13 @@ function testActivityRecorderRestoresCumulativeDistance(logger) {
     snap = recorder.snapshot();
     Test.assertEqual(RUGBY_RECORDER_STATE_NOT_STARTED, snap["state"]);
     Test.assertEqual(0.0, snap["distanceMeters"]);
+    return true;
+}
+
+(:test)
+function testActivityRecorderUsesRuntimeSupportedSport(logger) {
+    var recorder = new RugbyActivityRecorder();
+    var expectedSport = Activity has :SPORT_RUGBY ? 72 : Activity.SPORT_SOCCER;
+    Test.assertEqual(expectedSport, recorder.recordingSport());
     return true;
 }

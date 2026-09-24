@@ -1,33 +1,53 @@
 import Toybox.Attention;
 import Toybox.Lang;
-import Toybox.System;
-
 const RUGBY_ALERT_THRESHOLD_SECONDS = 60;
 
 class RugbyHaptics {
 
-    var _lastAlertSnapshotId;
-/* Reset last alert snapshot id to avoid duplicate alerts on startup. */
-
     function initialize() {
-        _lastAlertSnapshotId = null;
     }
 
     function shouldAlert(remainingSeconds, alertFired) {
         return !alertFired && remainingSeconds != null && remainingSeconds <= RUGBY_ALERT_THRESHOLD_SECONDS && remainingSeconds >= 0;
     }
-/* Only vibrate once per snapshot id; returns true if a vibration was performed. */
+    function patternForEvents(events as Array<Dictionary>) as String {
+        var hasWarning = false;
+        for (var i = 0; i < events.size(); i += 1) {
+            var event = events[i] as Dictionary;
+            var type = "" + event["type"];
+            if (type.equals("yellowExpired")) {
+                return "expired";
+            }
+            if (type.equals("yellowWarning")) {
+                hasWarning = true;
+            }
+        }
+        return hasWarning ? "warning" : "generic";
+    }
 
-    function fireCoalesced(snapshotId) {
-        if (_lastAlertSnapshotId == snapshotId) {
+    function fireEvents(events as Array<Dictionary>) as Boolean {
+        if (events.size() == 0 || !(Attention has :vibrate)) {
             return false;
         }
-        _lastAlertSnapshotId = snapshotId;
-        if (Attention has :vibrate) {
+        var pattern = patternForEvents(events) as String;
+        if (pattern.equals("expired")) {
+            Attention.vibrate([
+                new Attention.VibeProfile(100, 400),
+                new Attention.VibeProfile(0, 120),
+                new Attention.VibeProfile(100, 400),
+                new Attention.VibeProfile(0, 120),
+                new Attention.VibeProfile(100, 700)
+            ]);
+        } else if (pattern.equals("warning")) {
+            Attention.vibrate([
+                new Attention.VibeProfile(80, 250),
+                new Attention.VibeProfile(0, 150),
+                new Attention.VibeProfile(80, 250)
+            ]);
+        } else {
             Attention.vibrate([ new Attention.VibeProfile(80, 500) ]);
-            return true;
         }
-        return false;
+        return true;
     }
 
     function fireMatchStart() as Boolean {

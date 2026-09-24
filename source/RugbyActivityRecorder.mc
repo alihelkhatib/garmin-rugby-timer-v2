@@ -25,7 +25,6 @@ const RUGBY_FIT_FIELD_MATCH_TIME = 1;
 const RUGBY_FIT_FIELD_PERIOD = 2;
 const RUGBY_FIT_FIELD_HOME_SCORE = 3;
 const RUGBY_FIT_FIELD_AWAY_SCORE = 4;
-
 class RugbyActivityRecorder {
     var _session;
     var _state as String;
@@ -141,7 +140,7 @@ class RugbyActivityRecorder {
             return false;
         }
 
-        var sport = Activity has :SPORT_RUGBY ? Activity.SPORT_RUGBY : Activity.SPORT_GENERIC;
+        var sport = recordingSport();
         var options = {
             :sport => sport,
             :name => "Rugby Match"
@@ -226,6 +225,15 @@ class RugbyActivityRecorder {
         disableGps();
         disableHeartRate();
         return true;
+    }
+
+    function recordingSport() as Number {
+        if (Activity has :SPORT_RUGBY) {
+            return Activity.SPORT_RUGBY;
+        }
+        // Fenix 6 predates the native rugby enum. Soccer + match is the
+        // supported field-sport compatibility path used by peer timer apps.
+        return Activity.SPORT_SOCCER;
     }
 
     function reset() as Void {

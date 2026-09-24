@@ -480,8 +480,10 @@ class RugbyGameModel {
             var event = events[i] as Dictionary;
             if (valueEquals(event["type"], "conversion") && _conversionTimer != null) {
                 _conversionTimer["nearExpiryAlertFired"] = true;
-            } else if (valueEquals(event["type"], "yellow")) {
-                setSanctionAlertFired(event["id"]);
+            } else if (valueEquals(event["type"], "yellowWarning")) {
+                setSanctionAlertFired(event["id"], "nearExpiryAlertFired");
+            } else if (valueEquals(event["type"], "yellowExpired")) {
+                setSanctionAlertFired(event["id"], "expiryAlertFired");
             }
         }
         _lastHapticEvents = events;
@@ -573,7 +575,8 @@ class RugbyGameModel {
             "startedAtActiveMs" => activeElapsedMs(nowMs),
             "durationSeconds" => durationSeconds,
             "state" => "active",
-            "nearExpiryAlertFired" => false
+            "nearExpiryAlertFired" => false,
+            "expiryAlertFired" => false
         } as Dictionary;
         _nextSanctionId += 1;
         _sanctions.add(sanction);
@@ -614,7 +617,8 @@ class RugbyGameModel {
                     "cardType" => sanction["cardType"],
                     "state" => projectedState,
                     "remainingSeconds" => remaining,
-                    "nearExpiryAlertFired" => sanction["nearExpiryAlertFired"]
+                    "nearExpiryAlertFired" => sanction["nearExpiryAlertFired"] == true,
+                    "expiryAlertFired" => sanction["expiryAlertFired"] == true
                 } as Dictionary);
             }
         }
@@ -629,18 +633,27 @@ class RugbyGameModel {
         }
         for (var i = 0; i < sanctions.size(); i += 1) {
             var sanction = sanctions[i] as Dictionary;
-            if (valueEquals(sanction["cardType"], RUGBY_CARD_YELLOW) && valueEquals(sanction["state"], "active") && !sanction["nearExpiryAlertFired"] && sanction["remainingSeconds"] <= RUGBY_ALERT_THRESHOLD_SECONDS) {
-                events.add({ "type" => "yellow", "id" => sanction["id"] } as Dictionary);
+            if (!valueEquals(sanction["cardType"], RUGBY_CARD_YELLOW)) {
+                continue;
+            }
+            if (valueEquals(sanction["state"], "active")
+                    && !sanction["nearExpiryAlertFired"]
+                    && sanction["remainingSeconds"] <= RUGBY_ALERT_THRESHOLD_SECONDS
+                    && sanction["remainingSeconds"] > 0) {
+                events.add({ "type" => "yellowWarning", "id" => sanction["id"] } as Dictionary);
+            }
+            if (valueEquals(sanction["state"], "expired") && !sanction["expiryAlertFired"]) {
+                events.add({ "type" => "yellowExpired", "id" => sanction["id"] } as Dictionary);
             }
         }
         return events;
     }
 
-    function setSanctionAlertFired(sanctionId as Number) as Void {
+    function setSanctionAlertFired(sanctionId as Number, fieldName as String) as Void {
         for (var i = 0; i < _sanctions.size(); i += 1) {
             var sanction = _sanctions[i] as Dictionary;
             if (sanction["id"] == sanctionId) {
-                sanction["nearExpiryAlertFired"] = true;
+                sanction[fieldName] = true;
             }
         }
     }
@@ -730,6 +743,9 @@ class RugbyGameModel {
             var sanction = _sanctions[i] as Dictionary;
             if (valueEquals(sanction["cardType"], RUGBY_CARD_YELLOW) && valueEquals(sanction["state"], "active")) {
                 sanction["state"] = "expired";
+                // Match completion is not a natural card expiry and should not
+                // trigger a misleading expiry vibration on the summary screen.
+                sanction["expiryAlertFired"] = true;
             }
         }
     }

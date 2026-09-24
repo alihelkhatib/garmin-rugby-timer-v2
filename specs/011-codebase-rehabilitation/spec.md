@@ -40,6 +40,9 @@ A referee can record and correct scores, conversions, yellow cards, and red card
 5. **Given** GPS is acquiring or unavailable, **When** the match starts or continues, **Then** match timing, scoring, and navigation remain usable.
 6. **Given** a match activity is recording, **When** the watch provides heart-rate samples, **Then** Garmin records heart rate in the saved FIT activity without requiring an in-app heart-rate display.
 7. **Given** a score, conversion, card, or correction is recorded, **When** FIT developer fields are supported, **Then** the event is exported as a labeled activity-lap entry with match time, period, and current score; otherwise the match recording continues without interruption.
+8. **Given** a supported older watch whose runtime predates the `SPORT_RUGBY` API symbol, **When** it saves a match, **Then** it uses a supported field-sport compatibility type and Rugby Match name rather than an unsupported raw enum that may not enter the device sync pipeline.
+9. **Given** the pre-match screen, **When** GPS is acquiring, ready, or unavailable, **Then** the referee can see that state before kickoff while retaining the ability to start without a fix.
+10. **Given** an active yellow-card timer, **When** it reaches one minute remaining and later expires, **Then** the referee receives distinct one-shot warning and expiration vibration patterns; paused match time does not advance either threshold.
 
 ---
 
@@ -122,6 +125,9 @@ A developer can understand the architecture, build supported targets, run meanin
 - **FR-026**: The active-match options MUST distinguish recoverable `Exit & save` from confirmed terminal `Stop & exit`; the terminal action MUST end the match, save the FIT activity, clear recovery, and close the application exactly once.
 - **FR-027**: The activity recorder MUST enable the Garmin heart-rate sensor while a FIT session is recording, disable it when recording ends, and allow match operation to continue if the sensor is unavailable.
 - **FR-028**: The activity recorder MUST export supported rugby events and corrections as best-effort FIT developer fields attached to activity laps, including a readable event label, match time, period, and home/away score, without claiming native Garmin Connect rugby-event semantics.
+- **FR-029**: The activity recorder MUST request native rugby metadata where the runtime exposes it and MUST use the supported soccer/match compatibility metadata on older runtimes so device synchronization remains reliable; it MUST NOT submit an unsupported raw sport enum to those runtimes.
+- **FR-030**: The pre-match UI MUST show compact GPS acquiring, ready, or unavailable status without showing mileage and without preventing an indoor match from starting.
+- **FR-031**: Each active yellow card MUST produce one distinct near-expiry alert at 60 seconds remaining and one stronger expiration alert at zero, using active match time and preserving one-shot behavior across delayed callbacks.
 
 ### Key Entities
 
@@ -152,6 +158,8 @@ A developer can understand the architecture, build supported targets, run meanin
 - **SC-011**: Simulator validation shows an acquiring/unavailable GPS state without failure, and physical-device validation confirms a saved FIT route and distance within normal Garmin GPS tolerance.
 - **SC-012**: Selecting and confirming Stop & exit terminates the simulator application and a subsequent launch starts without restoring the completed match.
 - **SC-013**: Automated tests cover event-label mapping, one-time event/correction export, and recovery priming; supported targets build with Sensor and FitContributor permissions, while physical-device validation confirms heart-rate samples and Garmin Connect/FIT visibility.
+- **SC-014**: A Fēnix 6 FIT inspection reports supported soccer/match compatibility metadata with the Rugby Match name and successfully enters Garmin Connect; a moving outdoor test started after `GPS READY` contains native position records that Garmin Connect renders as a map.
+- **SC-015**: Automated timing tests prove yellow-card warning and expiry events fire once each, and simulator/device checks distinguish their vibration patterns.
 
 ## Assumptions
 

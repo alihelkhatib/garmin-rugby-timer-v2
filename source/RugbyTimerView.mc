@@ -308,10 +308,27 @@ class RugbyTimerView extends WatchUi.View {
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_MATCH_ENDED)) {
             setTextDrawable("StatusMessage", WatchUi.loadResource(Rez.Strings.State_GameEnded), true, RUGBY_COLOR_DIM);
         } else if (valueEquals(snap["clockState"], RUGBY_STATE_NOT_STARTED)) {
-            setTextDrawable("StatusMessage", "" + snap["variantName"], true, RUGBY_COLOR_DIM);
+            var gpsState = RUGBY_GPS_STATE_INACTIVE as String;
+            if (_recorder != null && (_recorder has :snapshot)) {
+                var recorderSnap = _recorder.snapshot() as Dictionary;
+                if (recorderSnap["gpsState"] != null) {
+                    gpsState = "" + recorderSnap["gpsState"];
+                }
+            }
+            setTextDrawable("StatusMessage", idleStatusText(snap, gpsState), true, RUGBY_COLOR_DIM);
         } else {
             setTextDrawable("StatusMessage", "", false, Graphics.COLOR_WHITE);
         }
+    }
+
+    function idleStatusText(snap as Dictionary, gpsState as String) as String {
+        var gpsText = WatchUi.loadResource(Rez.Strings.Gps_Wait) as String;
+        if (gpsState.equals(RUGBY_GPS_STATE_READY)) {
+            gpsText = WatchUi.loadResource(Rez.Strings.Gps_Ready);
+        } else if (gpsState.equals(RUGBY_GPS_STATE_UNAVAILABLE) || gpsState.equals(RUGBY_GPS_STATE_INACTIVE)) {
+            gpsText = WatchUi.loadResource(Rez.Strings.Gps_Off);
+        }
+        return ("" + snap["variantName"]) + " | " + gpsText;
     }
 
     function setTextDrawable(id as String, text as String, visible as Boolean, color as Number) as Void {
@@ -323,12 +340,12 @@ class RugbyTimerView extends WatchUi.View {
         drawable.setColor(color);
         drawable.setVisible(visible == true);
     }
-/* Fire coalesced haptics for events and notify model they were fired. */
+/* Fire each one-shot timer event pattern and persist its fired state. */
 
     function handleHaptics(snap as Dictionary) as Void {
         var events = snap["hapticEvents"] as Array<Dictionary>?;
         if (events != null && events.size() > 0) {
-            _haptics.fireCoalesced(snap["snapshotId"]);
+            _haptics.fireEvents(events);
             _model.markHapticEventsFired(events);
         }
     }

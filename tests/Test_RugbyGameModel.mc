@@ -618,6 +618,43 @@ function testRenderSnapshotContainsRequiredFields(logger) {
 }
 
 (:test)
+function testPreMatchStatusIncludesGpsReadinessWithoutMileage(logger) {
+    var model = newTestModel();
+    var view = new RugbyTimerView(model);
+    var snap = model.snapshot(0);
+    Test.assertEqual("15's | GPS WAIT", view.idleStatusText(snap, RUGBY_GPS_STATE_ACQUIRING));
+    Test.assertEqual("15's | GPS READY", view.idleStatusText(snap, RUGBY_GPS_STATE_READY));
+    Test.assertEqual("15's | GPS OFF", view.idleStatusText(snap, RUGBY_GPS_STATE_UNAVAILABLE));
+    return true;
+}
+
+(:test)
+function testYellowCardWarningAndExpiryAlertsAreDistinctAndOneShot(logger) {
+    var model = newTestModel();
+    model.startMatch(0);
+    model.startYellowCard(RUGBY_TEAM_HOME, 0);
+    model.resume(0);
+
+    var warning = model.snapshot(9 * 60 * 1000);
+    Test.assertEqual(1, warning["hapticEvents"].size());
+    Test.assertEqual("yellowWarning", warning["hapticEvents"][0]["type"]);
+    model.markHapticEventsFired(warning["hapticEvents"]);
+    Test.assertEqual(0, model.snapshot((9 * 60 * 1000) + 1000)["hapticEvents"].size());
+
+    model.advance(10 * 60 * 1000);
+    var expired = model.snapshot(10 * 60 * 1000);
+    Test.assertEqual(1, expired["hapticEvents"].size());
+    Test.assertEqual("yellowExpired", expired["hapticEvents"][0]["type"]);
+    model.markHapticEventsFired(expired["hapticEvents"]);
+    Test.assertEqual(0, model.snapshot((10 * 60 * 1000) + 1000)["hapticEvents"].size());
+
+    var haptics = new RugbyHaptics();
+    Test.assertEqual("warning", haptics.patternForEvents(warning["hapticEvents"]));
+    Test.assertEqual("expired", haptics.patternForEvents(expired["hapticEvents"]));
+    return true;
+}
+
+(:test)
 function testConfirmedEndMatchExitIsTerminal(logger) {
     var model = newTestModel();
     model.startMatch(0);
