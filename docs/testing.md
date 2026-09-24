@@ -18,6 +18,7 @@ Coverage includes:
 - Start, pause, resume, delayed period transition, final match end, and reset.
 - Timestamp-derived countdown/count-up and backward-time clamping.
 - Scoring, corrections, conversions, sanctions, one-shot yellow-card warning/expiry patterns, and event log.
+- One-shot resume confirmation haptics and ended-match timer reset with retained score/event summary.
 - Yellow-card carry across half-time and wall-time conversion behavior.
 - Input state gates and destructive confirmation flows.
 - Recorder fallback, heart-rate lifecycle, terminal behavior, readable FIT event mapping, deduplication, correction export, and recovery priming.
@@ -41,6 +42,7 @@ On each representative shape:
 3. Add all score types; make and miss conversions.
 4. Issue multiple yellow cards and a red card, then cross half-time.
 5. Verify the automatic final transition saves and opens the summary once.
+   Confirm the main countdown returns to the selected period duration, auxiliary timers clear, and the final score/events remain in the summary.
 6. Relaunch during an active match and verify it restores paused.
 7. Reset and verify score, events, activity session, and recovery are cleared.
 8. Inspect the main, paused, half-time, conversion, confirmation, and summary layouts for clipping. On Instinct 2, verify that no team or clock text enters the upper-right circular inset.

@@ -7,7 +7,7 @@ Rugby Timer V2 is an offline Garmin Connect IQ watch app for referees. It keeps 
 - Before kickoff: Up adds one minute and Down subtracts one minute, bounded by zero and the selected variant's normal period length.
 - Before kickoff: Menu opens the variant picker for 15s, 7s, 10s, or U19.
 - Before kickoff: the status line shows `GPS WAIT`, `GPS READY`, or `GPS OFF`; wait for `GPS READY` before an outdoor match when a Garmin Connect route/map is required.
-- Select/Start: starts, pauses, or resumes the current period; it also confirms a clearly labelled pending End or Reset action.
+- Select/Start: starts, pauses, or resumes the current period; it also confirms a clearly labelled pending End or Reset action. Resuming a paused match gives one short confirmation vibration.
 - During an active match: Up opens scoring and Down opens cards. A try starts the conversion countdown.
 - Back: exits normally before kickoff and after completion. During an active match it opens End period, End match, Stop & exit, Undo last event, Match summary, Reset match, and Exit & save.
 - Stop & exit requires confirmation, ends the match, saves its FIT activity, clears recovery, and closes the app.
@@ -16,6 +16,7 @@ Rugby Timer V2 is an offline Garmin Connect IQ watch app for referees. It keeps 
 
 Cards pause a running match. Yellow-card time advances only with active match time and pauses during stoppages and between periods. Conversion time follows monotonic wall time, including while the match clock is paused. Reaching zero while running advances to half-time or ends the final period automatically.
 Each yellow card gives a distinct double-pulse warning at 60 seconds remaining and a stronger triple-pulse alert at expiry. Because issuing a card pauses a running match, resume the match clock for its active-time countdown to continue.
+When a match ends manually or automatically, the main countdown returns to the selected period duration and conversion/card timers clear. Final scores and event history remain available in the match summary and saved activity.
 
 ## Architecture
 
