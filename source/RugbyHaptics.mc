@@ -58,6 +58,14 @@ class RugbyHaptics {
         return false;
     }
 
+    function fireResume() as Boolean {
+        if (Attention has :vibrate) {
+            Attention.vibrate([ new Attention.VibeProfile(85, 250) ]);
+            return true;
+        }
+        return false;
+    }
+
     function firePause() as Boolean {
         if (Attention has :vibrate) {
             Attention.vibrate([ new Attention.VibeProfile(70, 250), new Attention.VibeProfile(0, 120), new Attention.VibeProfile(70, 250) ]);

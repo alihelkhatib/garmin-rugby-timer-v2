@@ -20,6 +20,10 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
     function setController(controller as RugbyMatchController) as Void {
         _controller = controller;
     }
+
+    function setHaptics(haptics as RugbyHaptics) as Void {
+        _haptics = haptics;
+    }
 /* Handle primary button: confirm pending actions, start/pause/resume match and start recorder when match first starts. */
 
     function onSelect() as Boolean {
@@ -86,6 +90,7 @@ class RugbyTimerDelegate extends WatchUi.BehaviorDelegate {
         } else if (snap["pendingConfirmAction"] == null && stateEquals(cs, RUGBY_STATE_PAUSED)) {
             _recorder.start();
             _model.resume(now);
+            _haptics.fireResume();
         }
         if (shouldPersist && _controller != null) {
             _controller.persist(now);

@@ -43,6 +43,8 @@ A referee can record and correct scores, conversions, yellow cards, and red card
 8. **Given** a supported older watch whose runtime predates the `SPORT_RUGBY` API symbol, **When** it saves a match, **Then** it uses a supported field-sport compatibility type and Rugby Match name rather than an unsupported raw enum that may not enter the device sync pipeline.
 9. **Given** the pre-match screen, **When** GPS is acquiring, ready, or unavailable, **Then** the referee can see that state before kickoff while retaining the ability to start without a fix.
 10. **Given** an active yellow-card timer, **When** it reaches one minute remaining and later expires, **Then** the referee receives distinct one-shot warning and expiration vibration patterns; paused match time does not advance either threshold.
+11. **Given** a paused match, **When** the referee resumes it, **Then** the watch emits exactly one short confirmation vibration for that resume action.
+12. **Given** a match reaches or is manually moved to its ended state, **When** the ended screen and summary are shown, **Then** the main, conversion, and card timers return to their selected-variant starting values while the final score and event summary remain available.
 
 ---
 
@@ -128,6 +130,8 @@ A developer can understand the architecture, build supported targets, run meanin
 - **FR-029**: The activity recorder MUST request native rugby metadata where the runtime exposes it and MUST use the supported soccer/match compatibility metadata on older runtimes so device synchronization remains reliable; it MUST NOT submit an unsupported raw sport enum to those runtimes.
 - **FR-030**: The pre-match UI MUST show compact GPS acquiring, ready, or unavailable status without showing mileage and without preventing an indoor match from starting.
 - **FR-031**: Each active yellow card MUST produce one distinct near-expiry alert at 60 seconds remaining and one stronger expiration alert at zero, using active match time and preserving one-shot behavior across delayed callbacks.
+- **FR-032**: Resuming a paused match MUST produce exactly one short haptic confirmation per accepted resume action; invalid or repeated callbacks MUST NOT produce an additional resume haptic.
+- **FR-033**: Ending a match MUST reset the main period timer to the selected variant's original duration and clear active conversion/card timer projections without clearing the final score or event log needed by the summary and FIT save.
 
 ### Key Entities
 
@@ -160,6 +164,7 @@ A developer can understand the architecture, build supported targets, run meanin
 - **SC-013**: Automated tests cover event-label mapping, one-time event/correction export, and recovery priming; supported targets build with Sensor and FitContributor permissions, while physical-device validation confirms heart-rate samples and Garmin Connect/FIT visibility.
 - **SC-014**: A Fēnix 6 FIT inspection reports supported soccer/match compatibility metadata with the Rugby Match name and successfully enters Garmin Connect; a moving outdoor test started after `GPS READY` contains native position records that Garmin Connect renders as a map.
 - **SC-015**: Automated timing tests prove yellow-card warning and expiry events fire once each, and simulator/device checks distinguish their vibration patterns.
+- **SC-016**: Automated delegate/model tests prove one resume haptic call per paused-to-running transition and prove manual plus automatic match completion restore timer defaults while retaining final scores and events.
 
 ## Assumptions
 

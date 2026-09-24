@@ -53,6 +53,20 @@ class IdleTimerControlsTestRecorder {
     }
 }
 
+class IdleTimerControlsTestHaptics extends RugbyHaptics {
+    var resumeCount;
+
+    function initialize() {
+        RugbyHaptics.initialize();
+        resumeCount = 0;
+    }
+
+    function fireResume() {
+        resumeCount += 1;
+        return true;
+    }
+}
+
 function newIdleTimerControlsModel() {
     return new RugbyGameModel(RugbyVariantConfig.defaultSetup(RUGBY_VARIANT_FIFTEENS));
 }
@@ -127,6 +141,24 @@ function testIdlePhysicalStartKeyBeginsMatch(logger) {
 
     Test.assertEqual(RUGBY_STATE_RUNNING, snap["clockState"]);
     Test.assertEqual((35 * 60) - 60, snap["mainCountdownSeconds"]);
+    return true;
+}
+
+(:test)
+function testPausedTimerResumeFiresOneConfirmationHaptic(logger) {
+    var model = newIdleTimerControlsModel();
+    var delegate = newIdleTimerControlsDelegate(model);
+    var haptics = new IdleTimerControlsTestHaptics();
+    delegate.setHaptics(haptics);
+
+    model.startMatch(0);
+    model.pause(1000);
+    Test.assertEqual(true, delegate.selectAction());
+    Test.assertEqual(RUGBY_STATE_RUNNING, model.snapshot(System.getTimer())["clockState"]);
+    Test.assertEqual(1, haptics.resumeCount);
+
+    Test.assertEqual(true, delegate.selectAction());
+    Test.assertEqual(1, haptics.resumeCount);
     return true;
 }
 

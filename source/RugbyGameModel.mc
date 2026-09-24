@@ -218,7 +218,7 @@ class RugbyGameModel {
         _clockState = RUGBY_STATE_MATCH_ENDED;
         _pendingConfirmAction = null;
         _summaryVisible = true;
-        expireActiveTimers(nowMs);
+        resetTimersAfterMatchEnd(nowMs);
     }
 
     function resetMatch() as Void {
@@ -733,21 +733,15 @@ class RugbyGameModel {
             }
         }
     }
-/* Force-disable conversion and active yellow timers when match ends. */
+/* Restore timer projections after completion while preserving result/history. */
 
-    function expireActiveTimers(nowMs as Number) as Void {
-        if (_conversionTimer != null) {
-            _conversionTimer["active"] = false;
-        }
-        for (var i = 0; i < _sanctions.size(); i += 1) {
-            var sanction = _sanctions[i] as Dictionary;
-            if (valueEquals(sanction["cardType"], RUGBY_CARD_YELLOW) && valueEquals(sanction["state"], "active")) {
-                sanction["state"] = "expired";
-                // Match completion is not a natural card expiry and should not
-                // trigger a misleading expiry vibration on the summary screen.
-                sanction["expiryAlertFired"] = true;
-            }
-        }
+    function resetTimersAfterMatchEnd(nowMs as Number) as Void {
+        _setup["halfIndex"] = 1;
+        _setup["activeElapsedMs"] = 0;
+        _setup["halfStartedAtMs"] = nowMs;
+        _completedMatchMs = 0;
+        _conversionTimer = null;
+        _sanctions = [] as Array<Dictionary>;
     }
 
     function pauseForCardIfRunning(nowMs as Number, cardType as String) as Boolean {

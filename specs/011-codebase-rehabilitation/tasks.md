@@ -150,6 +150,9 @@
 - [x] T067 [US2] Add regression tests for legacy supported-sport fallback and one-shot yellow-card warning/expiration events and patterns in `tests/Test_RugbyActivityRecorder.mc` and `tests/Test_RugbyGameModel.mc`
 - [x] T068 [US2] Use soccer/match compatibility metadata on pre-4.1.6 runtimes and implement distinct yellow-card warning/expiration vibrations in `source/RugbyActivityRecorder.mc`, `source/RugbyGameModel.mc`, `source/RugbyHaptics.mc`, and `source/RugbyTimerView.mc`
 - [ ] T069 [US4] Compare decoded Rugby Timer and FC Timer FIT structure, validate physical save/sync/GPS behavior, rebuild all targets, and redeploy the compatibility build
+- [x] T070 [US1] Add regression tests for exactly one paused-to-running haptic and ended-match timer reset with retained score/event summary in `tests/Test_RugbyIdleTimerControls.mc` and `tests/Test_RugbyGameModel.mc`
+- [x] T071 [US1] Implement a single resume haptic and reset all timer projections on manual or automatic match end without clearing final match data in `source/RugbyTimerDelegate.mc`, `source/RugbyHaptics.mc`, and `source/RugbyGameModel.mc`
+- [x] T072 [US4] Re-run the complete build/test matrix, document the behavior, commit and push, then redeploy the verified Fēnix 6 binary
 
 ---
 
