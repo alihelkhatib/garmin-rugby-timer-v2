@@ -15,6 +15,8 @@ Features include:
 - Haptic reminders for paused match time and key timer alerts
 - Half-time transition support
 - Post-match event summary
-- Garmin activity recording where supported by the device
+- Garmin activity recording with GPS route, distance, and available heart-rate samples
+- Rugby scores, conversions, cards, and corrections exported as activity-lap developer fields where supported
+- Recoverable Exit & save and confirmed terminal Stop & exit actions
 
-Built for simple in-match use: quick buttons, readable match state, and no account or network dependency.
+Built for simple in-match use: quick buttons, readable match state, and no app account or network dependency. Garmin Connect does not provide native rugby-event semantics, so exported events appear as activity laps/custom fields in compatible clients.

@@ -9,4 +9,6 @@ Initial release of Rugby Timer.
 - Added yellow-card countdowns and red-card indicators
 - Added paused-time haptic reminders and timer alerts
 - Added post-match event summary
-- Added Garmin activity recording support on compatible devices
+- Added Garmin activity recording with GPS route, distance, and heart rate on compatible devices
+- Added best-effort rugby event export as activity-lap developer fields
+- Added recoverable Exit & save and confirmed Stop & exit controls
